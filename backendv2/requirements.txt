@@ -1,0 +1,20 @@
+Django>=5.0,<6.0
+djangorestframework>=3.15,<4.0
+
+# CORS for frontend -> backend requests
+django-cors-headers>=4.3,<5.0
+
+# Image handling (needed if you ever validate/process uploads; safe to include now)
+Pillow>=10.0,<12.0
+
+# Optional but recommended for environment variables (.env)
+python-dotenv>=1.0,<2.0
+
+# Optional but recommended for production server
+gunicorn>=21.2,<23.0
+whitenoise>=6.6,<7.0
+
+# Optional but recommended for Postgres in production (skip if staying SQLite)
+psycopg[binary]>=3.1,<4.0
+
+django-json-widget>=1.1,<2.0
