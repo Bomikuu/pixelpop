@@ -15,21 +15,21 @@ export default function App() {
       <OverlayHost />
 
       <div className="w-screen">
-              <Routes>
-        <Route path="/ui" element={<UiKitPage />} />
-        <Route path="/overlay-playground" element={<OverlayPlayground />} />
-        <Route path="/portfolio" element={<PortfolioRetro />} />
-        <Route path="/scene-engine" element={<SceneEngineDemo />} />
-        <Route path="/flow-editor" element={<FlowEditorPage />} />
-        <Route path="/demo-all" element={<DemoAll />} />
-        <Route path="/date-planner" element={<DatePlannerPage />} />
-        {/* <Route path="/flow-author" element={<FlowAuthoring />} /> */}
+        <Routes>
+          <Route path="/ui" element={<UiKitPage />} />
+          <Route path="/overlay-playground" element={<OverlayPlayground />} />
+          <Route path="/portfolio" element={<PortfolioRetro />} />
+          <Route path="/scene-engine" element={<SceneEngineDemo />} />
+          <Route path="/flow-editor" element={<FlowEditorPage />} />
+          <Route path="/demo-all" element={<DemoAll />} />
+          <Route path="/date-planner" element={<DatePlannerPage />} />
+          {/* <Route path="/flow-author" element={<FlowAuthoring />} /> */}
 
-        {/* default */}
-        <Route path="/" element={<Navigate to="/ui" replace />} />
-        {/* fallback */}
-        <Route path="*" element={<Navigate to="/ui" replace />} />
-      </Routes>
+          {/* default */}
+          <Route path="/" element={<Navigate to="/date-planner" replace />} />
+          {/* fallback */}
+          <Route path="*" element={<Navigate to="/date-planner" replace />} />
+        </Routes>
       </div>
 
     </BrowserRouter>

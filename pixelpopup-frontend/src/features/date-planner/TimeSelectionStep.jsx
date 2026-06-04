@@ -1,14 +1,16 @@
 import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
+import OptionCarousel from "./OptionCarousel";
 
 /**
  * TimeSelectionStep — "What time are you available?"
  *
- * Shows time pills, custom time input, optional note, and save button.
+ * Shows time pills or carousel (5+ options), custom time input, optional note, and save button.
+ * Includes a back button.
  *
- * @param {{ config: object, answers: object, onUpdate: (updates: object) => void, onNext: () => void }} props
+ * @param {{ config: object, answers: object, onUpdate: (updates: object) => void, onNext: () => void, onBack: () => void }} props
  */
-export default function TimeSelectionStep({ config, answers, onUpdate, onNext }) {
+export default function TimeSelectionStep({ config, answers, onUpdate, onNext, onBack }) {
   const { timeStep = {} } = config;
   const [showCustom, setShowCustom] = useState(answers.time === "__custom__");
 
@@ -17,6 +19,8 @@ export default function TimeSelectionStep({ config, answers, onUpdate, onNext })
   const note = answers.note || "";
 
   const canProceed = selectedTime === "__custom__" ? !!customTime : !!selectedTime;
+
+  const timeOptions = timeStep.options || [];
 
   const handleSelectTime = useCallback(
     (timeId) => {
@@ -49,6 +53,12 @@ export default function TimeSelectionStep({ config, answers, onUpdate, onNext })
     if (canProceed) onNext();
   }, [canProceed, onNext]);
 
+  // For carousel mode — wrap time options as toggleable
+  const handleTimeToggleForCarousel = useCallback(
+    (id) => handleSelectTime(id),
+    [handleSelectTime]
+  );
+
   return (
     <motion.div
       className="dp-time-modal"
@@ -61,37 +71,51 @@ export default function TimeSelectionStep({ config, answers, onUpdate, onNext })
       <h2 className="dp-time-title">{timeStep.question || "What time are you available?"}</h2>
       <p className="dp-time-subtitle">{timeStep.subtitle || "Choose a time that works for you."}</p>
 
-      {/* Time pills */}
-      <div className="dp-time-options">
-        {(timeStep.options || []).map((opt) => (
-          <motion.button
-            key={opt.id}
-            type="button"
-            className={`dp-time-pill ${selectedTime === opt.id ? "dp-time-pill--selected" : ""}`}
-            onClick={() => handleSelectTime(opt.id)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span>{opt.icon}</span>
-            <span>{opt.label}</span>
-          </motion.button>
-        ))}
+      {/* Time pills or carousel if 5+ */}
+      {timeOptions.length === 0 ? (
+        <div className="dp-empty-options">
+          <span className="dp-empty-options-icon">🕐</span>
+          <p>No choices to be chosen from</p>
+        </div>
+      ) : timeOptions.length >= 5 ? (
+        <OptionCarousel
+          items={timeOptions}
+          selected={selectedTime}
+          onToggle={handleTimeToggleForCarousel}
+          type="detail"
+        />
+      ) : (
+        <div className="dp-time-options">
+          {timeOptions.map((opt) => (
+            <motion.button
+              key={opt.id}
+              type="button"
+              className={`dp-time-pill ${selectedTime === opt.id ? "dp-time-pill--selected" : ""}`}
+              onClick={() => handleSelectTime(opt.id)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>{opt.icon}</span>
+              <span>{opt.label}</span>
+            </motion.button>
+          ))}
 
-        {timeStep.allowCustom && (
-          <motion.button
-            type="button"
-            className={`dp-time-pill dp-time-pill--custom ${
-              selectedTime === "__custom__" ? "dp-time-pill--selected" : ""
-            }`}
-            onClick={() => handleSelectTime("__custom__")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span>{timeStep.customIcon || "⏰"}</span>
-            <span>{timeStep.customLabel || "Custom time"}</span>
-          </motion.button>
-        )}
-      </div>
+          {timeStep.allowCustom && (
+            <motion.button
+              type="button"
+              className={`dp-time-pill dp-time-pill--custom ${
+                selectedTime === "__custom__" ? "dp-time-pill--selected" : ""
+              }`}
+              onClick={() => handleSelectTime("__custom__")}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>{timeStep.customIcon || "⏰"}</span>
+              <span>{timeStep.customLabel || "Custom time"}</span>
+            </motion.button>
+          )}
+        </div>
+      )}
 
       {/* Custom time input */}
       {showCustom && (
@@ -127,17 +151,28 @@ export default function TimeSelectionStep({ config, answers, onUpdate, onNext })
         </div>
       )}
 
-      {/* Save button */}
-      <button
-        className="dp-btn dp-btn--primary dp-btn--full"
-        disabled={!canProceed}
-        onClick={handleSave}
-        type="button"
-        id="dp-btn-save-time"
-      >
-        <span className="dp-btn-icon">{timeStep.saveButtonIcon || "💗"}</span>
-        {timeStep.saveButtonText || "Save Time"}
-      </button>
+      {/* Navigation */}
+      <div className="dp-step-nav">
+        <button
+          className="dp-btn dp-btn--secondary dp-btn--sm"
+          onClick={onBack}
+          type="button"
+          id="dp-btn-time-back"
+        >
+          ← Back
+        </button>
+        <button
+          className="dp-btn dp-btn--primary dp-btn--full"
+          disabled={!canProceed}
+          onClick={handleSave}
+          type="button"
+          id="dp-btn-save-time"
+          style={{ flex: 1 }}
+        >
+          <span className="dp-btn-icon">{timeStep.saveButtonIcon || "💗"}</span>
+          {timeStep.saveButtonText || "Save Time"}
+        </button>
+      </div>
     </motion.div>
   );
 }

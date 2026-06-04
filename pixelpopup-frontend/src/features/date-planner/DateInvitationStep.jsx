@@ -9,9 +9,14 @@ import { motion, AnimatePresence } from "framer-motion";
  * - "Yes" triggers confetti + advances.
  * - Heart between avatars is optional via config.
  *
- * @param {{ config: object, onAccept: () => void, triggerEffect: (type: string, payload?: object) => void }} props
+ * @param {{ config: object, onAccept: () => void, triggerEffect: (type: string, payload?: object) => void, onOpenProfile?: (user: object) => void }} props
  */
-export default function DateInvitationStep({ config, onAccept, triggerEffect }) {
+export default function DateInvitationStep({
+  config,
+  onAccept,
+  triggerEffect,
+  onOpenProfile,
+}) {
   const [showNoPopup, setShowNoPopup] = useState(false);
 
   const { invitation = {}, users = [] } = config;
@@ -21,9 +26,16 @@ export default function DateInvitationStep({ config, onAccept, triggerEffect }) 
   const noPopup = invitation.noPopup || {};
 
   const handleYes = useCallback(() => {
-    // Trigger confetti and success sound
-    triggerEffect?.("confetti", { particleCount: 150, spread: 80, origin: { x: 0.5, y: 0.6 } });
-    triggerEffect?.("sfx", { name: "success", volume: 0.04 });
+    triggerEffect?.("confetti", {
+      particleCount: 150,
+      spread: 80,
+      origin: { x: 0.5, y: 0.6 },
+    });
+
+    triggerEffect?.("sfx", {
+      name: "success",
+      volume: 0.04,
+    });
 
     setTimeout(() => {
       onAccept?.();
@@ -31,65 +43,102 @@ export default function DateInvitationStep({ config, onAccept, triggerEffect }) 
   }, [onAccept, triggerEffect]);
 
   const handleNo = useCallback(() => {
-    // Show cute popup
-    triggerEffect?.("shake", { ms: 300, intensity: 3 });
+    triggerEffect?.("shake", {
+      ms: 300,
+      intensity: 3,
+    });
+
     setShowNoPopup(true);
   }, [triggerEffect]);
 
-  const questionLines = (invitation.question || "Go out with me\nthis Saturday?").split("\n");
+  const questionLines = (
+    invitation.question || "Go out with me\nthis Saturday?"
+  ).split("\n");
+
+  const avatarClassName =
+    "h-40 w-40 cursor-pointer rounded-full border-[5px] border-[var(--dp-primary-light)] bg-[var(--dp-primary-pale)] object-cover object-center shadow-[0_8px_28px_rgba(0,0,0,0.12)] transition-all duration-200 hover:scale-105 hover:shadow-[0_0_0_4px_var(--dp-primary),0_10px_28px_rgba(255,92,138,0.28)] max-md:h-32 max-md:w-32 max-sm:h-24 max-sm:w-24";
 
   return (
     <motion.div
-      className="dp-invitation"
+      className="text-center"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
     >
       {/* Avatars */}
-      <div className="dp-avatars">
-        <div className="dp-avatar-wrapper">
+      <div className="mb-8 flex items-center justify-center gap-6 max-sm:gap-4">
+        <div className="relative flex items-center justify-center">
           <motion.img
-            className="dp-avatar"
+            className={avatarClassName}
             src={user1.avatar}
             alt={user1.name}
             draggable={false}
             initial={{ x: -30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (user1.disabled) return;
+              onOpenProfile?.(user1);
+            }}
+            title={`View ${user1.name}'s profile`}
           />
-          <span className="dp-avatar-heart dp-avatar-heart--top" style={{ animationDelay: "0.3s" }}>💗</span>
+
+          <span
+            className="absolute -right-2 -top-3 animate-[dp-float_2s_ease-in-out_infinite] text-xl"
+            style={{ animationDelay: "0.3s" }}
+          >
+            ✨
+          </span>
         </div>
 
         {showHeart && (
-          <div className="dp-avatar-connector">
+          <div className="flex flex-col items-center gap-1">
             <motion.span
-              className="dp-avatar-connector-heart"
+              className="animate-[dp-heartbeat_1.2s_ease-in-out_infinite] text-3xl text-[var(--dp-primary)]"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: 0.5, type: "spring", stiffness: 300 }}
+              transition={{
+                delay: 0.5,
+                type: "spring",
+                stiffness: 300,
+              }}
             >
-              💕
+              ✨
             </motion.span>
-            <div className="dp-avatar-connector-dots">
-              <span className="dp-avatar-connector-dot" />
-              <span className="dp-avatar-connector-dot" />
-              <span className="dp-avatar-connector-dot" />
+
+            <div className="flex gap-1">
+              <span className="h-1 w-1 rounded-full bg-[var(--dp-primary-light)]" />
+              <span className="h-1 w-1 rounded-full bg-[var(--dp-primary-light)]" />
+              <span className="h-1 w-1 rounded-full bg-[var(--dp-primary-light)]" />
             </div>
           </div>
         )}
 
-        <div className="dp-avatar-wrapper">
+        <div className="relative flex items-center justify-center">
           <motion.img
-            className="dp-avatar"
+            className={avatarClassName}
             src={user2.avatar}
             alt={user2.name}
             draggable={false}
             initial={{ x: 30, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (user2.disabled) return;
+              onOpenProfile?.(user2);
+            }}
+            title={`View ${user2.name}'s profile`}
           />
-          <span className="dp-avatar-heart dp-avatar-heart--bottom" style={{ animationDelay: "0.6s" }}>💗</span>
+
+          <span
+            className="absolute -bottom-1 -left-2 animate-[dp-float_2s_ease-in-out_infinite] text-xl"
+            style={{ animationDelay: "0.6s" }}
+          >
+            ✨
+          </span>
         </div>
       </div>
 
@@ -99,12 +148,26 @@ export default function DateInvitationStep({ config, onAccept, triggerEffect }) 
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        <h1 className="dp-invitation-title">
-          <span className="dp-invitation-hearts">♡ </span>
+        {/* Greeting */}
+        {user2.name && (
+          <motion.p
+            className="mb-2 text-[1.35rem] font-bold text-[var(--dp-text-light)] max-md:text-lg"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.4 }}
+          >
+            Hi,{" "}
+            <span className="text-[var(--dp-primary)]">{user2.name}</span>
+          </motion.p>
+        )}
+
+        <h1 className="mb-3 text-[2.6rem] font-black leading-[1.25] text-[var(--dp-text)] max-md:text-[2rem]">
+          <span className="text-base text-[var(--dp-primary-light)]">♡ </span>
+
           {questionLines.map((line, i) => (
             <React.Fragment key={i}>
               {i === questionLines.length - 1 ? (
-                <span>{line}</span>
+                <span className="text-[var(--dp-primary)]">{line}</span>
               ) : (
                 <>
                   {line}
@@ -113,71 +176,84 @@ export default function DateInvitationStep({ config, onAccept, triggerEffect }) 
               )}
             </React.Fragment>
           ))}
-          <span className="dp-invitation-hearts"> ♡</span>
+
+          <span className="text-base text-[var(--dp-primary-light)]"> ♡</span>
         </h1>
 
-        <p className="dp-invitation-subtitle">{invitation.subtitle}</p>
+        <p className="mb-8 text-[1.1rem] font-medium text-[var(--dp-text-light)] max-md:text-sm">
+          {invitation.subtitle}
+        </p>
       </motion.div>
 
       {/* Buttons */}
       <motion.div
-        className="dp-invitation-buttons"
+        className="flex items-center justify-center gap-4 max-md:flex-col max-md:gap-3"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.4 }}
       >
-        <button
-          className="dp-btn dp-btn--secondary dp-btn--lg"
+        <div
+          className="inline-flex items-center justify-center gap-2 border-[2.5px] border-[var(--dp-border)] bg-white px-12 py-4 text-[1.1rem] font-bold leading-tight text-[var(--dp-text)] shadow-[var(--dp-shadow-card)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--dp-primary-light)] hover:shadow-[var(--dp-shadow)] active:scale-95 max-md:w-full max-md:max-w-[280px] cursor-pointer"
           onClick={handleNo}
-          type="button"
           id="dp-btn-no"
         >
-          <span className="dp-btn-icon">✕</span>
+          <span className="text-[1.1em]">✕</span>
           {invitation.noText || "No"}
-        </button>
+        </div>
 
-        <button
-          className="dp-btn dp-btn--primary dp-btn--lg"
+        <div
+          className="inline-flex items-center justify-center gap-2 border-[2.5px] border-[var(--dp-primary)] bg-[var(--dp-primary)] px-12 py-4 text-[1.1rem] font-bold leading-tight text-white shadow-[var(--dp-shadow)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[var(--dp-shadow-lg)] active:scale-95 max-md:w-full max-md:max-w-[280px] cursor-pointer"
           onClick={handleYes}
-          type="button"
           id="dp-btn-yes"
         >
-          <span className="dp-btn-icon">💗</span>
+          <span className="text-[1.1em]">💗</span>
           {invitation.yesText || "Yes"}
-        </button>
+        </div>
       </motion.div>
 
       {/* "No" Popup */}
       <AnimatePresence>
         {showNoPopup && (
           <motion.div
-            className="dp-popup-overlay"
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/35 backdrop-blur"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowNoPopup(false)}
           >
             <motion.div
-              className="dp-popup"
+              className="w-[90%] max-w-[380px] bg-white px-8 py-8 text-center shadow-[var(--dp-shadow-lg)]"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="dp-popup-emoji">{noPopup.emoji || "🥺"}</div>
-              <div className="dp-popup-title">{noPopup.title || "Are you sure?"}</div>
-              <div className="dp-popup-message" style={{ whiteSpace: "pre-line" }}>
+              <div className="mb-3 text-5xl">{noPopup.emoji || "🥺"}</div>
+
+              <div className="mb-2 text-lg font-extrabold text-[var(--dp-text)]">
+                {noPopup.title || "Are you sure?"}
+              </div>
+
+              <div
+                className="mb-5 text-sm font-medium leading-relaxed text-[var(--dp-text-light)]"
+                style={{ whiteSpace: "pre-line" }}
+              >
                 {noPopup.message || "Maybe think about it one more time?"}
               </div>
-              <button
-                className="dp-popup-btn"
+
+              <div
+                className="inline-flex items-center gap-1.5 bg-[var(--dp-primary)] px-8 py-3 text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[var(--dp-shadow-lg)]"
                 onClick={() => setShowNoPopup(false)}
                 type="button"
                 id="dp-popup-dismiss"
               >
                 {noPopup.buttonText || "Okay, let me reconsider 💗"}
-              </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

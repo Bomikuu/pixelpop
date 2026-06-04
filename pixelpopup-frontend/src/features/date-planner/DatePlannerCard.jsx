@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 /**
  * DatePlannerCard — Reusable selectable card for activities, cuisines, movies, matcha places.
  *
- * @param {{ selected: boolean, onClick: () => void, image: string, label: string, description?: string, genre?: string, small?: boolean, showMore?: boolean }} props
+ * @param {{ selected: boolean, onClick: () => void, image: string, label: string, description?: string, genre?: string, small?: boolean, large?: boolean, showMore?: boolean }} props
  */
 export default function DatePlannerCard({
   selected = false,
@@ -14,6 +14,7 @@ export default function DatePlannerCard({
   description,
   genre,
   small = false,
+  large = false,
   showMore = false,
 }) {
   if (showMore) {
@@ -32,7 +33,7 @@ export default function DatePlannerCard({
 
   return (
     <motion.div
-      className={`dp-card ${small ? "dp-card--small" : ""} ${selected ? "dp-card--selected" : ""}`}
+      className={`dp-card ${small ? "dp-card--small" : ""} ${large ? "dp-card--large" : ""} ${selected ? "dp-card--selected" : ""}`}
       onClick={onClick}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}

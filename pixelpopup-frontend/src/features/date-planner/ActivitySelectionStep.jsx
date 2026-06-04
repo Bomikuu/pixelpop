@@ -9,7 +9,7 @@ import DatePlannerCard from "./DatePlannerCard";
  *
  * @param {{ config: object, answers: object, onUpdate: (updates: object) => void, onNext: () => void }} props
  */
-export default function ActivitySelectionStep({ config, answers, onUpdate, onNext }) {
+export default function ActivitySelectionStep({ config, answers, onUpdate, onNext, onBack }) {
   const { activityStep = {}, activities = [] } = config;
   const selected = answers.activities || [];
 
@@ -76,7 +76,15 @@ export default function ActivitySelectionStep({ config, answers, onUpdate, onNex
         ))}
       </motion.div>
 
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      <div className="dp-step-nav">
+        <button
+          className="dp-btn dp-btn--secondary dp-btn--sm"
+          onClick={onBack}
+          type="button"
+          id="dp-btn-activity-back"
+        >
+          ← Back
+        </button>
         <button
           className="dp-btn dp-btn--primary dp-btn--lg"
           disabled={!canProceed}
