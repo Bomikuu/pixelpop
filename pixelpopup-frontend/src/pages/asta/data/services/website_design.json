@@ -1,0 +1,36 @@
+{
+  "id": "website-design",
+  "slug": "website-design",
+  "title": "Website Design",
+  "menuDescription": "Clear, responsive interfaces shaped around your brand and customer journey.",
+  "summary": "Design a clear, responsive website that reflects your brand and guides customers toward the right action.",
+  "icon": "palette",
+  "order": 1,
+  "overview": {
+    "title": "Turn your website into a useful part of the customer journey.",
+    "paragraphs": [
+      "We map the decisions your visitors need to make, then shape the content, navigation, and interface around those decisions.",
+      "The result is a practical design system your team can build, maintain, and extend without losing consistency."
+    ]
+  },
+  "features": [
+    { "id": "journey", "icon": "route", "title": "Customer journey planning", "description": "Content and navigation organized around real visitor questions and business goals." },
+    { "id": "responsive", "icon": "smartphone", "title": "Responsive interface systems", "description": "Layouts designed to remain clear and usable across desktop, tablet, and mobile." },
+    { "id": "accessible", "icon": "accessibility", "title": "Accessible interactions", "description": "Readable hierarchy, keyboard support, and interface states considered from the start." },
+    { "id": "content", "icon": "layout", "title": "Content hierarchy", "description": "A page structure that makes important information easy to scan and understand." },
+    { "id": "brand", "icon": "sparkles", "title": "Brand integration", "description": "Typography, color, imagery, and components brought together into one coherent visual language." },
+    { "id": "handoff", "icon": "file-check", "title": "Build-ready handoff", "description": "Documented screens, components, and responsive behavior ready for engineering." }
+  ],
+  "banner": {
+    "title": "Need a website that works as clearly as your business does?",
+    "description": "Tell us what your customers need to understand and what your team needs the site to accomplish.",
+    "ctaLabel": "Start a website project"
+  },
+  "faqs": [
+    { "id": "timeline", "question": "How long does a website design engagement take?", "answer": "Timing depends on the number of pages, content readiness, and review process. We confirm the scope and delivery plan after discovery so your team has a realistic schedule." },
+    { "id": "development", "question": "Can ASTA also build the website?", "answer": "Yes. Design and development can be delivered as one engagement, or we can prepare a build-ready design system for your internal or partner engineering team." },
+    { "id": "revisions", "question": "How are design revisions handled?", "answer": "We agree on review points before work begins. Feedback is grouped by milestone so decisions stay clear and revisions remain tied to the approved goals." },
+    { "id": "content", "question": "Do we need finished content before starting?", "answer": "Not always. Early content direction is useful, but we can begin with structure and priority. Final copy and imagery should be available before the final design pass." },
+    { "id": "inputs", "question": "What do you need from our team?", "answer": "We usually need a business overview, target users, brand materials, current pain points, and access to relevant analytics or customer feedback when available." }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "speed-optimization-seo",
+  "slug": "speed-optimization-seo",
+  "title": "Speed Optimization and SEO",
+  "menuDescription": "Technical improvements for Core Web Vitals, indexing, and measurable search journeys.",
+  "summary": "Improve how quickly your site responds and how clearly search systems can understand its content.",
+  "icon": "gauge",
+  "order": 6,
+  "overview": {
+    "title": "Connect performance work to real pages, search journeys, and business priorities.",
+    "paragraphs": [
+      "We review rendering, assets, templates, metadata, structured content, and indexing signals to identify the highest-value technical work.",
+      "Recommendations are prioritized by user impact, implementation risk, and what your team can measure after release."
+    ]
+  },
+  "features": [
+    { "id": "vitals", "icon": "gauge", "title": "Core Web Vitals review", "description": "Field and lab signals examined to identify the main causes of slow or unstable experiences." },
+    { "id": "rendering", "icon": "monitor-cog", "title": "Rendering improvements", "description": "Frontend loading, code delivery, imagery, and third-party work reviewed for practical gains." },
+    { "id": "technical", "icon": "search-check", "title": "Technical SEO", "description": "Crawlability, indexability, canonicals, redirects, and template behavior checked systematically." },
+    { "id": "metadata", "icon": "tags", "title": "Metadata and structure", "description": "Page titles, descriptions, headings, and structured data aligned with page purpose." },
+    { "id": "measurement", "icon": "chart-no-axes-combined", "title": "Measurement plan", "description": "Search, analytics, and behavior signals organized around the outcomes the team needs to track." },
+    { "id": "priorities", "icon": "list-checks", "title": "Prioritized roadmap", "description": "Findings grouped into immediate fixes, planned improvements, and longer-term opportunities." }
+  ],
+  "banner": {
+    "title": "Want a technical growth plan your team can actually execute?",
+    "description": "Share the priority pages, available data, and current constraints. We will identify the most useful starting point.",
+    "ctaLabel": "Request a performance review"
+  },
+  "faqs": [
+    { "id": "ranking", "question": "Can you guarantee search rankings?", "answer": "No. Rankings depend on competition, content, authority, technical quality, and search-system changes. We focus on measurable technical improvements and clear search fundamentals." },
+    { "id": "data", "question": "Which data is useful for an audit?", "answer": "Search Console, analytics, performance monitoring, crawl data, release history, and the business priority of key pages all help us make better recommendations." },
+    { "id": "redesign", "question": "Do we need a full redesign to improve speed?", "answer": "Usually not. Many performance issues can be addressed through targeted changes to assets, rendering, templates, code delivery, and third-party scripts." },
+    { "id": "content", "question": "Do you also write SEO content?", "answer": "Our focus is the technical and product foundation. We can help define page intent, structure, and measurement, then collaborate with your internal or specialist content team." },
+    { "id": "measure", "question": "How do you measure improvement?", "answer": "The measurement plan is agreed before changes. Depending on the goal, it may include Core Web Vitals, crawl and indexing signals, search visibility, qualified visits, and conversion behavior." }
+  ]
+}

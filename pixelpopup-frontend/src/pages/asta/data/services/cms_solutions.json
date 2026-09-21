@@ -1,0 +1,36 @@
+{
+  "id": "cms-solutions",
+  "slug": "cms-solutions",
+  "title": "CMS Solutions",
+  "menuDescription": "Structured publishing systems that make content easier to manage safely.",
+  "summary": "Give your team a content system that matches how they publish, review, and maintain information.",
+  "icon": "panels",
+  "order": 3,
+  "overview": {
+    "title": "Make publishing predictable for editors and consistent for customers.",
+    "paragraphs": [
+      "We define content models, reusable page patterns, and editorial controls around the way your team actually works.",
+      "Whether the system is traditional, headless, or commerce-focused, the goal is a clear authoring experience without sacrificing frontend quality."
+    ]
+  },
+  "features": [
+    { "id": "model", "icon": "database", "title": "Content modeling", "description": "Reusable fields and relationships designed around the information your business manages." },
+    { "id": "workflow", "icon": "workflow", "title": "Editorial workflow", "description": "Roles, review steps, and publishing controls aligned with your content process." },
+    { "id": "templates", "icon": "layout", "title": "Reusable templates", "description": "Flexible page patterns that protect consistency while giving editors useful control." },
+    { "id": "migration", "icon": "import", "title": "Content migration", "description": "A planned approach for moving existing pages and data into the new structure." },
+    { "id": "integration", "icon": "plug", "title": "System integrations", "description": "Connections to commerce, CRM, analytics, search, and other operational tools." },
+    { "id": "training", "icon": "book-open", "title": "Editor handover", "description": "Practical guidance so content owners know how to publish and maintain the system." }
+  ],
+  "banner": {
+    "title": "Is your current CMS slowing down the people who use it?",
+    "description": "Show us the publishing workflow and recurring pain points. We will map a cleaner content operation.",
+    "ctaLabel": "Review our CMS needs"
+  },
+  "faqs": [
+    { "id": "platforms", "question": "Which CMS platforms can you work with?", "answer": "The right platform depends on publishing, integration, governance, and hosting needs. We can evaluate established systems and headless approaches before recommending a direction." },
+    { "id": "migration", "question": "Can you migrate our existing content?", "answer": "Yes. Migration is planned around content quality, volume, media, redirects, and ownership. We confirm what can be automated and what needs editorial review." },
+    { "id": "roles", "question": "Can different teams have different permissions?", "answer": "Where the selected platform supports it, we configure roles and publishing permissions around your governance requirements." },
+    { "id": "headless", "question": "Do we need a headless CMS?", "answer": "Not necessarily. Headless architecture can help when content must serve multiple products or frontend control is important, but it also adds operational complexity. We recommend it only when the use case supports it." },
+    { "id": "training", "question": "Will our content team receive training?", "answer": "A handover can include editor guidance, workflow documentation, and focused training for the people who will own publishing after launch." }
+  ]
+}

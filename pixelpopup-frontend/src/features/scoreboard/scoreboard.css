@@ -1,0 +1,111 @@
+.scoreboard-page {
+  background:
+    radial-gradient(circle at 15% 12%, rgba(125, 151, 128, 0.3), transparent 24rem),
+    linear-gradient(135deg, rgba(19, 42, 40, 0.8), transparent 46%),
+    #0c1718;
+  font-family: var(--pp-font);
+}
+
+.scoreboard-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.scoreboard-shell::before {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(235, 228, 201, 0.045) 3px 4px);
+  content: "";
+  pointer-events: none;
+}
+
+.scoreboard-titlebar {
+  background:
+    linear-gradient(90deg, rgba(67, 94, 83, 0.42), transparent 58%),
+    #263b3a;
+}
+
+.scoreboard-trackline {
+  background: #1d3030;
+}
+
+.scoreboard-driver-card {
+  min-height: 580px;
+  background:
+    linear-gradient(120deg, rgba(74, 111, 95, 0.82), transparent 45%),
+    linear-gradient(0deg, rgba(9, 20, 21, 0.92), transparent 58%),
+    #2f4a46;
+}
+
+.scoreboard-card-grid {
+  opacity: 0.18;
+  background:
+    linear-gradient(105deg, transparent 0 48%, rgba(234, 225, 190, 0.65) 48.5% 49%, transparent 49.5%),
+    linear-gradient(20deg, transparent 0 65%, rgba(234, 225, 190, 0.45) 65.5% 66%, transparent 66.5%),
+    repeating-linear-gradient(0deg, transparent 0 28px, rgba(234, 225, 190, 0.17) 29px 30px);
+  pointer-events: none;
+}
+
+.scoreboard-portrait-wrap {
+  box-shadow: 5px 5px 0 #0b1415;
+  transform: rotate(2deg);
+}
+
+.scoreboard-portrait-wrap img {
+  filter: saturate(0.72) contrast(1.08);
+  mix-blend-mode: multiply;
+}
+
+.scoreboard-row {
+  min-height: 58px;
+  border-radius: 0;
+  background: #263a3a !important;
+  box-shadow: 3px 3px 0 #0b1415;
+}
+
+.scoreboard-row:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #0b1415;
+}
+
+.scoreboard-row-selected {
+  border-color: #eee4c9;
+  background: var(--driver-accent) !important;
+  color: #182728;
+  box-shadow: 3px 3px 0 #0b1415;
+  animation: scoreboard-select 240ms ease-out;
+}
+
+.scoreboard-list {
+  max-height: 680px;
+  overflow-y: auto;
+  padding: 2px 4px 8px 2px;
+  scrollbar-color: #d2c6a1 #1d3030;
+}
+
+@keyframes scoreboard-select {
+  0% { transform: scale(0.985); }
+  70% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 1023px) {
+  .scoreboard-driver-card { min-height: 0; }
+}
+
+@media (max-width: 520px) {
+  .scoreboard-portrait-wrap {
+    height: 190px;
+    width: 125px;
+  }
+
+  .scoreboard-row {
+    min-height: 64px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scoreboard-row-selected { animation: none; }
+  .scoreboard-row { transition: none; }
+}

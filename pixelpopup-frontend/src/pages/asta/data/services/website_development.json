@@ -1,0 +1,36 @@
+{
+  "id": "website-development",
+  "slug": "website-development",
+  "title": "Website Development",
+  "menuDescription": "Maintainable web products built with practical frontend and backend architecture.",
+  "summary": "Build a reliable web experience with an architecture your team can understand, operate, and extend.",
+  "icon": "code",
+  "order": 2,
+  "overview": {
+    "title": "Build for the product you need now and the changes that come next.",
+    "paragraphs": [
+      "We translate approved product requirements into responsive interfaces, dependable integrations, and maintainable application code.",
+      "Architecture and delivery decisions are documented so future work does not depend on hidden knowledge."
+    ]
+  },
+  "features": [
+    { "id": "architecture", "icon": "blocks", "title": "Practical architecture", "description": "A project structure chosen for the product, team, and expected operating needs." },
+    { "id": "frontend", "icon": "monitor", "title": "Responsive frontend", "description": "Accessible interfaces engineered for real content, devices, and interaction states." },
+    { "id": "backend", "icon": "server", "title": "Backend and API work", "description": "Business logic, data access, and integrations built behind clear contracts." },
+    { "id": "quality", "icon": "badge-check", "title": "Quality controls", "description": "Focused checks for critical journeys, browser behavior, and release readiness." },
+    { "id": "performance", "icon": "gauge", "title": "Performance foundations", "description": "Asset, rendering, and delivery choices made with user-perceived speed in mind." },
+    { "id": "release", "icon": "rocket", "title": "Release support", "description": "Environment setup, deployment coordination, and a clear handover for ongoing ownership." }
+  ],
+  "banner": {
+    "title": "Have a product requirement ready for engineering?",
+    "description": "Bring us the workflow, constraints, and current stack. We will help turn them into a practical delivery plan.",
+    "ctaLabel": "Discuss the build"
+  },
+  "faqs": [
+    { "id": "stack", "question": "Which technologies do you use?", "answer": "We commonly work with React, Vue, Nuxt, TypeScript, Node.js, Django, Python, and relational databases. The final stack is selected around the product and team rather than a fixed package." },
+    { "id": "existing", "question": "Can you work with an existing codebase?", "answer": "Yes. We begin with a focused technical review to understand the current architecture, risks, conventions, and safe boundaries for change." },
+    { "id": "design", "question": "Do we need completed designs first?", "answer": "No. We can include product and interface design, work from your existing design system, or collaborate with your design partner." },
+    { "id": "ownership", "question": "Who owns the source code?", "answer": "Ownership and repository access are defined in the project agreement. Our normal delivery model is built around clear client access and a documented handover." },
+    { "id": "support", "question": "Can you continue after launch?", "answer": "Yes. Ongoing improvements and technical support can be scoped separately based on release cadence and the level of operational coverage required." }
+  ]
+}

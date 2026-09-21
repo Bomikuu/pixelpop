@@ -1,0 +1,1785 @@
+{
+  "page": {
+    "title": "Senior Interview Reference",
+    "description": "A practical interview handbook for senior frontend, full-stack, and technical leadership roles, grounded in Mico Ang's product work."
+  },
+  "navigation": [
+    { "id": "answer-frameworks", "label": "Answer frameworks" },
+    { "id": "project-stories", "label": "Project stories" },
+    { "id": "business-terms", "label": "Business and product terms" },
+    { "id": "system-design", "label": "System design" },
+    { "id": "incident-scenarios", "label": "Production incidents" },
+    { "id": "frontend-architecture", "label": "Frontend architecture" },
+    { "id": "backend-terms", "label": "Backend terms" },
+    { "id": "api-design", "label": "REST and GraphQL" },
+    { "id": "ui-ux", "label": "UI/UX and accessibility" },
+    { "id": "seo", "label": "SEO and analytics" },
+    { "id": "quality", "label": "Testing and quality" },
+    { "id": "security", "label": "Security" },
+    { "id": "security-diagrams", "label": "Security diagrams" },
+    { "id": "deployment", "label": "Deployment and DevOps" },
+    { "id": "cloud-computing", "label": "Cloud computing" },
+    { "id": "react", "label": "React" },
+    { "id": "vue-nuxt", "label": "Vue and Nuxt" },
+    { "id": "agile-delivery", "label": "Agile delivery" },
+    { "id": "leadership", "label": "Leadership" },
+    { "id": "ai-integration", "label": "AI integration" },
+    { "id": "product-thinking", "label": "Product thinking" },
+    { "id": "metrics", "label": "Metrics language" },
+    { "id": "courses", "label": "Video lessons" },
+    { "id": "weekly-routine", "label": "Weekly routine" }
+  ],
+  "answerFrameworks": [
+    {
+      "id": "technical",
+      "title": "Technical decision",
+      "formula": "Context → constraints → options → decision → trade-off → result",
+      "example": "Walkspan needed dense geospatial data without making the map unusable. I separated radius selection, establishment filters, and neighborhood scoring into distinct controls, then kept the map as the visual source of truth. The trade-off was more state coordination, but the interface stayed understandable as data density increased."
+    },
+    {
+      "id": "behavioral",
+      "title": "Behavioral story",
+      "formula": "Situation → task → action → result → reflection",
+      "example": "On a large multi-surface product, I aligned frontend, API, and product expectations before implementation. That reduced rework, made ownership clearer, and taught me to expose risks while decisions are still cheap to change."
+    },
+    {
+      "id": "system-design",
+      "title": "System design",
+      "formula": "Requirements → scale → data flow → failure modes → observability → trade-offs",
+      "example": "For a real-time restaurant order feed, I would clarify order volume and latency first, define the write path, add durable events for downstream displays, then design reconnection, idempotency, and monitoring before discussing technology choices."
+    }
+  ],
+  "projectStories": [
+    {
+      "id": "cortico-growth",
+      "title": "Cortico: growth, SEO, and performance",
+      "prompt": "Tell me about a project where frontend work affected business outcomes.",
+      "interviewerIntent": "They want evidence that you connect implementation quality to measurable product impact.",
+      "coreAnswer": "I worked across clinic discovery, CMS surfaces, technical SEO, analytics, and performance rather than treating the frontend as a presentation layer only.",
+      "exampleAnswer": "At Cortico, I helped build the frontend and clinic discovery experience while strengthening the technical SEO foundation. The supplied reporting showed 936K Search Console clicks, 137M impressions, 170.6K organic traffic, 36.4K organic keywords, and passed Core Web Vitals. I would describe those as team and product outcomes I contributed to, then explain the specific rendering, content, performance, and tracking decisions I owned.",
+      "terms": ["SSR and indexability", "Core Web Vitals", "structured content", "conversion instrumentation"],
+      "technologyExamples": ["Vue", "Nuxt", "Django", "Google Search Console", "Ahrefs", "Hotjar"],
+      "projectProof": "Use the verified reporting values and distinguish contribution from sole ownership.",
+      "commonMistake": "Listing the metrics without explaining which engineering decisions influenced them."
+    },
+    {
+      "id": "walkspan-geospatial",
+      "title": "Walkspan: geospatial product design",
+      "prompt": "Describe a complex interface you made understandable.",
+      "interviewerIntent": "They are testing state modeling, information hierarchy, and your ability to simplify complexity.",
+      "coreAnswer": "Walkspan combines radius-based discovery, establishment data, map interactions, comparison views, and qualitative neighborhood scores.",
+      "exampleAnswer": "I led the frontend for Walkspan. Users inspect establishments within 0.25, 0.5, and 1 mile and evaluate nature, architecture, energy, comfort, and quiet. I separated query state from display state, made the selected radius visually explicit, and kept comparison views consistent with the main map. That made a data-heavy workflow feel progressive instead of overwhelming.",
+      "terms": ["geospatial query", "derived state", "progressive disclosure", "map viewport"],
+      "technologyExamples": ["Vue", "Nuxt", "Mapbox", "REST APIs", "geospatial data"],
+      "projectProof": "Show the radius controls, establishment layers, and comparison screens.",
+      "commonMistake": "Talking only about the map library instead of the product decisions around it."
+    },
+    {
+      "id": "dineease-platform",
+      "title": "DineEase: multi-surface platform architecture",
+      "prompt": "How do you approach a product with many connected surfaces?",
+      "interviewerIntent": "They want to see boundary setting, sequencing, shared contracts, and operational thinking.",
+      "coreAnswer": "DineEase spans restaurant operations, staff, analytics, orders, kiosks, menu setup, and reporting, so shared domain rules matter more than isolated screens.",
+      "exampleAnswer": "For DineEase, I treat orders, menus, employees, and locations as domain capabilities with explicit contracts. Shared components handle presentation, but business rules stay close to their domain. Real-time feeds need reconnection and idempotency, while analytics can tolerate delayed processing. That lets each surface evolve without duplicating core rules.",
+      "terms": ["domain boundary", "idempotency", "event-driven updates", "role-based access"],
+      "technologyExamples": ["Vue", "Nuxt", "Django", "PostgreSQL", "WebSocket or SSE", "Docker"],
+      "projectProof": "Use order feed, kiosk, automated menu setup, employee management, and analytics as connected examples.",
+      "commonMistake": "Describing the feature list without explaining architecture or delivery sequencing."
+    },
+    {
+      "id": "asta-leadership",
+      "title": "ASTA: technical leadership and delivery",
+      "prompt": "What does technical leadership mean to you?",
+      "interviewerIntent": "They want to know how you improve decisions and team output beyond your own code.",
+      "coreAnswer": "As ASTA co-founder and technical lead, leadership means making scope, quality, ownership, and trade-offs visible.",
+      "exampleAnswer": "At ASTA, I help turn ambiguous business needs into product boundaries, delivery phases, and technical decisions. I lead frontend quality while staying close enough to backend and deployment concerns to unblock the whole build. My goal is not to make every decision; it is to make the decision process clear and help the team deliver reliably.",
+      "terms": ["technical direction", "risk management", "delegation", "delivery sequencing"],
+      "technologyExamples": ["architecture notes", "API contracts", "code review", "CI/CD", "observability"],
+      "projectProof": "Use DineEase and client delivery as examples of leading across product and engineering.",
+      "commonMistake": "Equating leadership with approving every implementation detail."
+    }
+  ],
+  "businessTermGroups": [
+    {
+      "id": "product-models",
+      "title": "Product and delivery models",
+      "description": "How software is packaged, validated, sold, and shared across customers.",
+      "items": [
+        {
+          "id": "saas",
+          "term": "SaaS",
+          "expanded": "Software as a Service",
+          "definition": "Software customers access over the internet, usually through a subscription or recurring commercial agreement.",
+          "businessValue": "The business can deliver updates centrally, serve many customers from one product, and build predictable recurring revenue.",
+          "examples": ["Salesforce", "HubSpot", "Shopify", "Notion", "Vercel"],
+          "portfolioExample": "DineEase is a useful SaaS architecture example because multiple restaurants can use shared product capabilities while keeping their users, menus, orders, and reporting isolated.",
+          "interviewExample": "I think about SaaS as an operating model, not just a hosted app. Tenant isolation, onboarding, permissions, billing, support, observability, and safe releases all affect the architecture."
+        },
+        {
+          "id": "mvp",
+          "term": "MVP",
+          "expanded": "Minimum Viable Product",
+          "definition": "The smallest product that can test a meaningful customer problem and produce evidence for the next decision.",
+          "businessValue": "It reduces the cost of learning and prevents teams from building a large feature set before validating the core workflow.",
+          "examples": ["prototype", "pilot release", "limited feature launch", "single-market rollout"],
+          "portfolioExample": "For a large platform such as DineEase, an MVP could validate menu setup, order capture, and a kitchen feed before expanding into deeper analytics and workforce management.",
+          "interviewExample": "I define an MVP around the riskiest assumption and a measurable outcome. It is not simply a lower-quality version of the final product."
+        },
+        {
+          "id": "multi-tenancy",
+          "term": "Tenant",
+          "expanded": "Multi-tenancy",
+          "definition": "One product serves multiple customer organizations while preserving clear data, authorization, and configuration boundaries.",
+          "businessValue": "Shared infrastructure lowers operating cost, but weak isolation can create serious security and trust failures.",
+          "examples": ["organization_id", "PostgreSQL row-level security", "tenant-aware jobs", "feature flags"],
+          "portfolioExample": "Restaurant and location boundaries in DineEase provide a practical way to explain tenant-scoped users, orders, employees, menus, and reports.",
+          "interviewExample": "I enforce tenant scope in the backend data-access layer and background jobs. I never rely on the browser to submit the correct tenant identifier."
+        },
+        {
+          "id": "b2b-b2c",
+          "term": "B2B/B2C",
+          "expanded": "Business-to-business and business-to-consumer",
+          "definition": "B2B products sell to organizations; B2C products sell directly to individual consumers. Some products serve both groups through different surfaces.",
+          "businessValue": "The buyer, user, sales cycle, permissions, support model, and definition of success differ significantly between the two models.",
+          "examples": ["B2B: Salesforce", "B2B: Slack", "B2C: Spotify", "B2C: Netflix"],
+          "portfolioExample": "DineEase is primarily B2B for restaurant operators, while its kiosk and ordering surfaces are used by consumers. Cortico similarly connects clinic-facing and patient-facing needs.",
+          "interviewExample": "I identify both the economic buyer and the daily user. That distinction changes onboarding, permissions, product language, and which metrics matter."
+        }
+      ]
+    },
+    {
+      "id": "customer-growth",
+      "title": "Customer and growth language",
+      "description": "How teams describe customer relationships, acquisition quality, retention, and product-led growth.",
+      "items": [
+        {
+          "id": "crm",
+          "term": "CRM",
+          "expanded": "Customer Relationship Management",
+          "definition": "A system that stores customer, lead, communication, sales, and account history so teams can manage relationships consistently.",
+          "businessValue": "It gives sales, support, and marketing a shared view of the customer journey and reduces fragmented manual tracking.",
+          "examples": ["Salesforce", "HubSpot", "Microsoft Dynamics 365", "Zoho CRM"],
+          "portfolioExample": "Cortico's clinic discovery and PQL reporting can feed CRM workflows, even though the public frontend itself is not the CRM.",
+          "interviewExample": "A CRM is the operational record for customer relationships. I would integrate it through stable identifiers, consent-aware events, and retry-safe APIs rather than duplicating customer state in the frontend."
+        },
+        {
+          "id": "pql",
+          "term": "PQL",
+          "expanded": "Product-Qualified Lead",
+          "definition": "A lead whose product behavior indicates meaningful intent or fit, rather than qualification based only on a form submission.",
+          "businessValue": "It helps sales and product teams focus on users who have already reached a valuable activation signal.",
+          "examples": ["completed setup", "invited teammates", "used a key feature", "reached usage threshold"],
+          "portfolioExample": "Cortico tracked PQL performance against a monthly target, including a supplied July result of 34 against a target of 35.",
+          "interviewExample": "I would define a PQL from observable product behavior, instrument it consistently, and confirm that the signal correlates with conversion before optimizing around it."
+        },
+        {
+          "id": "cac",
+          "term": "CAC",
+          "expanded": "Customer Acquisition Cost",
+          "definition": "The average sales and marketing cost required to acquire a new customer over a defined period.",
+          "businessValue": "A product can grow traffic and signups while still being unhealthy if acquisition costs exceed the value of retained customers.",
+          "examples": ["ad spend", "sales cost", "marketing tools", "new customers acquired"],
+          "portfolioExample": "Cortico's organic search growth is relevant because durable SEO traffic can reduce dependence on paid acquisition, although CAC still requires commercial cost data.",
+          "interviewExample": "Engineering can influence CAC through SEO, performance, activation, and conversion quality, but I would not claim a CAC improvement without finance and acquisition data."
+        },
+        {
+          "id": "ltv",
+          "term": "LTV",
+          "expanded": "Customer Lifetime Value",
+          "definition": "The expected gross value a customer contributes during the full relationship with the business.",
+          "businessValue": "LTV helps determine sustainable acquisition spending and highlights the importance of retention, expansion, and service quality.",
+          "examples": ["subscription value", "gross margin", "retention period", "account expansion"],
+          "portfolioExample": "For DineEase, reliable daily operations, useful analytics, and additional locations can improve retention and account expansion, which are drivers of LTV.",
+          "interviewExample": "I connect LTV to product reliability and retained value. Features matter when they become part of a customer's recurring workflow, not only when they launch."
+        },
+        {
+          "id": "churn",
+          "term": "Churn",
+          "expanded": "Customer or revenue churn",
+          "definition": "The percentage of customers or recurring revenue lost during a period.",
+          "businessValue": "High churn weakens recurring growth and often reveals gaps in onboarding, product value, reliability, pricing, or support.",
+          "examples": ["logo churn", "revenue churn", "retention cohort", "cancellation reason"],
+          "portfolioExample": "For an operations product such as DineEase, order reliability, onboarding quality, responsive support, and workflow fit can directly affect retention risk.",
+          "interviewExample": "I would segment churn by customer cohort and reason before proposing a feature. A reliability problem requires a different response from weak product fit."
+        }
+      ]
+    },
+    {
+      "id": "revenue-performance",
+      "title": "Revenue and performance metrics",
+      "description": "The recurring commercial and operational measures leaders use to evaluate progress.",
+      "items": [
+        {
+          "id": "mrr-arr",
+          "term": "MRR/ARR",
+          "expanded": "Monthly and Annual Recurring Revenue",
+          "definition": "Normalized recurring subscription revenue measured monthly or annually, excluding one-time services and setup fees.",
+          "businessValue": "It makes recurring business performance easier to compare over time and supports planning, forecasting, and valuation.",
+          "examples": ["new MRR", "expansion MRR", "contraction MRR", "churned MRR"],
+          "portfolioExample": "For ASTA, recurring maintenance or software subscriptions should be separated from one-time project revenue before discussing MRR or ARR.",
+          "interviewExample": "I distinguish recurring product revenue from one-time delivery revenue. Product changes can influence MRR through activation, retention, and account expansion."
+        },
+        {
+          "id": "kpi-okr",
+          "term": "KPI/OKR",
+          "expanded": "Key Performance Indicator and Objectives and Key Results",
+          "definition": "A KPI monitors an important measure; an OKR pairs a qualitative objective with measurable results for a defined period.",
+          "businessValue": "They help teams connect day-to-day work to outcomes, but poor metrics can reward activity instead of customer value.",
+          "examples": ["Core Web Vitals", "activation rate", "PQL target", "deployment frequency"],
+          "portfolioExample": "Cortico's PQL target and search performance are KPI examples. A related OKR could pair improved patient discovery with measurable search and conversion outcomes.",
+          "interviewExample": "I use KPIs to monitor system health and OKRs to align a time-bound change. I also check for counter-metrics so optimizing one number does not damage quality."
+        }
+      ]
+    },
+    {
+      "id": "business-systems",
+      "title": "Business systems and service commitments",
+      "description": "Common operational platforms and reliability terms that connect software architecture to daily business work.",
+      "items": [
+        {
+          "id": "cms",
+          "term": "CMS",
+          "expanded": "Content Management System",
+          "definition": "A system that lets authorized users create, organize, review, and publish content without changing application code.",
+          "businessValue": "It reduces engineering dependency for routine content operations while preserving governance and consistent presentation.",
+          "examples": ["Contentful", "Strapi", "WordPress", "Sanity", "Django admin"],
+          "portfolioExample": "Cortico included CMS surfaces that supported structured clinic and discovery content alongside the public frontend.",
+          "interviewExample": "I treat a CMS as a content contract. The schema, editorial workflow, preview behavior, validation, and rendering strategy matter as much as the editing screen."
+        },
+        {
+          "id": "erp",
+          "term": "ERP",
+          "expanded": "Enterprise Resource Planning",
+          "definition": "An integrated system for core business operations such as finance, inventory, procurement, staffing, and reporting.",
+          "businessValue": "It reduces disconnected records across departments, but integrations and workflow changes are usually as important as the software itself.",
+          "examples": ["SAP", "Oracle NetSuite", "Microsoft Dynamics 365", "Odoo"],
+          "portfolioExample": "DineEase is not presented as a full ERP, but its menu, employee, location, order, and analytics domains share the same integration and source-of-truth concerns.",
+          "interviewExample": "When integrating with an ERP, I identify the system of record for each domain, map identifiers, define synchronization rules, and plan reconciliation for failures."
+        },
+        {
+          "id": "pos",
+          "term": "POS",
+          "expanded": "Point of Sale",
+          "definition": "The system that records purchases and often coordinates payments, orders, inventory, receipts, and operational reporting.",
+          "businessValue": "It sits on a revenue-critical path, so availability, transaction integrity, hardware integration, and offline behavior are important.",
+          "examples": ["Toast", "Square", "Lightspeed", "Clover"],
+          "portfolioExample": "DineEase's kiosk, order feed, and menu management are adjacent to POS workflows and provide practical examples for discussing order integrity and integration boundaries.",
+          "interviewExample": "I treat POS integrations as failure-sensitive. I use stable external identifiers, idempotent order writes, explicit payment states, and reconciliation logs."
+        },
+        {
+          "id": "sla-slo-sli",
+          "term": "SLA/SLO/SLI",
+          "expanded": "Service agreement, objective, and indicator",
+          "definition": "An SLI is the measured signal, an SLO is the internal reliability target, and an SLA is the customer-facing commitment with consequences.",
+          "businessValue": "They translate technical reliability into an explicit service expectation and help teams prioritize engineering work using error budgets.",
+          "examples": ["99.9% availability", "p95 latency", "successful order rate", "Sentry", "Datadog"],
+          "portfolioExample": "For DineEase, successful order acceptance and order-feed freshness are more meaningful reliability indicators than server uptime alone.",
+          "interviewExample": "I start with user-visible SLIs, set realistic SLOs, and reserve SLAs for commitments the organization can support operationally and commercially."
+        }
+      ]
+    }
+  ],
+  "architectureTopics": [
+    {
+      "id": "realtime-orders",
+      "title": "Design a real-time restaurant order feed",
+      "interviewerIntent": "Define the consistency, latency, and failure requirements before choosing WebSockets.",
+      "coreAnswer": "Write orders through an authoritative API and database, publish durable order events, and let a real-time gateway distribute updates to subscribed clients.",
+      "exampleAnswer": "The API validates and commits an order first. An outbox record is written in the same transaction, then a worker publishes it to a broker. A WebSocket or SSE gateway pushes the event to kitchen, kiosk, and manager clients. Clients store the last event version, reconnect with backoff, and refetch when continuity is uncertain.",
+      "technologyExamples": ["Django REST Framework", "PostgreSQL", "transactional outbox", "Redis Streams or RabbitMQ", "Django Channels or Socket.IO", "Sentry and OpenTelemetry"],
+      "terms": ["source of truth", "transactional outbox", "at-least-once delivery", "idempotency", "reconnection"],
+      "projectProof": "DineEase real-time order feed and kiosk surfaces.",
+      "commonMistake": "Treating WebSocket delivery as the durable order store."
+    },
+    {
+      "id": "walkability-search",
+      "title": "Design radius-based neighborhood discovery",
+      "interviewerIntent": "Explain geospatial querying, caching, data aggregation, and frontend map performance.",
+      "coreAnswer": "Normalize the location, query establishments and attributes by radius, calculate scores in a backend service, then return viewport-ready data.",
+      "exampleAnswer": "A geocoding step resolves the address. PostGIS or a mapping API finds points within 0.25, 0.5, and 1 mile. Stable query results can be cached by rounded coordinates, radius, and filter set. The API returns clustered markers and summary scores so the browser does not recompute the domain model.",
+      "technologyExamples": ["Mapbox", "Google Maps Platform", "PostGIS", "Redis", "Django REST Framework", "web workers for client-heavy processing"],
+      "terms": ["geocoding", "spatial index", "bounding box", "clustering", "cache key"],
+      "projectProof": "Walkspan discovery, neighborhood vibe, and compare views.",
+      "commonMistake": "Sending every raw point to the browser and expecting the map to solve scale."
+    },
+    {
+      "id": "seo-platform",
+      "title": "Design an SEO-friendly clinic platform",
+      "interviewerIntent": "Connect rendering, content architecture, performance, and measurement.",
+      "coreAnswer": "Create indexable server-rendered pages, stable URLs, structured clinic content, strong internal linking, and measurable performance budgets.",
+      "exampleAnswer": "Clinic data comes from a CMS or Django API, while Nuxt renders crawlable pages with canonical metadata and structured content. Static assets use a CDN and images are optimized. Search Console, analytics, and Core Web Vitals reveal whether search visibility turns into useful patient actions.",
+      "technologyExamples": ["Nuxt SSR", "Django", "schema.org structured data", "Cloudflare CDN", "Google Search Console", "PageSpeed Insights"],
+      "terms": ["SSR", "canonical URL", "structured data", "crawl budget", "performance budget"],
+      "projectProof": "Cortico clinic discovery and verified search performance.",
+      "commonMistake": "Reducing SEO to metadata while ignoring content architecture and performance."
+    },
+    {
+      "id": "safe-release",
+      "title": "Design a safe release process",
+      "interviewerIntent": "Show that delivery includes testing, rollout, observability, and recovery.",
+      "coreAnswer": "Automate checks, create an immutable artifact, deploy gradually, monitor product and system signals, and keep rollback simple.",
+      "exampleAnswer": "A pull request runs focused tests, linting, and a build. The same image moves through staging and production. Feature flags separate deployment from release. Canary or blue-green rollout limits blast radius, while errors, latency, and business metrics determine whether to continue or roll back.",
+      "technologyExamples": ["GitHub Actions", "Docker", "AWS ECS or Kubernetes", "feature flags", "Sentry", "Grafana"],
+      "terms": ["CI/CD", "immutable artifact", "canary release", "blue-green deployment", "rollback"],
+      "projectProof": "Use ASTA or DineEase delivery practices, but state only the tools actually configured.",
+      "commonMistake": "Calling deployment successful because the command finished."
+    },
+    {
+      "id": "multi-tenant-saas",
+      "title": "Design a multi-tenant SaaS platform",
+      "interviewerIntent": "They want to hear how you isolate customer data, enforce authorization, and support growth without duplicating the whole application.",
+      "coreAnswer": "Choose a tenant boundary, enforce it in every data-access path, centralize authorization, and make tenant context observable and testable.",
+      "exampleAnswer": "For a restaurant platform, every request resolves the authenticated user and restaurant membership before reading orders, menus, or employees. PostgreSQL rows carry a tenant identifier, queries are scoped by default, and background jobs carry the same tenant context. Larger customers can later move to dedicated infrastructure without changing the product contract.",
+      "technologyExamples": ["Django permissions", "PostgreSQL row scoping", "row-level security", "tenant-aware background jobs", "audit logs", "feature flags"],
+      "terms": ["tenant isolation", "authorization boundary", "noisy neighbor", "data residency", "audit trail"],
+      "projectProof": "DineEase restaurant and location boundaries provide a practical domain example.",
+      "commonMistake": "Adding tenant_id to tables but trusting the frontend to send the correct tenant."
+    },
+    {
+      "id": "read-heavy-dashboard",
+      "title": "Scale a read-heavy analytics dashboard",
+      "interviewerIntent": "They are testing whether you can separate transactional writes from expensive analytical reads.",
+      "coreAnswer": "Keep operational writes authoritative, pre-aggregate expensive metrics, cache bounded queries, and communicate freshness to users.",
+      "exampleAnswer": "Orders continue writing to PostgreSQL. A queue feeds aggregation jobs that produce hourly and daily summaries. The dashboard reads those summaries through cacheable endpoints, while recent operational numbers can come from a smaller live query. Every metric includes an updated-at timestamp so eventual consistency is visible.",
+      "technologyExamples": ["PostgreSQL", "materialized views", "Celery", "Amazon SQS", "Redis", "ClickHouse or BigQuery"],
+      "terms": ["OLTP", "OLAP", "pre-aggregation", "materialized view", "freshness window"],
+      "projectProof": "DineEase analytics and profitability reporting are useful examples.",
+      "commonMistake": "Running every dashboard chart directly against high-volume transactional tables."
+    }
+  ],
+  "incidentResponsePattern": [
+    {
+      "id": "stabilize",
+      "title": "Stabilize",
+      "description": "Protect users first with a rollback, rate limit, degraded mode, or temporary capacity when the evidence supports it."
+    },
+    {
+      "id": "measure",
+      "title": "Measure",
+      "description": "Confirm the timeline, blast radius, and the golden signals: latency, traffic, errors, and saturation."
+    },
+    {
+      "id": "isolate",
+      "title": "Isolate",
+      "description": "Trace the request across the edge, load balancer, application, database, queue, cache, and external dependencies."
+    },
+    {
+      "id": "fix",
+      "title": "Fix",
+      "description": "Remove the proven bottleneck, verify recovery, add a regression guard, and record the learning."
+    }
+  ],
+  "incidentScenarios": [
+    {
+      "id": "traffic-spike",
+      "title": "Traffic jumps from 1,000 concurrent users to 10,000",
+      "situation": "Pages slow down during a sudden traffic spike and some requests begin timing out. The team asks whether to buy a larger server immediately.",
+      "firstRule": "Do not scale blindly. First prove whether the saturated resource is the edge, application, database, cache, queue, or a downstream service.",
+      "steps": [
+        {
+          "title": "Confirm that the spike is real",
+          "detail": "Compare requests per second, concurrent sessions, geography, user agents, and endpoint distribution. Separate legitimate demand from bots, retries, scraping, or a denial-of-service pattern."
+        },
+        {
+          "title": "Measure user impact and saturation",
+          "detail": "Check p50, p95, and p99 latency, timeout and 5xx rates, CPU, memory, event-loop or worker utilization, request queues, database connections, cache hit ratio, and queue depth."
+        },
+        {
+          "title": "Find the first constrained layer",
+          "detail": "Follow one slow request through the CDN or WAF, load balancer, application trace, database query, cache, and external APIs. The first layer whose utilization or wait time rises with traffic is the leading bottleneck."
+        },
+        {
+          "title": "Reduce avoidable work",
+          "detail": "Cache safe read-heavy responses, serve static assets through a CDN, remove duplicate frontend requests, batch expensive work, and move non-critical processing to a queue."
+        },
+        {
+          "title": "Protect the system",
+          "detail": "Apply rate limits, backpressure, load shedding, or a degraded mode so critical actions remain available. Return clear retry guidance rather than letting every request time out."
+        },
+        {
+          "title": "Scale the proven bottleneck",
+          "detail": "Add stateless application instances behind a load balancer when app workers are saturated. Increase database capacity, tune connection pooling, or add read replicas only when database evidence points there."
+        },
+        {
+          "title": "Verify and prepare for the next spike",
+          "detail": "Run a bounded load test, confirm latency and error recovery, set autoscaling thresholds, create alerts, and document the capacity limit and response playbook."
+        }
+      ],
+      "signals": ["requests per second", "concurrency", "p95 and p99 latency", "error rate", "CPU and memory", "database connections", "cache hit ratio", "queue depth"],
+      "technologyExamples": ["Cloudflare or AWS WAF", "AWS ALB or Nginx", "OpenTelemetry", "Datadog or Grafana", "Redis", "PostgreSQL", "k6 or Locust"],
+      "scaleDecision": "Scale horizontally when application instances are demonstrably saturated and the service is stateless. Vertical scaling can buy time, but it does not fix an inefficient query, exhausted database pool, cache miss storm, or slow dependency.",
+      "interviewAnswer": "I would first verify the traffic source and inspect the golden signals. Then I would trace the slow path to identify the first saturated layer. I would protect critical traffic with rate limiting or degraded behavior, remove avoidable work with caching or queues, and scale only the constrained tier. After recovery, I would load-test the fix and set capacity alerts and autoscaling thresholds."
+    },
+    {
+      "id": "api-slowdown",
+      "title": "A normally fast API suddenly becomes slow",
+      "situation": "An endpoint that normally responds in 200 ms now takes several seconds, but the server is still online.",
+      "firstRule": "Availability is not health. Define exactly which endpoint, percentile, tenant, region, or release became slow before changing infrastructure.",
+      "steps": [
+        {
+          "title": "Define the slowdown precisely",
+          "detail": "Compare p50, p95, and p99 latency, throughput, timeout rate, error rate, affected endpoints, payload sizes, tenants, regions, and start time."
+        },
+        {
+          "title": "Correlate the start time with change",
+          "detail": "Check deployments, feature flags, configuration, migrations, traffic shape, data growth, scheduled jobs, and third-party incidents around the first latency increase."
+        },
+        {
+          "title": "Trace one request end to end",
+          "detail": "Use distributed tracing or timestamped logs to split time between routing, application code, database queries, cache calls, queues, file storage, and external APIs."
+        },
+        {
+          "title": "Inspect the database path",
+          "detail": "Review slow-query logs, query plans, missing indexes, N+1 queries, locks, long transactions, connection-pool exhaustion, and changes in row counts or selectivity."
+        },
+        {
+          "title": "Inspect dependencies and retry behavior",
+          "detail": "Check external-service latency, DNS, network errors, timeout values, retry storms, and circuit-breaker state. A slow dependency can occupy every application worker."
+        },
+        {
+          "title": "Mitigate the smallest safe way",
+          "detail": "Roll back a bad release, disable the affected flag, cap retries, add a timeout, cache a safe response, or temporarily increase workers only when worker saturation is confirmed."
+        },
+        {
+          "title": "Fix, verify, and guard",
+          "detail": "Optimize the proven slow operation, reproduce it with a focused performance test, monitor recovery at p95 and p99, and add a regression alert or test."
+        }
+      ],
+      "signals": ["endpoint latency percentiles", "trace span duration", "slow queries", "database locks", "connection-pool wait", "dependency latency", "retry count", "worker saturation"],
+      "technologyExamples": ["Sentry Performance", "OpenTelemetry", "Datadog APM", "PostgreSQL EXPLAIN ANALYZE", "Django Debug Toolbar", "AWS X-Ray", "Grafana"],
+      "scaleDecision": "More servers help only if application workers are saturated by parallelizable work. If every request waits on the same database lock, unindexed query, or external API, scaling application instances may amplify the problem.",
+      "interviewAnswer": "I would narrow the incident by endpoint and percentile, correlate it with recent changes, and trace a slow request across every dependency. I would mitigate with the smallest reversible action, such as rollback or disabling a feature flag, then fix the measured bottleneck. I would not increase capacity until saturation data shows which tier needs it."
+    },
+    {
+      "id": "database-pressure",
+      "title": "Database CPU and connections keep climbing",
+      "situation": "The application tier looks healthy, but database CPU is high, connection wait time increases, and requests intermittently fail.",
+      "firstRule": "Treat connection exhaustion as a symptom. Determine whether the cause is traffic, slow queries, locks, leaked connections, oversized pools, or background work.",
+      "steps": [
+        {
+          "title": "Protect writes and critical paths",
+          "detail": "Pause non-essential reports or batch jobs, reduce expensive retries, and prioritize order, payment, or account operations that must remain available."
+        },
+        {
+          "title": "Inspect active work",
+          "detail": "Review active sessions, long-running queries, lock waits, transaction age, connection states, replication lag, and the top statements by total execution time."
+        },
+        {
+          "title": "Check pool math",
+          "detail": "Multiply each application instance's pool size by the number of instances and compare it with database limits. Scaling app instances can exhaust the database faster when pools are oversized."
+        },
+        {
+          "title": "Optimize the expensive path",
+          "detail": "Use query plans to add or adjust indexes, remove N+1 access, shorten transactions, paginate large reads, pre-aggregate reports, or move suitable reads to a cache or replica."
+        },
+        {
+          "title": "Recover capacity deliberately",
+          "detail": "Terminate only clearly stuck work, tune pool limits and timeouts, then increase database resources or add replicas when the optimized workload still exceeds planned capacity."
+        },
+        {
+          "title": "Verify consistency and recurrence controls",
+          "detail": "Confirm writes, replication, and background jobs recover correctly. Alert on pool wait, lock duration, slow queries, and capacity trends before customer-facing errors return."
+        }
+      ],
+      "signals": ["database CPU", "active connections", "pool wait time", "lock duration", "transaction age", "slow-query rate", "replication lag", "rows scanned"],
+      "technologyExamples": ["PostgreSQL pg_stat_activity", "pg_stat_statements", "EXPLAIN ANALYZE", "PgBouncer", "Django ORM query logging", "Redis", "read replicas"],
+      "scaleDecision": "Tune query and pool behavior before raising connection limits. Add database capacity when the workload is legitimate and optimized; add read replicas only for reads that can tolerate replication lag.",
+      "interviewAnswer": "I would first preserve critical writes and inspect active queries, locks, and pool wait. Then I would verify the total connection budget across instances, optimize the statements creating the most load, and only add database capacity after proving the optimized workload still exceeds the target."
+    },
+    {
+      "id": "post-deploy-errors",
+      "title": "5xx errors spike immediately after a deployment",
+      "situation": "Error rate rises within minutes of a release while only part of the user base is affected.",
+      "firstRule": "When timing strongly implicates a release, reduce the blast radius before performing a deep diagnosis.",
+      "steps": [
+        {
+          "title": "Stop the rollout",
+          "detail": "Pause deployment progression, preserve logs and traces, and prevent more users from receiving the faulty version."
+        },
+        {
+          "title": "Compare new and old versions",
+          "detail": "Segment errors by version, instance, route, tenant, region, browser, and feature flag. Confirm whether healthy old instances still serve the same traffic successfully."
+        },
+        {
+          "title": "Roll back or disable the feature",
+          "detail": "Use the fastest safe reversible action when customer impact is material. Do not wait for a perfect root-cause explanation before restoring service."
+        },
+        {
+          "title": "Identify the failing contract",
+          "detail": "Inspect exception groups, schema or migration compatibility, environment variables, API contracts, static assets, cache keys, and dependency versions changed by the release."
+        },
+        {
+          "title": "Reproduce outside production",
+          "detail": "Use the failing request, data shape, or browser path against the released artifact in staging so the fix targets the actual regression."
+        },
+        {
+          "title": "Release the fix gradually",
+          "detail": "Add a regression test, deploy to a canary, compare error and business signals, then continue only while the new version remains healthy."
+        },
+        {
+          "title": "Close the operational gap",
+          "detail": "Document the cause, impact, detection delay, and prevention action. Improve health checks, release gates, or feature-flag coverage where the process failed."
+        }
+      ],
+      "signals": ["5xx rate", "error fingerprint", "release version", "affected routes", "canary health", "business success rate", "migration status", "feature-flag cohort"],
+      "technologyExamples": ["Sentry Releases", "GitHub Actions", "feature flags", "AWS ECS or Kubernetes", "Grafana", "blue-green deployment", "canary release"],
+      "scaleDecision": "Do not scale a code regression. Roll back or disable the change first. Capacity is relevant only if the release changed resource consumption and the new behavior is intentional.",
+      "interviewAnswer": "I would stop the rollout, compare errors by release version, and restore service through rollback or a feature flag. Then I would reproduce the failing contract, add a regression test, and ship the fix through a canary while watching both system and business signals."
+    }
+  ],
+  "backendConcepts": [
+    {
+      "id": "load-balancer",
+      "term": "Load balancer",
+      "definition": "Distributes incoming traffic across multiple healthy application instances.",
+      "technologyExamples": ["Nginx", "HAProxy", "AWS Application Load Balancer", "Cloudflare Load Balancing", "Kubernetes Service or Ingress"],
+      "youMayUseItWhen": "A managed host routes requests across replicas. You may benefit from one without writing load-balancer code, but local development alone does not imply one exists.",
+      "projectExample": "DineEase can place a load balancer before multiple API and real-time gateway instances so one server failure does not stop ordering.",
+      "interviewExample": "I would add health checks, drain unhealthy instances, avoid sticky sessions where possible, and keep session state in a shared store."
+    },
+    {
+      "id": "reverse-proxy",
+      "term": "Reverse proxy",
+      "definition": "Receives public requests and forwards them to internal services while hiding application topology.",
+      "technologyExamples": ["Nginx", "Caddy", "Traefik", "Cloudflare", "AWS API Gateway"],
+      "youMayUseItWhen": "Your domain terminates HTTPS at Nginx, Cloudflare, Vercel, Render, or another platform before traffic reaches Django or Node.",
+      "projectExample": "It can route /api to Django, static assets to a CDN, and WebSocket connections to a real-time service.",
+      "interviewExample": "A reverse proxy is about request routing and edge concerns; it becomes a load balancer when it distributes traffic across several upstream instances."
+    },
+    {
+      "id": "cdn",
+      "term": "CDN",
+      "definition": "Caches and serves assets or responses from edge locations closer to users.",
+      "technologyExamples": ["Cloudflare", "AWS CloudFront", "Fastly", "Vercel Edge Network", "Netlify CDN"],
+      "youMayUseItWhen": "A deployment platform automatically serves JavaScript, CSS, images, or cached pages from its edge network.",
+      "projectExample": "Cortico can serve clinic imagery and frontend assets from a CDN to improve global load time and reduce origin traffic.",
+      "interviewExample": "I would define cache-control rules, fingerprint static assets, and avoid caching personalized responses publicly."
+    },
+    {
+      "id": "cache",
+      "term": "Cache",
+      "definition": "Stores reused data closer to where it is needed to reduce latency and repeated work.",
+      "technologyExamples": ["browser HTTP cache", "Cloudflare cache", "Redis", "Django cache framework", "TanStack Query", "Nuxt payload cache"],
+      "youMayUseItWhen": "Even without Redis, browsers and CDNs may cache assets. Client data libraries may also retain server responses in memory.",
+      "projectExample": "Walkspan can cache establishment queries by coordinates, radius, and filters because nearby users may request the same area.",
+      "interviewExample": "I choose the cache key, TTL, invalidation trigger, and acceptable staleness before choosing Redis or an edge cache."
+    },
+    {
+      "id": "queue",
+      "term": "Message queue",
+      "definition": "Buffers asynchronous work so producers and consumers can operate independently.",
+      "technologyExamples": ["RabbitMQ", "Amazon SQS", "Redis Streams", "Apache Kafka", "Celery with a broker", "BullMQ"],
+      "youMayUseItWhen": "Email, image processing, analytics, imports, or notifications run outside the request-response cycle. Async JavaScript by itself is not a message queue.",
+      "projectExample": "DineEase can queue menu imports and analytics events so they do not slow down order placement.",
+      "interviewExample": "I plan for retries, dead-letter handling, idempotent consumers, visibility timeouts, and monitoring queue depth."
+    },
+    {
+      "id": "rate-limiting",
+      "term": "Rate limiting",
+      "definition": "Restricts request volume by user, token, IP, or resource to protect capacity and fairness.",
+      "technologyExamples": ["Nginx limit_req", "Django REST Framework throttling", "Cloudflare WAF", "Redis token bucket", "AWS API Gateway usage plans"],
+      "youMayUseItWhen": "An API gateway, WAF, or framework throttling policy rejects excessive requests with HTTP 429.",
+      "projectExample": "Protect login, search, AI automation, and public inquiry endpoints from abuse or accidental bursts.",
+      "interviewExample": "I would use a token bucket for short bursts, return Retry-After, and apply stricter limits to expensive endpoints."
+    },
+    {
+      "id": "idempotency",
+      "term": "Idempotency",
+      "definition": "Repeating the same operation produces the same intended outcome instead of duplicate effects.",
+      "technologyExamples": ["Idempotency-Key header", "database unique constraint", "deduplication table", "Stripe-style request keys"],
+      "youMayUseItWhen": "A unique database constraint already prevents duplicate records, though explicit request-level idempotency may still be needed.",
+      "projectExample": "A retried DineEase order or payment request must not create a second order.",
+      "interviewExample": "I store an idempotency key with the result in the same transactional boundary, then return that result for retries."
+    },
+    {
+      "id": "database-index",
+      "term": "Database index",
+      "definition": "A data structure that accelerates reads on selected columns at the cost of storage and slower writes.",
+      "technologyExamples": ["PostgreSQL B-tree", "GIN index", "PostGIS GiST index", "Django db_index", "unique constraints"],
+      "youMayUseItWhen": "Primary keys, foreign keys, and unique fields often create indexes automatically. Frequently filtered fields may still need explicit indexes.",
+      "projectExample": "Walkspan needs spatial indexes for radius queries; DineEase may index restaurant, status, and created_at for active-order feeds.",
+      "interviewExample": "I start with the real query and EXPLAIN plan, then add a targeted index rather than indexing every column."
+    },
+    {
+      "id": "replication",
+      "term": "Replication",
+      "definition": "Copies data to additional nodes for availability and read scale.",
+      "technologyExamples": ["PostgreSQL streaming replicas", "Amazon RDS read replicas", "MySQL replication", "managed database failover"],
+      "youMayUseItWhen": "A managed database provides standby or read replicas even though application code uses a single connection URL.",
+      "projectExample": "Analytics reads can move to a replica while order writes remain on the primary.",
+      "interviewExample": "I account for replication lag and avoid reading a just-written critical record from an eventually consistent replica."
+    },
+    {
+      "id": "eventual-consistency",
+      "term": "Eventual consistency",
+      "definition": "Different parts of a system may temporarily disagree but converge after asynchronous updates complete.",
+      "technologyExamples": ["CDN cache", "search index", "read replica", "event-driven projections", "analytics warehouse"],
+      "youMayUseItWhen": "Search, dashboards, or cached pages update shortly after the source database instead of in the same transaction.",
+      "projectExample": "DineEase analytics can lag behind orders, but order acceptance and kitchen state require stronger consistency.",
+      "interviewExample": "I classify which data can be stale, communicate freshness in the UI, and provide reconciliation paths."
+    },
+    {
+      "id": "circuit-breaker",
+      "term": "Circuit breaker",
+      "definition": "Stops repeated calls to a failing dependency so the system can recover instead of cascading failures.",
+      "technologyExamples": ["Resilience4j", "Polly", "Envoy outlier detection", "custom failure threshold around HTTP clients"],
+      "youMayUseItWhen": "A service mesh or resilience library opens the circuit automatically. A simple try/catch is not a circuit breaker.",
+      "projectExample": "If a geocoding or AI provider is failing, Walkspan or ASTA automation should degrade gracefully rather than exhaust request workers.",
+      "interviewExample": "I combine timeouts, bounded retries with jitter, circuit breaking, and a fallback appropriate to the product."
+    },
+    {
+      "id": "observability",
+      "term": "Observability",
+      "definition": "Uses logs, metrics, and traces to explain system behavior from production evidence.",
+      "technologyExamples": ["Sentry", "OpenTelemetry", "Prometheus", "Grafana", "Datadog", "structured application logs"],
+      "youMayUseItWhen": "Frontend error reporting, server logs, uptime checks, and analytics are already partial observability, even if they are not yet connected.",
+      "projectExample": "Trace an order from browser action through API, database commit, event publication, and real-time delivery.",
+      "interviewExample": "I define service-level signals around latency, errors, traffic, saturation, and the product action users care about."
+    },
+    {
+      "id": "horizontal-scaling",
+      "term": "Horizontal scaling",
+      "definition": "Adds more application instances instead of making one server larger.",
+      "technologyExamples": ["AWS Auto Scaling", "Amazon ECS", "Kubernetes replicas", "AWS Application Load Balancer", "stateless application servers"],
+      "youMayUseItWhen": "A platform automatically runs several replicas behind a router. You benefit from horizontal scaling even when the platform hides the individual servers.",
+      "projectExample": "DineEase API and real-time gateways can scale independently as restaurant traffic changes.",
+      "interviewExample": "I remove in-memory session dependence, share durable state, place instances behind health-checked load balancing, and scale from measured saturation."
+    },
+    {
+      "id": "database-transaction",
+      "term": "Database transaction",
+      "definition": "Groups related database operations so they commit together or roll back together.",
+      "technologyExamples": ["PostgreSQL transactions", "Django atomic", "SQLAlchemy session", "isolation levels", "transactional outbox"],
+      "youMayUseItWhen": "A framework wraps writes in an atomic block or an ORM commits several changes as one unit of work.",
+      "projectExample": "Creating an order, its line items, and an outbox event should succeed or fail as one unit.",
+      "interviewExample": "I keep transactions short, define the required isolation level, and avoid external network calls while database locks are held."
+    },
+    {
+      "id": "concurrency-control",
+      "term": "Optimistic and pessimistic locking",
+      "definition": "Optimistic locking detects conflicting updates at write time; pessimistic locking prevents competing updates by locking data first.",
+      "technologyExamples": ["version column", "ETag and If-Match", "SELECT FOR UPDATE", "Django select_for_update", "compare-and-swap"],
+      "youMayUseItWhen": "A version field rejects stale edits or a database row is locked while inventory or payment state changes.",
+      "projectExample": "Menu editors can use optimistic version checks, while the final reservation of scarce inventory may require a short row lock.",
+      "interviewExample": "I choose optimistic control for frequent reads and rare conflicts, and pessimistic locking only where the cost of concurrent writes is higher than lock contention."
+    },
+    {
+      "id": "sharding",
+      "term": "Database sharding",
+      "definition": "Partitions a dataset across separate database nodes using a shard key.",
+      "technologyExamples": ["PostgreSQL with Citus", "Vitess", "MongoDB sharding", "tenant-based partitioning", "consistent hashing"],
+      "youMayUseItWhen": "A managed database distributes data internally, but most products should exhaust indexing, caching, replicas, and vertical scaling before application-level sharding.",
+      "projectExample": "A very large restaurant platform might shard by restaurant group or region only after one primary database becomes a demonstrated limit.",
+      "interviewExample": "I treat sharding as a late-stage trade-off because cross-shard queries, rebalancing, and global uniqueness add substantial operational cost."
+    }
+  ],
+  "deploymentTopics": [
+    {
+      "question": "What happens when you deploy a frontend to Vercel?",
+      "coreAnswer": "A connected Git change triggers a build and creates an immutable deployment with its own URL. Non-production branches normally become preview deployments, while the production branch is promoted to the production domain.",
+      "technologyExamples": ["Vercel Git integration", "Preview Deployments", "Production Deployment", "environment variables", "CDN and edge delivery", "instant rollback"],
+      "example": "For the portfolio, a pull request can produce a shareable preview URL. After review, merging to the production branch creates the production deployment. Vercel handles build execution, deployment URLs, domain assignment, TLS, and globally distributed delivery behind the platform interface.",
+      "commonMistake": "Saying Vercel is only file hosting and overlooking the build, environment, preview, routing, and rollback workflow it manages."
+    },
+    {
+      "question": "How would you deploy Django or Node on Amazon EC2?",
+      "coreAnswer": "Provision a secured instance, run the application as a supervised process or container, place a reverse proxy in front, terminate TLS at the edge or load balancer, and keep application data outside the instance.",
+      "technologyExamples": ["Amazon EC2", "Docker", "Gunicorn or Node", "Nginx", "systemd", "AWS Systems Manager", "AWS Application Load Balancer"],
+      "example": "A Django container runs behind Gunicorn and Nginx. An Application Load Balancer receives HTTPS traffic and checks instance health. PostgreSQL lives in RDS, uploads live in S3, secrets come from a managed store, and logs and metrics go to CloudWatch or another observability service.",
+      "commonMistake": "Treating one manually configured EC2 instance and its local disk as the entire production architecture."
+    },
+    {
+      "question": "What does a common AWS web architecture look like?",
+      "coreAnswer": "Route public traffic through DNS and an edge or load-balancing layer, keep application instances replaceable, use managed persistence, and restrict network access by responsibility.",
+      "technologyExamples": ["Route 53", "CloudFront", "Application Load Balancer", "EC2 or ECS", "RDS", "S3", "VPC security groups", "CloudWatch"],
+      "example": "Route 53 resolves the domain, CloudFront serves cached assets, an ALB routes dynamic requests to healthy EC2 or ECS targets, RDS stores relational data, and S3 stores uploaded media. Private resources are not directly exposed to the internet.",
+      "commonMistake": "Listing AWS services without explaining the request path, trust boundaries, failure behavior, or why each service exists."
+    },
+    {
+      "question": "How do you design a CI/CD pipeline?",
+      "coreAnswer": "Build one traceable artifact, run risk-appropriate checks, promote the same artifact through environments, control release separately when needed, and keep rollback fast.",
+      "technologyExamples": ["GitHub Actions", "Vercel deployment checks", "Docker registry", "AWS CodeDeploy", "feature flags", "blue-green or canary rollout"],
+      "example": "A pull request runs linting, focused tests, and a production build. It creates a preview or staging deployment. After approval, the image or immutable deployment is promoted, health and product signals are monitored, and the previous release remains available for rollback.",
+      "commonMistake": "Rebuilding different artifacts for staging and production or treating CI as only a test command."
+    },
+    {
+      "question": "Why use Docker in deployment?",
+      "coreAnswer": "A Docker image packages the application and runtime dependencies into a repeatable artifact that can run consistently across development, CI, and supported deployment targets.",
+      "technologyExamples": ["Dockerfile", "multi-stage build", "Docker Compose", "Amazon ECR", "Amazon ECS", "container health checks"],
+      "example": "Django, its system packages, and its Python dependencies are built once into an image. Configuration is injected at runtime, while PostgreSQL data and user uploads remain in managed persistent services rather than inside the container.",
+      "commonMistake": "Putting secrets or persistent production data into the image."
+    },
+    {
+      "question": "How do you make a deployment observable and recoverable?",
+      "coreAnswer": "Attach a release identifier to logs, errors, metrics, and traces; define health signals before launch; alert on user impact; and rehearse rollback or roll-forward procedures.",
+      "technologyExamples": ["Sentry releases", "OpenTelemetry", "CloudWatch", "Prometheus and Grafana", "health checks", "deployment markers"],
+      "example": "After a DineEase release, monitor order creation success, API latency, real-time delivery failures, and frontend errors by release. If thresholds regress, stop the rollout and restore the previous known-good artifact while preserving database compatibility.",
+      "commonMistake": "Monitoring only CPU and declaring success without checking the user action the release was meant to protect."
+    }
+  ],
+  "cloudComputingTopics": [
+    {
+      "question": "What is cloud computing, and am I already using it?",
+      "coreAnswer": "Cloud computing provides infrastructure and managed capabilities on demand through a provider. If you deploy to Vercel, store files in S3, run an application on EC2, use a managed database, or rely on a CDN, you are already consuming cloud services even when the provider hides most infrastructure decisions.",
+      "technologyExamples": ["Vercel", "Amazon Web Services", "Amazon EC2", "Amazon S3", "Amazon RDS", "Cloudflare"],
+      "example": "A portfolio deployed to Vercel uses managed build infrastructure, global delivery, TLS, domains, and immutable deployments. A Django application on EC2 with RDS and S3 uses lower-level cloud building blocks and gives the team more operational control.",
+      "commonMistake": "Defining cloud computing as simply putting a server on the internet and overlooking managed services, elasticity, automation, and usage-based cost."
+    },
+    {
+      "question": "What is the difference between IaaS, PaaS, and SaaS?",
+      "coreAnswer": "IaaS gives you infrastructure such as virtual machines and networks, PaaS gives you an application platform with more operations managed for you, and SaaS gives end users a complete application. The trade-off is usually control versus operational responsibility.",
+      "technologyExamples": ["Amazon EC2", "Amazon VPC", "Vercel", "Render", "Heroku", "DineEase SaaS"],
+      "example": "Running Django on EC2 is IaaS because the team manages the operating system and runtime. Deploying the frontend to Vercel is closer to PaaS because builds, TLS, and global delivery are managed. DineEase is SaaS when restaurants use the finished product through a subscription or service agreement.",
+      "commonMistake": "Calling every hosted product SaaS without distinguishing the customer-facing business model from the infrastructure used to run it."
+    },
+    {
+      "question": "How do regions, Availability Zones, and edge locations differ?",
+      "coreAnswer": "A region is a geographic cloud area, an Availability Zone is an isolated failure domain within that region, and an edge location serves or processes traffic closer to users. Choose them based on latency, resilience, compliance, and cost requirements.",
+      "technologyExamples": ["AWS Regions", "Availability Zones", "Amazon CloudFront", "Route 53", "Vercel Edge Network"],
+      "example": "A production API can run across two Availability Zones in one region so one data-center failure does not stop service. CloudFront serves cached assets from edge locations, while Route 53 directs users to the healthy application endpoint.",
+      "commonMistake": "Assuming resources in one region are automatically distributed across multiple Availability Zones."
+    },
+    {
+      "question": "When would you choose virtual machines, containers, or serverless functions?",
+      "coreAnswer": "Choose virtual machines for maximum runtime control, containers for portable long-running services with consistent packaging, and serverless functions for event-driven or bursty work that fits execution and latency limits. Base the choice on workload behavior and operational needs, not fashion.",
+      "technologyExamples": ["Amazon EC2", "Docker", "Amazon ECS", "Kubernetes", "AWS Lambda", "Vercel Functions"],
+      "example": "A Django API with predictable traffic can run as containers on ECS. Image processing after an upload can run in Lambda. A specialized legacy workload that needs operating-system control may remain on EC2.",
+      "commonMistake": "Moving a stateful or constantly running workload into serverless functions without considering cold starts, execution limits, observability, and cost at sustained load."
+    },
+    {
+      "question": "How do object, block, and file storage differ?",
+      "coreAnswer": "Object storage keeps durable objects behind keys and HTTP APIs, block storage provides disk-like volumes to a compute instance, and file storage exposes a shared filesystem. Match storage semantics to the access pattern rather than treating every file as local disk.",
+      "technologyExamples": ["Amazon S3", "Amazon EBS", "Amazon EFS", "S3 lifecycle rules", "CloudFront"],
+      "example": "User uploads and generated reports belong in S3, an EC2 database volume may use EBS, and multiple application instances that truly require one shared filesystem can use EFS. Static assets in S3 can be delivered through CloudFront.",
+      "commonMistake": "Saving production uploads only on an application instance, where they disappear when the instance is replaced or cannot be shared across replicas."
+    },
+    {
+      "question": "What does a secure cloud network look like?",
+      "coreAnswer": "Use a VPC with clear public and private subnets, expose only the edge or load balancer, restrict traffic with security groups, keep databases private, and give workloads outbound access only when required. Network controls supplement identity and application authorization rather than replacing them.",
+      "technologyExamples": ["Amazon VPC", "public subnet", "private subnet", "security groups", "AWS Application Load Balancer", "NAT Gateway", "AWS WAF"],
+      "example": "The public ALB accepts HTTPS, application containers run in private subnets, and RDS accepts connections only from the application security group. WAF filters common malicious traffic before it reaches the application.",
+      "commonMistake": "Placing the database on a public address or opening broad inbound rules because application-level authentication exists."
+    },
+    {
+      "question": "How would you design a highly available and scalable cloud application?",
+      "coreAnswer": "Make application instances stateless, distribute them across failure domains behind a load balancer, autoscale from measured demand, use managed persistence, cache safe reads, queue asynchronous work, and define health checks and graceful degradation.",
+      "technologyExamples": ["AWS Application Load Balancer", "Auto Scaling", "Amazon ECS", "Amazon RDS Multi-AZ", "Redis", "Amazon SQS", "Amazon CloudFront"],
+      "example": "DineEase could run API containers across two Availability Zones behind an ALB, use RDS Multi-AZ for transactional data, Redis for bounded cache and coordination, SQS for reports or notifications, and CloudFront for static assets. Order creation remains the protected critical path when analytics is degraded.",
+      "commonMistake": "Adding more application instances while keeping sessions, files, scheduled jobs, or locks on one local machine."
+    },
+    {
+      "question": "How do you approach cloud security and the shared responsibility model?",
+      "coreAnswer": "The provider secures the underlying cloud, while the customer remains responsible for identities, configuration, data, application behavior, and many workload controls. Use least-privilege IAM, short-lived credentials, encryption, secret management, logging, patching, and continuous configuration review.",
+      "technologyExamples": ["AWS IAM", "AWS KMS", "AWS Secrets Manager", "AWS CloudTrail", "AWS WAF", "Amazon GuardDuty"],
+      "example": "An application task receives a role that can read only its required S3 prefix and secret. Administrators use MFA, sensitive actions appear in CloudTrail, and KMS protects encrypted data. The application still validates input and enforces tenant authorization.",
+      "commonMistake": "Assuming the cloud provider automatically secures customer permissions, exposed storage, application vulnerabilities, and leaked credentials."
+    },
+    {
+      "question": "How do you keep a cloud system observable and cost-effective?",
+      "coreAnswer": "Connect logs, metrics, traces, releases, and business outcomes; alert on user impact and saturation; tag resources by owner and environment; then right-size capacity, remove idle resources, cache intentionally, and control storage and network costs.",
+      "technologyExamples": ["Amazon CloudWatch", "AWS X-Ray", "OpenTelemetry", "AWS Cost Explorer", "AWS Budgets", "resource tags", "S3 lifecycle policies"],
+      "example": "Track API latency, order success, database connections, queue depth, and error rate by release. Use budgets and cost allocation tags, scale non-production environments down when idle, expire old artifacts, and investigate unexpected data-transfer charges.",
+      "commonMistake": "Optimizing only the monthly bill without protecting reliability, or collecting telemetry without actionable thresholds and ownership."
+    }
+  ],
+  "apiStyles": [
+    {
+      "id": "rest",
+      "title": "REST",
+      "definition": "Models the API around resources and standard HTTP semantics, usually with multiple endpoints.",
+      "technologyExamples": ["Django REST Framework", "FastAPI", "Express", "Spring Boot", "fetch", "Axios"],
+      "youMayUseItWhen": "Your frontend calls routes such as GET /api/clinics, POST /api/orders, or PATCH /api/profile/42. This is likely the style used by your Django and frontend projects.",
+      "example": "GET /api/restaurants/42/orders?status=open returns a cacheable representation. POST /api/orders creates an order, while PATCH /api/orders/123 changes only selected fields.",
+      "chooseWhen": "The domain maps clearly to resources, HTTP caching matters, and simple operational tooling is valuable.",
+      "watchFor": "Inconsistent resource naming, chatty endpoints, over-fetching, and action-heavy URLs that ignore HTTP semantics."
+    },
+    {
+      "id": "graphql",
+      "title": "GraphQL",
+      "definition": "Uses a typed schema and a single query language so clients request the exact fields and relationships they need.",
+      "technologyExamples": ["Apollo Server and Client", "Graphene-Django", "Hasura", "Relay", "urql"],
+      "youMayUseItWhen": "Your client sends a GraphQL query to a schema endpoint and selects fields. Using JSON or fetch does not mean you are using GraphQL.",
+      "example": "A dashboard query can request restaurant name, open-order count, and today’s revenue in one operation, but resolvers must avoid N+1 database queries.",
+      "chooseWhen": "Many clients need different data shapes, the graph is relationship-heavy, and the team can operate schema governance and query complexity controls.",
+      "watchFor": "N+1 queries, unrestricted expensive queries, weak authorization inside resolvers, and treating GraphQL as automatically faster."
+    }
+  ],
+  "apiQuestions": [
+    {
+      "question": "How do you version an API without breaking clients?",
+      "coreAnswer": "Prefer additive, backward-compatible changes; measure client usage; communicate deprecations; and version only when the contract must change incompatibly.",
+      "technologyExamples": ["URL versioning", "Accept header versioning", "GraphQL field deprecation", "OpenAPI", "consumer contract tests"],
+      "example": "Add a nullable field or a new endpoint before removing an old field. Track whether mobile, kiosk, and web clients still use the old contract, then retire it through a documented window.",
+      "commonMistake": "Creating a new API version for every internal implementation change."
+    },
+    {
+      "question": "How do you design pagination for large datasets?",
+      "coreAnswer": "Use stable ordering and choose offset pagination for simple bounded lists or cursor pagination for large and frequently changing collections.",
+      "technologyExamples": ["limit and offset", "cursor pagination", "Django REST Framework pagination", "GraphQL connections", "indexed sort keys"],
+      "example": "An order history feed can use a cursor based on created_at and id so new orders do not shift every later page. The cursor remains opaque to clients.",
+      "commonMistake": "Using an unindexed offset query for millions of changing rows."
+    },
+    {
+      "question": "What is the difference between authentication and authorization?",
+      "coreAnswer": "Authentication establishes identity; authorization decides whether that identity may perform an action on a specific resource.",
+      "technologyExamples": ["session cookie", "OAuth 2.0 and OpenID Connect", "JWT", "Django permissions", "RBAC", "policy checks"],
+      "example": "A manager may be authenticated successfully but still needs authorization to edit only restaurants and employees within their organization.",
+      "commonMistake": "Checking that a token is valid and assuming every authenticated user can access every resource."
+    },
+    {
+      "question": "How should an API handle retries safely?",
+      "coreAnswer": "Retry only transient failures with bounded exponential backoff and jitter, and make side-effecting operations idempotent.",
+      "technologyExamples": ["Idempotency-Key", "HTTP 429 and Retry-After", "502 and 503 handling", "exponential backoff", "request timeout"],
+      "example": "A retried order submission carries the same idempotency key. The server returns the original result instead of creating a duplicate order.",
+      "commonMistake": "Automatically retrying every POST request or retrying indefinitely."
+    }
+  ],
+  "frontendArchitectureTopics": [
+    {
+      "question": "How would you structure a large frontend application?",
+      "coreAnswer": "Organize around product capabilities, keep domain rules separate from presentation, establish clear public boundaries, and place truly shared primitives below features rather than in a catch-all folder.",
+      "technologyExamples": ["feature modules", "route boundaries", "design-system primitives", "domain services", "API adapters", "dependency rules"],
+      "example": "DineEase can separate orders, menus, employees, analytics, and kiosks into feature modules. Each feature owns its screens and state while shared authentication, API transport, and UI primitives remain stable dependencies.",
+      "commonMistake": "Creating global components, helpers, and stores that allow every feature to depend on every other feature."
+    },
+    {
+      "question": "Feature-based or layer-based organization: which do you choose?",
+      "coreAnswer": "Use feature-oriented boundaries for product code and layers inside a feature where they clarify responsibility. Pure horizontal layers become difficult to navigate as products grow.",
+      "technologyExamples": ["feature folders", "components", "composables or hooks", "services", "schemas", "public index exports"],
+      "example": "The orders feature can contain its components, query hooks, validation, and tests. It imports a shared button and API client but does not reach into the internal files of the menu feature.",
+      "commonMistake": "Treating folder structure as architecture without enforcing dependency direction."
+    },
+    {
+      "question": "How do you separate server state, client state, URL state, and form state?",
+      "coreAnswer": "Assign each state type to the tool that matches its lifecycle: query caches for remote data, the URL for shareable navigation, form libraries or local state for edits, and component state for temporary interaction.",
+      "technologyExamples": ["TanStack Query", "Pinia", "Redux Toolkit", "URLSearchParams", "React Hook Form", "Vue composables"],
+      "example": "Walkspan can keep address, radius, and active comparison in the URL; establishment results in a query cache; and an open map popover in local component state.",
+      "commonMistake": "Copying server responses into a global store and manually synchronizing multiple sources of truth."
+    },
+    {
+      "question": "How do you design component boundaries and reusable APIs?",
+      "coreAnswer": "Start from user tasks and semantic behavior, keep domain components specific, make primitives composable, and expose the smallest stable interface needed by consumers.",
+      "technologyExamples": ["composition", "slots and children", "controlled state", "compound components", "TypeScript props", "Storybook"],
+      "example": "A reusable dialog owns focus, Escape handling, labels, and scroll lock. A restaurant-specific menu editor composes it without pushing restaurant rules into the dialog API.",
+      "commonMistake": "Building one universal component with dozens of flags for unrelated use cases."
+    },
+    {
+      "question": "What happens between a browser receiving HTML and pixels appearing on screen?",
+      "coreAnswer": "The browser parses HTML and CSS, builds the DOM and CSSOM, calculates style and layout, paints pixels, and composites layers. JavaScript can delay or repeat parts of this pipeline.",
+      "technologyExamples": ["DOM", "CSSOM", "render tree", "layout", "paint", "compositing", "Chrome Performance panel"],
+      "example": "Animating transform and opacity usually stays in compositing, while repeatedly changing element dimensions can trigger layout and paint across a large portion of the page.",
+      "commonMistake": "Calling every visual slowdown a React rendering problem without inspecting browser layout and paint work."
+    },
+    {
+      "question": "How do the event loop, tasks, and microtasks affect frontend responsiveness?",
+      "coreAnswer": "JavaScript runs on the main thread in tasks. Promise callbacks run in the microtask queue before the browser moves to another task, so long synchronous work or unbounded microtasks can delay input and rendering.",
+      "technologyExamples": ["event loop", "task queue", "microtask queue", "Promise", "requestAnimationFrame", "Web Worker"],
+      "example": "A large menu import should be parsed in chunks or moved to a worker instead of blocking the main thread while the user is typing or scrolling.",
+      "commonMistake": "Assuming async syntax automatically moves CPU-heavy work off the main thread."
+    },
+    {
+      "question": "How do you choose code splitting, SSR, SSG, hydration, and client rendering?",
+      "coreAnswer": "Choose per route using indexability, freshness, personalization, bundle cost, and interaction requirements. Split code at meaningful route or feature boundaries and keep the first server and client render deterministic.",
+      "technologyExamples": ["dynamic import", "React.lazy", "Nuxt routeRules", "SSR", "SSG", "streaming", "hydration"],
+      "example": "A public clinic profile can use SSR for search visibility, an article can be statically generated, and an authenticated operations dashboard can load client-side after a lightweight shell.",
+      "commonMistake": "Choosing one rendering strategy for every route or adding tiny chunks that increase request overhead."
+    },
+    {
+      "question": "When would you use micro-frontends?",
+      "coreAnswer": "Use them when independently owned product areas genuinely require separate release lifecycles and teams can absorb the runtime, consistency, and operational costs. Prefer a modular monolith otherwise.",
+      "technologyExamples": ["Module Federation", "single-spa", "web components", "independent deployments", "shared contracts"],
+      "example": "A very large organization might isolate billing and operations portals by team. DineEase at its current scale benefits more from explicit feature modules in one application.",
+      "commonMistake": "Using micro-frontends to solve unclear module boundaries inside one team."
+    },
+    {
+      "question": "How do you make the frontend observable?",
+      "coreAnswer": "Capture errors, performance, release identifiers, and critical user journeys while protecting user data. Alerts should connect technical signals to real product impact.",
+      "technologyExamples": ["Sentry", "OpenTelemetry", "Core Web Vitals", "structured logs", "session replay", "release markers"],
+      "example": "For DineEase, track order submission success, real-time feed disconnects, route latency, and frontend errors by release instead of monitoring only page views.",
+      "commonMistake": "Collecting large volumes of telemetry without ownership, thresholds, privacy controls, or an action when a signal regresses."
+    }
+  ],
+  "uiUxTopics": [
+    {
+      "question": "How do you turn a design into a maintainable interface?",
+      "coreAnswer": "Identify repeated patterns, establish tokens and accessible primitives, define responsive behavior and states, then compose feature components without forcing every screen into one abstraction.",
+      "technologyExamples": ["Figma", "design tokens", "Tailwind CSS", "Storybook", "component variants", "semantic HTML"],
+      "example": "Start with spacing, typography, color, buttons, fields, and dialogs, then build clinic cards and booking flows from those primitives while keeping domain behavior in the feature.",
+      "commonMistake": "Copying each frame as one-off markup and postponing loading, error, mobile, and keyboard states."
+    },
+    {
+      "question": "How do you evaluate whether an interface is usable?",
+      "coreAnswer": "Define the user task, observe completion and failure, combine qualitative feedback with behavioral evidence, and verify that improvements affect the intended outcome.",
+      "technologyExamples": ["task completion rate", "error rate", "funnel analysis", "Hotjar", "usability testing", "support feedback"],
+      "example": "For clinic discovery, measure whether patients can find a relevant clinic and begin booking, then inspect search exits and recordings to identify confusing filters or missing information.",
+      "commonMistake": "Treating personal preference or visual polish as proof of usability."
+    },
+    {
+      "question": "What makes a design system successful?",
+      "coreAnswer": "It needs shared tokens, accessible components, documented usage, contribution rules, adoption, and ownership. Its value is consistency and delivery speed, not the number of components.",
+      "technologyExamples": ["design tokens", "Storybook", "visual regression", "component API", "semantic versioning", "usage analytics"],
+      "example": "A shared field component owns labels, help text, errors, focus, disabled state, and spacing so every product form receives the same accessibility behavior.",
+      "commonMistake": "Building a component gallery that product teams cannot extend or that ignores real application states."
+    },
+    {
+      "question": "What do you do when a Figma design is incomplete?",
+      "coreAnswer": "Clarify the task and intent, identify missing states and breakpoints, propose behavior using existing patterns, document assumptions, and return decisions to design rather than silently inventing product rules.",
+      "technologyExamples": ["design review", "acceptance criteria", "responsive specification", "interaction states", "decision log"],
+      "example": "If a menu editor shows only the ideal desktop state, ask about empty menus, validation, permissions, saving, conflicts, mobile use, and failure recovery before implementation.",
+      "commonMistake": "Blocking on pixel-perfect specifications or making consequential workflow decisions without alignment."
+    },
+    {
+      "question": "How do you prevent accessibility regressions?",
+      "coreAnswer": "Build accessibility into shared primitives, use semantic HTML, test keyboard and focus behavior, add automated checks, and manually review the critical flow with assistive technology.",
+      "technologyExamples": ["WCAG", "ARIA", "axe-core", "eslint-plugin-jsx-a11y", "screen reader", "focus management"],
+      "example": "A shared modal implements focus entry, focus trap, Escape, restored focus, labels, and reduced motion once so every feature does not recreate it incorrectly.",
+      "commonMistake": "Adding ARIA to non-semantic elements instead of using native controls and testing the complete interaction."
+    },
+    {
+      "question": "How do you design loading, empty, error, permission, and success states?",
+      "coreAnswer": "Treat each as part of the workflow: preserve context, state what happened, show the next useful action, and avoid blocking unrelated work.",
+      "technologyExamples": ["skeleton state", "optimistic update", "retry", "inline validation", "permission boundary", "toast"],
+      "example": "An orders page distinguishes no orders yet, no filter results, failed loading, and insufficient permission because each state needs a different explanation and recovery action.",
+      "commonMistake": "Using one generic empty screen or error toast for every cause."
+    },
+    {
+      "question": "When should you use a modal, drawer, popover, or separate page?",
+      "coreAnswer": "Choose based on task depth, interruption, context preservation, navigation expectations, and available space. Complex or linkable work usually deserves a page.",
+      "technologyExamples": ["dialog", "drawer", "popover", "route", "focus trap", "deep link"],
+      "example": "A quick confirmation can use a modal, contextual filters can use a popover, mobile navigation may use a drawer, and a multi-step employee editor should use a page.",
+      "commonMistake": "Putting a long form in a modal because it feels faster to implement."
+    },
+    {
+      "question": "How do you balance visual quality and frontend performance?",
+      "coreAnswer": "Protect hierarchy and brand while budgeting image, font, animation, and JavaScript cost. Measure on representative devices and provide lower-cost or reduced-motion behavior.",
+      "technologyExamples": ["responsive images", "font subsetting", "CSS transforms", "lazy loading", "Core Web Vitals", "prefers-reduced-motion"],
+      "example": "Keep the portfolio's Three.js hero purposeful and isolated, lazy-load noncritical media, pause animation when hidden, and preserve readable static content when motion is reduced.",
+      "commonMistake": "Removing all expression for performance or shipping expensive decoration without measuring its user cost."
+    }
+  ],
+  "seoReference": {
+    "workstreams": [
+      {
+        "id": "search-visibility",
+        "icon": "search",
+        "title": "Search visibility",
+        "signal": "Can search engines find, understand, and rank the page?",
+        "description": "Start with crawlability and indexability, then connect queries and landing pages to useful outcomes. Rankings alone do not prove that the right audience reached the right page.",
+        "tools": ["Google Search Console", "Ahrefs", "Screaming Frog SEO Spider"],
+        "checks": [
+          "Search Console: indexing, sitemap status, canonical selection, crawl errors, and manual actions.",
+          "Search performance: clicks, impressions, click-through rate, position, query, country, device, and landing page.",
+          "Technical crawl: status codes, duplicate titles, missing metadata, broken canonicals, redirect chains, and orphan pages."
+        ]
+      },
+      {
+        "id": "behavior-and-conversion",
+        "icon": "behavior",
+        "title": "Behavior and conversion",
+        "signal": "Do visitors understand the page and complete the intended task?",
+        "description": "Pair traffic counts with event and qualitative evidence. Real-time users tell you what is happening now; funnels, recordings, and heatmaps help explain where users hesitate or leave.",
+        "tools": ["Google Analytics 4", "PostHog", "Hotjar"],
+        "checks": [
+          "Real-time users and live events after releases, campaigns, or incidents.",
+          "Acquisition source, landing page, engagement, conversion rate, funnel drop-off, and retention.",
+          "Heatmaps and session recordings for confusing controls, dead clicks, rage clicks, and ignored content, with privacy masking enabled."
+        ]
+      },
+      {
+        "id": "performance-and-experience",
+        "icon": "performance",
+        "title": "Performance and page experience",
+        "signal": "Is the page fast, stable, and responsive for real users?",
+        "description": "Use lab tools to reproduce and diagnose, then use field data to understand production users. Separate mobile from desktop and inspect templates rather than celebrating one ideal URL.",
+        "tools": ["Lighthouse", "PageSpeed Insights", "Chrome UX Report"],
+        "checks": [
+          "Core Web Vitals: LCP, INP, and CLS, including the affected device and page group.",
+          "Render-blocking resources, oversized images, font loading, third-party scripts, cache policy, and JavaScript cost.",
+          "Field versus lab data: use Lighthouse for diagnosis and CrUX or PageSpeed field data for real-user trends."
+        ]
+      },
+      {
+        "id": "authority-and-links",
+        "icon": "authority",
+        "title": "Authority and link structure",
+        "signal": "Does authority reach the pages that should rank?",
+        "description": "Backlinks can earn authority, internal links distribute it and explain hierarchy, and external links add useful evidence. Quality and relevance matter more than raw link counts.",
+        "tools": ["Ahrefs", "Google Search Console", "Screaming Frog SEO Spider"],
+        "checks": [
+          "Referring domains, linked pages, anchor text, lost links, relevance, and suspicious acquisition patterns.",
+          "Internal link depth, orphan pages, descriptive anchor text, breadcrumbs, hubs, and links to conversion pages.",
+          "External links to credible sources, plus broken destinations, redirects, and appropriate sponsored or nofollow attributes."
+        ]
+      }
+    ],
+    "linkTypes": [
+      {
+        "id": "backlinks",
+        "title": "Backlinks",
+        "from": "Another website",
+        "to": "Your page",
+        "description": "An inbound link can signal relevance and authority when it comes from a credible, contextually related source.",
+        "check": "referring-domain quality, topical relevance, anchor text, linked page, new and lost links, and unusual spikes."
+      },
+      {
+        "id": "internal-links",
+        "title": "Internal links",
+        "from": "Your page A",
+        "to": "Your page B",
+        "description": "Internal links help crawlers discover content and help users understand hierarchy, related topics, and the next action.",
+        "check": "orphan pages, click depth, descriptive anchors, hub pages, breadcrumbs, broken links, and priority pages receiving enough context."
+      },
+      {
+        "id": "external-links",
+        "title": "External links",
+        "from": "Your page",
+        "to": "Trusted source",
+        "description": "Useful outbound links support claims and user research; they should be intentional, current, and safe.",
+        "check": "source credibility, destination status, redirects, rel attributes, target behavior, and whether the link genuinely helps the reader."
+      }
+    ],
+    "reviewCadence": [
+      {
+        "when": "After release",
+        "focus": "Confirm analytics events, real-time users, indexability, canonical tags, structured data, page status, and obvious performance regressions."
+      },
+      {
+        "when": "Weekly",
+        "focus": "Review Search Console changes, landing-page conversions, unusual traffic shifts, crawl failures, and behavior recordings around important flows."
+      },
+      {
+        "when": "Monthly",
+        "focus": "Compare query and page trends, Core Web Vitals, content gaps, internal-link coverage, backlink movement, and business outcomes."
+      }
+    ],
+    "seniorAnswer": "I separate visibility, behavior, performance, and authority because each requires different evidence. I start from the business task, segment by landing page and device, compare before and after a change, then investigate with the narrowest useful tool. I avoid claiming causation from one dashboard and turn findings into an owned engineering or content action with a success metric.",
+    "portfolioProof": "Use Cortico as the concrete story: connect technical SEO and frontend performance work to the supplied Search Console, organic traffic, keyword, Core Web Vitals, Hotjar, and PQL evidence while clearly describing your contribution."
+  },
+  "qualityTopics": [
+    {
+      "question": "What belongs in unit, integration, and end-to-end tests?",
+      "coreAnswer": "Unit tests protect isolated rules, integration tests protect boundaries and component behavior, and end-to-end tests protect a small number of critical user journeys.",
+      "technologyExamples": ["Vitest", "Jest", "React Testing Library", "Vue Test Utils", "Playwright", "Cypress"],
+      "example": "Unit-test order totals, integration-test the menu form with validation and API behavior, and end-to-end test creating an order through the customer flow.",
+      "commonMistake": "Testing every implementation detail at every layer and creating a slow, brittle suite."
+    },
+    {
+      "question": "What does the testing pyramid mean in practice?",
+      "coreAnswer": "Keep most feedback fast and close to the code, use fewer boundary tests, and reserve expensive browser journeys for high-value risks. The exact shape follows the product, not a quota.",
+      "technologyExamples": ["unit tests", "component tests", "contract tests", "integration tests", "end-to-end tests"],
+      "example": "A Django and React product can have many domain and serializer tests, focused component tests, API contract coverage, and a small Playwright smoke suite.",
+      "commonMistake": "Using the pyramid as a fixed percentage instead of a feedback and maintenance strategy."
+    },
+    {
+      "question": "How do you test components without coupling to implementation details?",
+      "coreAnswer": "Interact through roles, labels, and visible outcomes as a user would. Mock only real boundaries and avoid asserting internal state, class names, or private functions.",
+      "technologyExamples": ["Testing Library queries", "user-event", "MSW", "accessible roles", "fake timers"],
+      "example": "Submit a clinic form through its labels and button, then assert the visible validation or saved state rather than inspecting hook state.",
+      "commonMistake": "Making refactoring fail tests even though user behavior did not change."
+    },
+    {
+      "question": "How do you prevent visual regressions?",
+      "coreAnswer": "Stabilize representative component states, capture deterministic screenshots at meaningful breakpoints, review intentional changes, and keep the suite focused on important surfaces.",
+      "technologyExamples": ["Storybook", "Chromatic", "Playwright screenshots", "Percy", "design tokens"],
+      "example": "Capture navigation, form errors, project cards, and modal states on desktop and mobile after fonts and data are stable.",
+      "commonMistake": "Snapshotting every pixel of a dynamic page and ignoring noisy failures."
+    },
+    {
+      "question": "How do you test asynchronous UI and failure paths?",
+      "coreAnswer": "Control the network boundary, verify loading and duplicate-submission protection, then cover success, validation, timeout, retry, and stale-response behavior.",
+      "technologyExamples": ["MSW", "AbortController", "fake timers", "Playwright route interception", "retry assertions"],
+      "example": "For saving a clinic profile, test a successful response, nested validation errors, a network failure that preserves input, and a second click while saving.",
+      "commonMistake": "Testing only the ideal response and leaving recovery behavior unverified."
+    },
+    {
+      "question": "When should you not automate a test?",
+      "coreAnswer": "Avoid automation when the risk is low, the behavior is short-lived, or the test would be more expensive and less informative than a focused review. Automate repeatable high-value checks.",
+      "technologyExamples": ["risk-based testing", "exploratory testing", "test maintenance cost", "production monitoring"],
+      "example": "A temporary campaign flourish may receive manual browser review, while checkout, permissions, and order creation need durable automated protection.",
+      "commonMistake": "Using coverage percentage as the goal instead of confidence in important behavior."
+    },
+    {
+      "question": "What do you review in a pull request?",
+      "coreAnswer": "Check correctness, contract changes, security, accessibility, failure behavior, maintainability, tests, observability, and whether the scope matches the stated intent.",
+      "technologyExamples": ["PR template", "static analysis", "CI checks", "code owners", "preview deployment", "ADR"],
+      "example": "For a new order API, review authorization and idempotency as carefully as UI correctness, then use the preview to verify the user path.",
+      "commonMistake": "Focusing on formatting while missing product behavior or operational risk."
+    },
+    {
+      "question": "How do feature flags and rollout strategies reduce release risk?",
+      "coreAnswer": "Separate deployment from exposure, release gradually, observe real signals, and maintain a fast disable or rollback path. Remove temporary flags after the rollout.",
+      "technologyExamples": ["feature flags", "canary release", "blue-green deployment", "rolling deployment", "kill switch"],
+      "example": "Enable a new ordering workflow for internal users, then selected restaurants, then all tenants while monitoring completion and error rates.",
+      "commonMistake": "Leaving permanent nested flags that create untested combinations and unclear ownership."
+    }
+  ],
+  "securityTopics": [
+    {
+      "question": "How do XSS, CSRF, CORS, and CSP differ?",
+      "coreAnswer": "XSS executes untrusted script in a page, CSRF abuses a user's authenticated browser, CORS controls which origins may read responses, and CSP restricts which resources the browser may execute or load.",
+      "technologyExamples": ["output encoding", "SameSite cookies", "CSRF token", "Access-Control-Allow-Origin", "Content-Security-Policy"],
+      "example": "Escape user content to prevent XSS, require CSRF protection for cookie-authenticated writes, allow only trusted origins, and use CSP as another containment layer.",
+      "commonMistake": "Saying CORS protects an API from all unauthorized requests; it is a browser response-sharing policy, not authorization."
+    },
+    {
+      "question": "Where should browser authentication tokens be stored?",
+      "coreAnswer": "Prefer secure, HttpOnly, SameSite cookies for browser sessions when the architecture supports them. If JavaScript-accessible tokens are necessary, minimize lifetime and exposure and understand the XSS trade-off.",
+      "technologyExamples": ["HttpOnly", "Secure", "SameSite", "session cookie", "OAuth 2.0", "OpenID Connect"],
+      "example": "A portfolio admin session can use a secure HttpOnly cookie so application JavaScript cannot read the credential, with CSRF protection on state-changing requests.",
+      "commonMistake": "Calling localStorage secure because it persists conveniently."
+    },
+    {
+      "question": "What is the difference between input validation and output encoding?",
+      "coreAnswer": "Validation checks whether data matches allowed business and structural rules; output encoding makes data safe for the context where it is rendered. Both are needed and the server remains authoritative.",
+      "technologyExamples": ["schema validation", "Django serializers", "Zod", "HTML escaping", "parameterized queries"],
+      "example": "Validate that a menu price is a positive decimal, parameterize its database query, and escape an item description when rendering HTML.",
+      "commonMistake": "Relying on frontend validation or stripping characters as a universal security solution."
+    },
+    {
+      "question": "How do you design authorization for a multi-tenant application?",
+      "coreAnswer": "Check permission at the resource boundary using both identity and tenant scope. Default to denial, keep policy centralized, and test cross-tenant access explicitly.",
+      "technologyExamples": ["RBAC", "ABAC", "tenant scope", "Django permissions", "policy object", "row-level security"],
+      "example": "A restaurant manager may edit employees only for locations within their organization, even if they guess another employee ID.",
+      "commonMistake": "Hiding a button in the frontend and assuming the API is protected."
+    },
+    {
+      "question": "Where should rate limiting be applied?",
+      "coreAnswer": "Apply limits at appropriate trust boundaries using identity, tenant, IP, route cost, and abuse risk. Return clear retry information and protect shared capacity.",
+      "technologyExamples": ["API gateway", "Nginx", "Redis counters", "token bucket", "HTTP 429", "Retry-After"],
+      "example": "Use strict limits for login and AI generation, tenant-aware limits for expensive exports, and broader protection at the edge.",
+      "commonMistake": "Using one IP limit for every endpoint and blocking legitimate users behind shared networks."
+    },
+    {
+      "question": "How do you manage secrets across local, CI, and production environments?",
+      "coreAnswer": "Keep secrets out of source and images, inject them at runtime from an approved store, restrict access, rotate credentials, and prevent values from entering logs or client bundles.",
+      "technologyExamples": ["environment variables", "AWS Secrets Manager", "SSM Parameter Store", "GitHub Actions secrets", "secret scanning"],
+      "example": "The backend receives an email provider key at runtime, while the Vite frontend receives only explicitly public configuration and never the private credential.",
+      "commonMistake": "Using an environment file but committing it or exposing a private key through a public frontend prefix."
+    },
+    {
+      "question": "How do you secure file uploads?",
+      "coreAnswer": "Authenticate and authorize the upload, limit size and type, verify content rather than trusting the filename, use generated object names, scan when risk requires it, and serve from isolated storage.",
+      "technologyExamples": ["presigned S3 upload", "content-type validation", "magic bytes", "malware scanning", "quarantine bucket"],
+      "example": "A résumé upload uses a short-lived presigned URL, validates the final object, stores it outside the application server, and never executes uploaded content.",
+      "commonMistake": "Accepting an extension as proof of file type or placing uploads under an executable web root."
+    },
+    {
+      "question": "How do you use the OWASP Top 10 in everyday engineering?",
+      "coreAnswer": "Use it as a risk checklist during design and review, then translate each relevant risk into concrete controls, automated checks, and ownership for the product's actual attack surface.",
+      "technologyExamples": ["OWASP Top 10", "dependency scanning", "SAST", "audit logging", "threat modeling", "least privilege"],
+      "example": "For a project inquiry form, cover injection, abuse, sensitive-data logging, dependency risk, rate limits, server-side validation, and least-privilege email credentials.",
+      "commonMistake": "Memorizing vulnerability names without explaining how the architecture prevents or detects them."
+    }
+  ],
+  "securityDiagramScenarios": [
+    {
+      "id": "public-form-defense",
+      "title": "Protecting a public form with defense in depth",
+      "question": "How would you stop spam, injection, and stored attacks on a public contact or application form?",
+      "coreAnswer": "Treat every browser value as untrusted. Keep client validation for usability, then enforce server-side schema validation, abuse controls, safe database access, context-aware output handling, and monitoring at separate trust boundaries.",
+      "seniorFraming": "No single control prevents every attack. A honeypot reduces simple bot noise, but it does not replace rate limiting, server validation, parameterized queries, authorization, encoding, or alerting.",
+      "flows": [
+        {
+          "id": "weak-form-path",
+          "label": "Design A: direct trust path",
+          "badge": "Fragile",
+          "tone": "risk",
+          "nodes": [
+            { "id": "weak-client", "title": "Public browser", "detail": "Attacker can bypass JavaScript checks.", "icon": "client", "tone": "risk" },
+            { "id": "weak-api", "title": "Form endpoint", "detail": "Accepts fields and sends or stores them directly.", "icon": "service", "tone": "risk" },
+            { "id": "weak-db", "title": "Email or database", "detail": "Receives unchecked content and repeated requests.", "icon": "database", "tone": "risk" }
+          ],
+          "note": "This design trusts the client and gives one endpoint responsibility for validation, abuse prevention, persistence, and detection."
+        },
+        {
+          "id": "hardened-form-path",
+          "label": "Design B: layered request path",
+          "badge": "Defense in depth",
+          "tone": "safe",
+          "nodes": [
+            { "id": "safe-client", "title": "Browser", "detail": "UX validation and an invisible honeypot field.", "icon": "client" },
+            { "id": "safe-edge", "title": "CDN and WAF", "detail": "Blocks known abusive traffic before the app.", "icon": "edge" },
+            { "id": "safe-rate", "title": "Rate limit and bot check", "detail": "Controls bursts and challenges suspicious requests.", "icon": "throttle" },
+            { "id": "safe-validate", "title": "Server validation", "detail": "Allowlisted schema, length, type, and business rules.", "icon": "validation" },
+            { "id": "safe-store", "title": "Safe processing", "detail": "Parameterized access, encoded output, and monitored delivery.", "icon": "database" }
+          ],
+          "note": "Each layer has a narrow job. If a simple bot bypasses the honeypot, later controls still protect capacity and data."
+        }
+      ],
+      "steps": [
+        { "title": "Reduce automated noise", "detail": "Use a visually hidden honeypot that real users leave empty, minimum-submit-time checks, and a privacy-conscious challenge such as Turnstile when traffic looks suspicious." },
+        { "title": "Control request volume", "detail": "Rate limit at the edge and application by route cost, IP, account, and tenant where appropriate. Return HTTP 429 with Retry-After rather than silently dropping legitimate traffic." },
+        { "title": "Validate on the server", "detail": "Parse against an allowlisted schema before business logic. Enforce required fields, types, lengths, ranges, formats, and cross-field rules; client checks are only an early UX aid." },
+        { "title": "Handle data for its destination", "detail": "Use parameterized queries or an ORM for SQL, encode output for its HTML, attribute, URL, or JavaScript context, and sanitize only when users are intentionally allowed to author HTML." },
+        { "title": "Protect state and identity", "detail": "Use CSRF protection for cookie-authenticated writes, authorize every protected operation, keep secrets server-side, and use least-privilege credentials for email or storage services." },
+        { "title": "Observe and respond", "detail": "Record validation failures, blocked bursts, delivery failures, and unusual patterns without logging passwords, tokens, or sensitive message content. Alert on sustained abuse." }
+      ],
+      "technologyExamples": ["Cloudflare WAF and Turnstile", "Nginx or API Gateway", "Redis rate limits", "Django serializers", "Zod", "ORM parameterization", "DOMPurify or Bleach", "Content Security Policy"],
+      "terms": ["trust boundary", "allowlist validation", "honeypot", "rate limiting", "output encoding", "HTML sanitization", "CSRF", "least privilege"],
+      "interviewAnswer": "I would protect the form in layers: an optional honeypot and timing signal for simple bots, edge and route-level rate limits for abuse, authoritative server-side schema validation, parameterized persistence, and context-aware encoding when data is shown again. Rich HTML is the exception that needs a maintained sanitizer. I would also add CSRF protection where cookies authenticate writes and monitor blocked and failed requests so the controls can be tuned.",
+      "commonMistake": "Calling validation, sanitization, and encoding the same thing. Validation decides whether input is allowed; sanitization removes unsafe markup when markup is permitted; encoding keeps data from becoming executable in a specific output context."
+    },
+    {
+      "id": "http-versus-https",
+      "title": "HTTP vs HTTPS and the TLS trust path",
+      "question": "What does HTTPS actually protect, and what security work remains after enabling it?",
+      "coreAnswer": "HTTP sends application traffic without transport encryption. HTTPS is HTTP carried through TLS, which authenticates the server certificate and protects data confidentiality and integrity while it travels between TLS endpoints.",
+      "seniorFraming": "HTTPS protects data in transit, not the application itself. It does not replace authentication, authorization, input validation, secure sessions, safe database access, output encoding, or encryption at rest.",
+      "flows": [
+        {
+          "id": "http-request-path",
+          "label": "Design A: plain HTTP request",
+          "badge": "Unprotected transport",
+          "tone": "risk",
+          "nodes": [
+            { "id": "http-browser", "title": "Browser", "detail": "Sends URLs, headers, cookies, and form data as plain transport traffic.", "icon": "client", "tone": "risk" },
+            { "id": "http-network", "title": "Public network", "detail": "A network observer may read or alter the request and response.", "icon": "edge", "tone": "risk" },
+            { "id": "http-server", "title": "Application server", "detail": "Cannot prove that transport content arrived without interception or modification.", "icon": "service", "tone": "risk" }
+          ],
+          "note": "HTTP may be acceptable inside a tightly controlled local boundary, but public user traffic and credentials should never rely on an unencrypted path."
+        },
+        {
+          "id": "https-request-path",
+          "label": "Design B: HTTPS with TLS",
+          "badge": "Protected in transit",
+          "tone": "safe",
+          "nodes": [
+            { "id": "https-browser", "title": "Browser", "detail": "Requests a secure connection and validates the server identity.", "icon": "client" },
+            { "id": "https-handshake", "title": "Certificate and handshake", "detail": "TLS negotiates keys after the certificate chain and hostname are checked.", "icon": "validation" },
+            { "id": "https-tunnel", "title": "Encrypted channel", "detail": "Authenticated encryption protects confidentiality and detects tampering in transit.", "icon": "edge" },
+            { "id": "https-server", "title": "TLS endpoint", "detail": "The CDN, load balancer, or app decrypts traffic and continues normal application security checks.", "icon": "service" }
+          ],
+          "note": "If TLS terminates at a CDN or load balancer, decide whether internal hops also need TLS based on trust boundaries, network exposure, and compliance requirements."
+        }
+      ],
+      "mappingHeaders": ["Property", "HTTP", "HTTPS"],
+      "controlMappings": [
+        { "threat": "Confidentiality", "controls": "Traffic can be read in transit", "explanation": "TLS encrypts traffic between its endpoints." },
+        { "threat": "Integrity", "controls": "Traffic can be modified without reliable detection", "explanation": "TLS authenticated encryption detects tampering." },
+        { "threat": "Server identity", "controls": "No certificate-based identity proof", "explanation": "The client validates the certificate chain and requested hostname." },
+        { "threat": "Application safety", "controls": "Still requires secure application code", "explanation": "Still requires secure application code; HTTPS only protects the transport layer." }
+      ],
+      "steps": [
+        { "title": "Start the TLS handshake", "detail": "The client and server agree on a supported TLS version and cryptographic parameters." },
+        { "title": "Verify server identity", "detail": "The client checks the certificate authority chain, expiration, hostname, and certificate validity before trusting the endpoint." },
+        { "title": "Establish session keys", "detail": "The handshake derives short-lived symmetric keys so application traffic can be encrypted efficiently." },
+        { "title": "Exchange protected HTTP", "detail": "Requests and responses remain normal HTTP semantics, but TLS encrypts and authenticates their bytes in transit." },
+        { "title": "Continue application controls", "detail": "The server still authenticates users, authorizes actions, validates payloads, protects sessions, and safely handles stored and rendered data." }
+      ],
+      "technologyExamples": ["TLS 1.3", "Let's Encrypt", "Cloudflare", "AWS Certificate Manager", "Nginx", "HSTS", "Secure and HttpOnly cookies"],
+      "terms": ["TLS handshake", "certificate authority", "certificate chain", "hostname validation", "encryption in transit", "TLS termination", "HSTS"],
+      "interviewAnswer": "HTTPS is HTTP over TLS. TLS authenticates the server and protects confidentiality and integrity between TLS endpoints. I would terminate it at the edge or load balancer, use managed certificate rotation, redirect HTTP to HTTPS, enable HSTS after confirming every route supports HTTPS, and use Secure cookies. I would still enforce all application-level controls because TLS does not prevent injection, broken authorization, or compromised accounts.",
+      "commonMistake": "Saying HTTPS encrypts the database or makes the application secure. It protects transport between TLS endpoints; stored data and application behavior need separate controls."
+    },
+    {
+      "id": "security-concepts-compared",
+      "title": "Security concepts that sound similar but solve different problems",
+      "question": "How do authentication, authorization, hashing, encryption, validation, sanitization, encoding, CORS, and CSRF fit together?",
+      "coreAnswer": "Define each control by the question it answers and place it at the correct trust boundary. Similar terms are not interchangeable, and using the wrong one often leaves the actual exploit condition untouched.",
+      "seniorFraming": "A strong answer explains sequence and ownership: identify the caller, decide permission, validate the request, process and store safely, then encode or sanitize for the output context while recording security-relevant events.",
+      "flows": [
+        {
+          "id": "secure-request-decision-path",
+          "label": "Secure request decision path",
+          "badge": "Different controls, ordered",
+          "tone": "safe",
+          "nodes": [
+            { "id": "identity-check", "title": "Authenticate", "detail": "Who is making this request?", "icon": "identity" },
+            { "id": "permission-check", "title": "Authorize", "detail": "May this identity perform this action on this resource?", "icon": "edge" },
+            { "id": "payload-check", "title": "Validate", "detail": "Does the payload match allowed types, bounds, formats, and business rules?", "icon": "validation" },
+            { "id": "safe-processing", "title": "Process safely", "detail": "Use parameterized persistence, least privilege, and explicit domain rules.", "icon": "database" },
+            { "id": "safe-output", "title": "Render safely", "detail": "Encode for the output context or sanitize intentionally allowed HTML.", "icon": "service" }
+          ],
+          "note": "The order matters, but every boundary still fails closed. Validation does not grant permission, and authorization does not make unsafe output safe."
+        }
+      ],
+      "mappingHeaders": ["Comparison", "Primary purpose", "Practical example"],
+      "controlMappings": [
+        { "threat": "Authentication vs authorization", "controls": "Prove identity vs decide permission", "explanation": "A valid session identifies Mico; an ownership or role check decides whether Mico can edit a specific project." },
+        { "threat": "Hashing vs encryption vs encoding", "controls": "One-way fingerprint vs reversible secrecy vs format conversion", "explanation": "Hash passwords with Argon2; encrypt sensitive recoverable data with managed keys; Base64 only converts bytes and provides no secrecy." },
+        { "threat": "Validation vs sanitization vs output encoding", "controls": "Accept allowed input vs clean permitted markup vs render data safely", "explanation": "Reject an invalid email, sanitize user-authored rich HTML, and HTML-encode plain comments when displaying them." },
+        { "threat": "CORS vs CSRF", "controls": "Browser response-sharing policy vs forged authenticated request defense", "explanation": "CORS controls which origins may read responses; CSRF tokens and SameSite cookies protect cookie-authenticated state changes." },
+        { "threat": "WAF vs application validation", "controls": "Edge filtering vs authoritative domain rules", "explanation": "A WAF blocks known malicious patterns; the application still validates every field and enforces business invariants." },
+        { "threat": "Honeypot vs rate limiting", "controls": "Trap simple bots vs bound request volume", "explanation": "A hidden field catches basic scripts; rate limits still protect resources when sophisticated bots ignore the trap." }
+      ],
+      "steps": [
+        { "title": "Ask what is being protected", "detail": "Clarify whether the concern is identity, permission, transport, stored data, input correctness, browser rendering, or service capacity." },
+        { "title": "Choose the control that removes the exploit condition", "detail": "Use authorization for object access, parameterization for SQL injection, contextual encoding for rendered text, and rate limiting for resource abuse." },
+        { "title": "Place it at the authoritative boundary", "detail": "Client-side checks improve usability, but security decisions belong on the server or another trusted enforcement point." },
+        { "title": "Add supporting layers", "detail": "Use edge filtering, monitoring, alerts, least privilege, and recovery controls without confusing them for the primary defense." },
+        { "title": "Test the negative path", "detail": "Try missing permissions, cross-tenant IDs, malformed values, unsafe markup, reused credentials, forged origins, and repeated requests." }
+      ],
+      "technologyExamples": ["OAuth 2.0 and OpenID Connect", "Django permissions", "Argon2", "AWS KMS", "Zod or serializers", "DOMPurify", "CSP", "SameSite cookies", "Redis rate limits"],
+      "terms": ["authentication", "authorization", "hashing", "encryption", "encoding", "validation", "sanitization", "CORS", "CSRF", "authoritative boundary"],
+      "interviewAnswer": "I separate these terms by purpose. Authentication proves identity and authorization checks permission. Hashing is one-way and fits passwords, encryption is reversible with a key, and encoding is only representation. Validation rejects disallowed input, sanitization cleans intentionally supported markup, and output encoding prevents plain data from becoming executable. CORS controls browser response sharing, while CSRF defenses protect cookie-authenticated writes. I apply each at its authoritative boundary and then add monitoring and rate limits as supporting layers.",
+      "commonMistake": "Using one security term as a substitute for another, such as Base64 encoding a secret, relying on CORS to stop CSRF, or assuming a validated value is authorized and safe in every output context."
+    },
+    {
+      "id": "attack-control-map",
+      "title": "Matching attacks to the correct controls",
+      "question": "Which protection would you choose for each common web attack, and why is one generic security filter not enough?",
+      "coreAnswer": "Start with the attacker's path and the asset at risk, then place preventive, detective, and recovery controls at the relevant boundary. Different attacks exploit different assumptions, so the controls must be specific.",
+      "seniorFraming": "Name the primary control first, then the supporting layers and remaining risk. For example, CSP can limit XSS impact, but correct rendering and sanitization remain the primary defenses.",
+      "controlMappings": [
+        { "threat": "Bot spam and scraping", "controls": "Honeypot, rate limit, bot challenge", "explanation": "A honeypot catches simple automation; behavioral limits and edge challenges handle bots that behave more like browsers." },
+        { "threat": "SQL injection", "controls": "Schema validation, ORM or parameterized queries", "explanation": "Validation rejects invalid values, while parameterization prevents data from becoming part of the SQL command." },
+        { "threat": "Cross-site scripting", "controls": "Safe rendering, contextual encoding, HTML sanitization, CSP", "explanation": "Keep untrusted data out of executable contexts; sanitize only intentionally supported HTML and use CSP as containment." },
+        { "threat": "Cross-site request forgery", "controls": "SameSite cookies, CSRF token, Origin checks", "explanation": "Prove that a cookie-authenticated state-changing request came through an intended application flow." },
+        { "threat": "Credential stuffing", "controls": "Rate limit, MFA or passkeys, breached-password screening", "explanation": "Slow automated credential replay and reduce the value of a reused password without locking out every shared-network user." },
+        { "threat": "DDoS or request flood", "controls": "CDN, WAF, edge limits, load shedding", "explanation": "Absorb or reject abusive traffic before scarce application and database capacity is consumed." }
+      ],
+      "steps": [
+        { "title": "Identify the asset", "detail": "Clarify whether the risk is account access, private data, service capacity, stored content, money, or administrative control." },
+        { "title": "Trace the trust boundaries", "detail": "Follow the request through browser, edge, API, queue, worker, database, and third-party services. Mark where identity or data assumptions change." },
+        { "title": "Choose the primary control", "detail": "Use the control that removes the exploit condition: parameterization for SQL injection, authorization for object access, or safe rendering for XSS." },
+        { "title": "Add supporting layers", "detail": "Add limits, monitoring, containment, and recovery so one bypass or operational failure does not become a complete compromise." },
+        { "title": "Test the abuse case", "detail": "Verify negative paths such as cross-tenant IDs, repeated login attempts, malformed payloads, unsafe HTML, missing CSRF tokens, and oversized files." }
+      ],
+      "technologyExamples": ["OWASP ASVS", "Cloudflare", "AWS WAF", "Django permissions", "PostgreSQL", "Redis", "CSP", "Sentry and CloudWatch"],
+      "terms": ["defense in depth", "preventive control", "detective control", "compensating control", "attack surface", "blast radius", "load shedding"],
+      "interviewAnswer": "I avoid prescribing one security middleware for every risk. I identify the asset, trace the trust boundary, and choose the primary control that removes the exploit condition. Then I add rate limits, monitoring, and containment around it. For SQL injection that means parameterized access; for XSS it means safe sinks and context-aware encoding; for credential stuffing it means rate limits plus stronger authentication.",
+      "commonMistake": "Listing security products without connecting each one to an attack path, a protected asset, and a remaining trade-off."
+    },
+    {
+      "id": "security-incident-response",
+      "title": "Responding when an API may be under attack",
+      "question": "Traffic, errors, and suspicious requests suddenly spike. How do you protect users without destroying the evidence you need?",
+      "coreAnswer": "Confirm the signal, contain the active risk at the narrowest effective boundary, preserve evidence, remove the exploit or abused credential, restore safely, and turn the incident into durable controls.",
+      "seniorFraming": "Availability and security are connected. Scaling can buy investigation time, but scaling a vulnerable endpoint may increase cost or blast radius; containment and evidence come before an unproven capacity change.",
+      "flows": [
+        {
+          "id": "incident-sequence",
+          "label": "Incident response sequence",
+          "badge": "Contain and learn",
+          "tone": "safe",
+          "nodes": [
+            { "id": "detect", "title": "Detect", "detail": "Correlate rate, latency, errors, identities, routes, and logs.", "icon": "monitoring" },
+            { "id": "contain", "title": "Contain", "detail": "Block, limit, revoke, isolate, or disable the abused path.", "icon": "edge" },
+            { "id": "preserve", "title": "Preserve evidence", "detail": "Keep relevant logs, timestamps, request IDs, and configuration snapshots.", "icon": "database" },
+            { "id": "recover", "title": "Fix and recover", "detail": "Patch the cause, rotate secrets, verify data, and restore gradually.", "icon": "service" },
+            { "id": "learn", "title": "Learn", "detail": "Document timeline, root cause, missed signals, and owned actions.", "icon": "validation" }
+          ],
+          "note": "Containment should be reversible and scoped when possible. Preserve enough evidence to understand whether the event was abuse, exploitation, or a normal traffic surge."
+        }
+      ],
+      "steps": [
+        { "title": "Confirm and classify", "detail": "Compare current traffic with baseline, identify affected routes and tenants, inspect status codes and payload shapes, and distinguish legitimate demand from automation or exploitation." },
+        { "title": "Limit blast radius", "detail": "Apply an emergency edge rule, route-specific limit, account lock, feature kill switch, or temporary read-only mode. Avoid taking the entire product offline if one path can be isolated." },
+        { "title": "Preserve evidence", "detail": "Retain logs, traces, request IDs, deployment versions, security events, and relevant database audit history. Restrict access and avoid modifying originals needed for investigation." },
+        { "title": "Remove the cause", "detail": "Patch vulnerable code or configuration, revoke sessions or credentials, rotate exposed secrets, close excessive permissions, and validate whether data was read or changed." },
+        { "title": "Recover gradually", "detail": "Restore traffic in stages, monitor saturation and security signals, verify user-critical paths, and keep rollback or containment controls ready." },
+        { "title": "Run a blameless review", "detail": "Create the timeline, root cause, impact, detection gaps, and prioritized actions with owners and dates. Update runbooks, alerts, tests, and architecture where needed." }
+      ],
+      "technologyExamples": ["Cloudflare or AWS WAF", "API Gateway", "Redis rate limits", "Sentry", "OpenTelemetry", "CloudWatch", "SIEM", "feature flags and kill switches"],
+      "terms": ["incident commander", "containment", "blast radius", "forensic evidence", "credential rotation", "recovery point", "post-incident review"],
+      "interviewAnswer": "I would first confirm whether the spike is legitimate demand, automated abuse, or exploitation by correlating routes, identities, errors, latency, and recent changes. I would contain the narrowest risky path at the edge or application, preserve logs and request evidence, then patch or revoke the root cause. Recovery would be gradual with security and reliability signals watched together, followed by a blameless review with owned actions.",
+      "commonMistake": "Immediately adding servers or deleting suspicious logs. More capacity does not remove a vulnerability, and lost evidence makes root-cause and impact analysis harder."
+    }
+  ],
+  "frontendSections": [
+    {
+      "id": "react",
+      "title": "React questions",
+      "items": [
+        {
+          "question": "How do you decide where state belongs?",
+          "coreAnswer": "Keep state at the lowest shared owner, derive values instead of duplicating them, and separate server state, URL state, form state, and ephemeral UI state.",
+          "technologyExamples": ["useState and useReducer", "React Context", "TanStack Query", "Redux Toolkit", "URLSearchParams"],
+          "example": "In a map product, the URL can own shareable address and radius filters, TanStack Query can own fetched establishments, and local state can own an open popover.",
+          "commonMistake": "Putting all state into one global store because it is available."
+        },
+        {
+          "question": "What causes a React component to re-render?",
+          "coreAnswer": "A component re-renders when its state changes, its parent renders, consumed context changes, or an external subscription updates.",
+          "technologyExamples": ["React DevTools Profiler", "memo", "useMemo", "useCallback", "useSyncExternalStore"],
+          "example": "Profile first. Split frequently changing context, stabilize expensive list inputs, and virtualize large collections instead of adding memoization everywhere.",
+          "commonMistake": "Assuming every render is a performance bug."
+        },
+        {
+          "question": "How would you design a reusable component API?",
+          "coreAnswer": "Start from semantic HTML and user tasks, expose a small controlled surface, support composition, and avoid leaking implementation details.",
+          "technologyExamples": ["compound components", "controlled and uncontrolled props", "forwardRef", "ARIA patterns", "Storybook"],
+          "example": "A modal exposes open, onOpenChange, title, description, and children while owning focus trap, Escape handling, and scroll lock.",
+          "commonMistake": "Building one component with dozens of styling and behavior flags."
+        },
+        {
+          "question": "How do you improve React performance?",
+          "coreAnswer": "Measure the user-visible bottleneck, reduce unnecessary work, improve loading strategy, and verify the result with profiling and Web Vitals.",
+          "technologyExamples": ["React Profiler", "Chrome Performance", "lazy and Suspense", "list virtualization", "code splitting"],
+          "example": "For a dense dashboard, split the route bundle, virtualize long tables, defer non-critical charts, and keep interactions responsive before optimizing micro-renders.",
+          "commonMistake": "Starting with useMemo before checking network, bundle, rendering, or layout cost."
+        },
+        {
+          "question": "When should you use useEffect?",
+          "coreAnswer": "Use an effect to synchronize React with an external system, not to derive values that can be calculated during rendering or handled in an event.",
+          "technologyExamples": ["useEffect", "AbortController", "event subscriptions", "ResizeObserver", "custom hooks"],
+          "example": "Subscribe to a map instance or browser API in an effect and clean it up. Derive a filtered project list directly from props and state instead of copying it into effect-managed state.",
+          "commonMistake": "Using effects as a general-purpose reaction system and creating loops or stale state."
+        },
+        {
+          "question": "How do you choose client rendering, SSR, and static generation in React applications?",
+          "coreAnswer": "Choose per route based on indexability, personalization, data freshness, interactivity, and operational complexity.",
+          "technologyExamples": ["React Server Components", "Next.js SSR and SSG", "Vite SPA", "streaming", "hydration"],
+          "example": "A public project article can be statically generated, a search landing page may use SSR, and an authenticated operations dashboard can primarily render on the client.",
+          "commonMistake": "Equating SSR with automatic performance or SEO regardless of the route."
+        },
+        {
+          "question": "How do you make large React lists responsive?",
+          "coreAnswer": "Reduce the data and DOM work first, then use stable keys, pagination or incremental loading, and virtualization when the visible window is much smaller than the dataset.",
+          "technologyExamples": ["TanStack Virtual", "react-window", "cursor pagination", "memo", "React Profiler"],
+          "example": "For a live order feed, paginate historical orders, keep active orders bounded, and virtualize long history instead of rendering thousands of rows.",
+          "commonMistake": "Virtualizing a small list while ignoring an oversized network response or expensive row component."
+        }
+      ]
+    },
+    {
+      "id": "vue-nuxt",
+      "title": "Vue and Nuxt questions",
+      "items": [
+        {
+          "question": "When do you use computed, watch, and methods?",
+          "coreAnswer": "Use computed for cached derived values, watch for side effects caused by reactive changes, and methods for explicit actions.",
+          "technologyExamples": ["computed", "watch", "watchEffect", "composables", "Pinia"],
+          "example": "A selected radius label is computed; changing radius may trigger a watched fetch; clicking Reset is a method.",
+          "commonMistake": "Using watchers to maintain state that could be derived."
+        },
+        {
+          "question": "How do you choose SSR, SSG, and client rendering in Nuxt?",
+          "coreAnswer": "Choose per route based on freshness, personalization, indexability, and infrastructure cost.",
+          "technologyExamples": ["Nuxt SSR", "routeRules", "prerender", "useAsyncData", "client-only components"],
+          "example": "Clinic pages benefit from SSR or prerendering for SEO, while an authenticated analytics dashboard can render mostly on the client.",
+          "commonMistake": "Choosing one rendering mode for the entire product without considering route needs."
+        },
+        {
+          "question": "How do you structure reusable Vue logic?",
+          "coreAnswer": "Use focused composables for reusable stateful behavior and keep domain rules separate from visual components.",
+          "technologyExamples": ["Composition API", "composables", "provide and inject", "Pinia", "VueUse"],
+          "example": "useNeighborhoodSearch can own query parameters, request cancellation, loading, and normalization while map and compare views consume the same contract.",
+          "commonMistake": "Creating a universal composable that mixes API, UI, routing, and business rules."
+        },
+        {
+          "question": "How do you prevent hydration mismatch?",
+          "coreAnswer": "Make server and first client render deterministic, defer browser-only values, and isolate client-only libraries.",
+          "technologyExamples": ["ClientOnly", "onMounted", "useState in Nuxt", "SSR-safe IDs", "timezone normalization"],
+          "example": "Do not render Date.now, window dimensions, or localStorage-derived content differently during hydration; initialize them after mount or serialize stable server state.",
+          "commonMistake": "Suppressing the warning without fixing divergent output."
+        },
+        {
+          "question": "What is the difference between ref and reactive?",
+          "coreAnswer": "ref wraps a value behind .value in JavaScript and works well for primitives or replaceable objects; reactive creates a proxy for an object whose identity is expected to remain stable.",
+          "technologyExamples": ["ref", "reactive", "toRefs", "computed", "shallowRef"],
+          "example": "Use a ref for selectedRadius and a reactive object for a cohesive edit form, while avoiding destructuring reactive properties without toRefs.",
+          "commonMistake": "Choosing based only on shorter syntax and losing reactivity through destructuring."
+        },
+        {
+          "question": "How do useAsyncData and useFetch fit into Nuxt data loading?",
+          "coreAnswer": "Use Nuxt data utilities when data should participate in SSR, payload serialization, caching, and route-aware loading; keep client-only requests explicit.",
+          "technologyExamples": ["useAsyncData", "useFetch", "$fetch", "server routes", "refreshNuxtData"],
+          "example": "Load indexable clinic data with useAsyncData on the server, while a user-triggered export can call $fetch from an event because it is not part of initial rendering.",
+          "commonMistake": "Fetching the same initial data again after hydration because server payload reuse was ignored."
+        },
+        {
+          "question": "How do you improve performance in a large Vue application?",
+          "coreAnswer": "Measure first, reduce reactive and rendering scope, split route code, avoid unnecessary deep reactivity, and keep large collections bounded.",
+          "technologyExamples": ["Vue Devtools", "shallowRef", "markRaw", "defineAsyncComponent", "route-level code splitting", "virtual lists"],
+          "example": "Keep a third-party map instance in a shallowRef, lazy-load analytics routes, and send clustered map data instead of making thousands of deeply reactive marker objects.",
+          "commonMistake": "Adding watchers and computed layers without understanding which reactive dependency triggers the work."
+        }
+      ]
+    }
+  ],
+  "agileDeliveryTopics": [
+    {
+      "question": "How do Agile, Waterfall, Scrum, and Kanban differ?",
+      "coreAnswer": "Agile is a set of principles built around incremental delivery, feedback, and adaptation. Waterfall moves through defined phases with most scope and sequencing planned up front. Scrum is an Agile framework that uses fixed-length sprints, accountabilities, events, and artifacts. Kanban manages continuous flow through visible work and work-in-progress limits.",
+      "technologyExamples": ["Agile", "Waterfall", "Scrum", "Kanban", "sprint", "work-in-progress limit", "increment"],
+      "example": "A product team can use Scrum to deliver DineEase capabilities in two-week increments. A support team can use Kanban because work arrives continuously. A compliance-heavy migration with fixed approvals may use Waterfall-style gates while still validating risky assumptions early.",
+      "commonMistake": "Treating Agile as no planning, Waterfall as automatically bad, Scrum as a synonym for Agile, or Kanban as only a board with columns."
+    },
+    {
+      "question": "When would you choose Waterfall, Scrum, Kanban, or a hybrid approach?",
+      "coreAnswer": "Choose from the uncertainty and flow of work. Waterfall fits stable scope with sequential approvals, Scrum fits complex product work that benefits from a regular inspect-and-adapt cadence, Kanban fits continuous or unpredictable demand, and a hybrid approach fits organizations with fixed governance but iterative implementation.",
+      "technologyExamples": ["Waterfall phase gates", "Scrum sprint", "Kanban pull system", "hybrid delivery", "release milestone", "change control"],
+      "example": "A healthcare integration may require formal security and compliance gates, but the application can still be built and validated in small Scrum increments. Production support can run through a Kanban lane with explicit service classes and work-in-progress limits.",
+      "commonMistake": "Choosing a framework because it is popular instead of matching it to requirement stability, delivery risk, team ownership, and how work actually arrives."
+    },
+    {
+      "question": "How do you become an effective Scrum Master?",
+      "coreAnswer": "Learn Scrum deeply, facilitate rather than command, protect transparency, coach the team toward self-management, help remove impediments, improve collaboration with the Product Owner, and use evidence to make the delivery system better. The Scrum Master owns the effectiveness of Scrum, not the assignment of tasks.",
+      "technologyExamples": ["Scrum Guide", "facilitation", "servant leadership", "impediment removal", "team coaching", "sprint goal", "empiricism"],
+      "example": "Start by making the sprint goal and blockers visible. Facilitate planning, daily Scrum, review, and retrospective around their purpose, not a script. If reviews are slow, help the team agree on smaller pull requests and a review window, then inspect whether cycle time improves. Coach the team to own the change rather than assigning the solution yourself.",
+      "commonMistake": "Acting as a project manager who assigns tickets, runs status meetings, shields the team from all accountability, or measures success only through velocity."
+    },
+    {
+      "question": "What should a Scrum Master do during each Scrum event?",
+      "coreAnswer": "Ensure each event has a clear purpose, the right participants, useful preparation, healthy facilitation, and an outcome the team understands. Step in when the process is unclear, but allow the Developers and Product Owner to own their decisions.",
+      "technologyExamples": ["Sprint Planning", "Daily Scrum", "Sprint Review", "Sprint Retrospective", "Product Backlog refinement", "Definition of Done"],
+      "example": "In planning, help the team form one sprint goal and select coherent work. In the daily Scrum, keep focus on progress toward that goal rather than reporting to a manager. In review, gather stakeholder feedback on the increment. In retrospective, leave with one or two owned improvements and inspect them next sprint.",
+      "commonMistake": "Becoming the permanent meeting chair and note taker instead of teaching the team to facilitate, inspect, and adapt for itself."
+    },
+    {
+      "question": "What should happen during sprint planning?",
+      "coreAnswer": "Agree on a meaningful sprint goal, review priority and capacity, expose dependencies and risks, then select work that forms a coherent achievable increment.",
+      "technologyExamples": ["sprint goal", "capacity", "product backlog", "acceptance criteria", "definition of done", "dependency mapping"],
+      "example": "For a DineEase ordering milestone, the goal might be a reliable dine-in order flow. Menu editing that is required for that flow belongs in scope; unrelated analytics polish does not.",
+      "commonMistake": "Filling capacity with unrelated tickets and calling the resulting list a sprint commitment."
+    },
+    {
+      "question": "How do you estimate technical work?",
+      "coreAnswer": "Break work into understood slices, identify uncertainty and dependencies, compare complexity with known work, and communicate a confidence range rather than pretending an estimate is certainty.",
+      "technologyExamples": ["story points", "relative estimation", "planning poker", "spike", "confidence range", "critical path"],
+      "example": "Before estimating a kiosk integration, run a short spike on the hardware and payment boundary, then estimate the user flow separately from the uncertain integration work.",
+      "commonMistake": "Converting story points directly into hours or hiding uncertainty inside a larger number."
+    },
+    {
+      "question": "What do you do when the sprint goal is no longer achievable?",
+      "coreAnswer": "Raise the risk early, identify the blocker and user impact, present scope or sequencing options, and renegotiate work with the product owner while protecting quality and transparency.",
+      "technologyExamples": ["scope negotiation", "blocker", "critical path", "risk register", "stakeholder update"],
+      "example": "If a payment provider delays approval, complete the order state model and test integration while moving live payment activation to the next release instead of pretending the dependency is resolved.",
+      "commonMistake": "Waiting until the sprint review to reveal that the main outcome was never achievable."
+    },
+    {
+      "question": "How do you handle a requirement change in the middle of a sprint?",
+      "coreAnswer": "Evaluate urgency and impact against the sprint goal. If it must enter, make the trade explicit by removing or rescheduling equivalent scope rather than silently overloading the team.",
+      "technologyExamples": ["change control", "sprint goal", "trade-off", "expedite lane", "work-in-progress limit"],
+      "example": "A legal compliance fix may interrupt planned work; a lower-priority report leaves the sprint and stakeholders receive the revised expectation.",
+      "commonMistake": "Treating every stakeholder request as an emergency or saying Scrum forbids all change."
+    },
+    {
+      "question": "What makes a retrospective useful?",
+      "coreAnswer": "Create psychological safety, discuss specific system and process evidence, choose one or two owned improvements, and review whether previous actions changed the outcome.",
+      "technologyExamples": ["retrospective", "blameless learning", "action owner", "working agreement", "lead time", "cycle time"],
+      "example": "If reviews repeatedly arrive late, agree on smaller pull requests and a daily review window, assign ownership, then inspect review lead time in the next retrospective.",
+      "commonMistake": "Repeating generic start-stop-continue comments without accountable follow-through."
+    },
+    {
+      "question": "How do you manage technical debt in an Agile product team?",
+      "coreAnswer": "Describe debt through delivery, reliability, security, or user cost; rank it alongside product risk; and attach focused improvement to related feature work when possible.",
+      "technologyExamples": ["debt register", "quality budget", "incremental refactor", "definition of done", "architectural runway"],
+      "example": "If duplicated order validation causes repeated defects, consolidate it as part of the next order workflow instead of requesting an unbounded rewrite sprint.",
+      "commonMistake": "Using technical debt as a label for any code an engineer dislikes."
+    },
+    {
+      "question": "How do you resolve disagreement with product or design?",
+      "coreAnswer": "Return to the user and business objective, make constraints and evidence visible, propose options with consequences, and document the decision after the responsible owner chooses.",
+      "technologyExamples": ["decision criteria", "prototype", "user evidence", "ADR", "disagree and commit"],
+      "example": "If a requested animation threatens performance, demonstrate the measured cost and offer a lighter interaction that preserves the intended hierarchy and brand effect.",
+      "commonMistake": "Arguing from title, preference, or technical purity instead of shared outcomes."
+    },
+    {
+      "question": "How do you lead delivery without being the formal manager?",
+      "coreAnswer": "Create clarity, expose dependencies, document decisions, unblock teammates, improve review quality, and make ownership visible without centralizing every decision around yourself.",
+      "technologyExamples": ["technical brief", "RACI", "pairing", "code review", "risk review", "decision log"],
+      "example": "At ASTA, align frontend, backend, and product boundaries, give owners clear outcomes, and stay available for architectural decisions while allowing each engineer to own implementation.",
+      "commonMistake": "Becoming the approval bottleneck and calling it leadership."
+    }
+  ],
+  "leadershipTopics": [
+    {
+      "question": "How do you handle technical disagreement?",
+      "coreAnswer": "Align on the decision criteria, make assumptions and trade-offs visible, time-box investigation, and document the decision.",
+      "example": "If one engineer wants GraphQL and another wants REST, compare client data needs, team familiarity, caching, schema ownership, and operational cost before choosing.",
+      "terms": ["ADR", "decision criteria", "reversible decision", "disagree and commit"]
+    },
+    {
+      "question": "How do you balance quality and delivery speed?",
+      "coreAnswer": "Protect irreversible and high-risk quality while reducing scope, sequencing improvements, and making accepted debt explicit.",
+      "example": "For a launch, preserve accessibility, data integrity, security, and observability. Defer a lower-value animation or secondary workflow with a clear follow-up owner.",
+      "terms": ["risk-based scope", "quality floor", "technical debt register", "incremental delivery"]
+    },
+    {
+      "question": "How do you help engineers grow?",
+      "coreAnswer": "Give context and ownership, calibrate support, review reasoning instead of style preferences, and create feedback loops.",
+      "example": "Delegate a bounded feature with its success criteria and architecture context, then use design and code review to discuss trade-offs rather than taking the work back.",
+      "terms": ["delegation", "coaching", "psychological safety", "feedback loop"]
+    },
+    {
+      "question": "How do you lead an ambiguous project?",
+      "coreAnswer": "Turn uncertainty into explicit assumptions, risks, milestones, decision owners, and thin end-to-end slices.",
+      "example": "For DineEase, establish order and menu domain contracts first, deliver one restaurant workflow end to end, then expand to kiosk, analytics, and workforce surfaces.",
+      "terms": ["thin slice", "risk register", "RACI", "milestone", "definition of done"]
+    },
+    {
+      "question": "Tell me about a production incident you led.",
+      "coreAnswer": "Stabilize user impact first, establish one incident channel and owner, communicate clearly, preserve evidence, then follow with a blameless review and tracked actions.",
+      "example": "If order updates stop reaching kitchen displays, fall back to API refresh, pause risky releases, inspect the delivery path, and communicate status. After recovery, document the trigger, detection gap, and prevention work.",
+      "terms": ["incident commander", "mitigation", "blast radius", "runbook", "postmortem"]
+    },
+    {
+      "question": "How do you manage technical debt?",
+      "coreAnswer": "Describe debt as a measurable delivery or reliability cost, rank it against product risk, and address it incrementally alongside feature work.",
+      "example": "If duplicated order rules cause regressions across kiosk and dashboard surfaces, move the rule behind one domain contract as part of the next related feature rather than proposing an unbounded rewrite.",
+      "terms": ["debt interest", "risk register", "incremental refactor", "migration path", "quality budget"]
+    },
+    {
+      "question": "What do you do when a project will miss its deadline?",
+      "coreAnswer": "Surface the risk early, separate fixed constraints from negotiable scope, present options with consequences, and protect the quality floor.",
+      "example": "Keep the reliable core ordering workflow for launch, defer a secondary analytics view, document the follow-up, and avoid hiding schedule risk until the final week.",
+      "terms": ["scope negotiation", "critical path", "confidence range", "quality floor", "stakeholder update"]
+    }
+  ],
+  "aiTopics": [
+    {
+      "question": "Where should AI fit in a product architecture?",
+      "coreAnswer": "Use AI for probabilistic interpretation or generation, keep deterministic business rules outside the model, and validate outputs before side effects.",
+      "technologyExamples": ["OpenAI API", "structured outputs", "tool calling", "vector database", "background jobs"],
+      "example": "Automated menu setup can extract candidate items and modifiers, but a deterministic schema validator and user review must approve changes before publishing."
+    },
+    {
+      "question": "How do you make an AI feature reliable?",
+      "coreAnswer": "Define eval cases, constrain output, version prompts and models, track latency and cost, and provide fallback and human review paths.",
+      "technologyExamples": ["JSON schema", "eval datasets", "prompt versioning", "tracing", "rate limits"],
+      "example": "Test menu extraction against known documents, measure field accuracy, retry only transient failures, and preserve the source text for audit."
+    },
+    {
+      "question": "How do you protect an AI workflow?",
+      "coreAnswer": "Treat model input and output as untrusted, restrict tools, minimize sensitive data, and require authorization at the action boundary.",
+      "technologyExamples": ["input sanitization", "PII redaction", "allowlisted tools", "least privilege", "moderation"],
+      "example": "A support assistant may draft a reply, but it cannot read another tenant’s data or send messages without the same authorization checks as a normal API request."
+    },
+    {
+      "question": "When would you use RAG instead of fine-tuning?",
+      "coreAnswer": "Use retrieval-augmented generation when answers need current or private source material and citations; use fine-tuning mainly to change repeatable behavior, style, or task performance rather than to store frequently changing facts.",
+      "technologyExamples": ["embeddings", "vector database", "hybrid search", "reranking", "fine-tuning dataset"],
+      "example": "An ASTA knowledge assistant can retrieve current project and service documents at request time, while a fine-tuned model would be considered only if prompt examples cannot consistently produce the required response format or behavior."
+    },
+    {
+      "question": "How do you evaluate an AI feature before launch?",
+      "coreAnswer": "Define representative test cases and failure categories, establish deterministic checks where possible, add human scoring for subjective quality, and compare versions against a baseline.",
+      "technologyExamples": ["golden dataset", "precision and recall", "task success rate", "LLM-as-judge with calibration", "human review", "A/B test"],
+      "example": "For menu extraction, score item, price, modifier, and category accuracy separately; track invalid schema output and measure how often a reviewer must correct the result."
+    },
+    {
+      "question": "How do you control AI latency and cost?",
+      "coreAnswer": "Route work to the smallest adequate model, reduce unnecessary context, cache safe repeated results, batch asynchronous work, stream when useful, and enforce budgets and timeouts.",
+      "technologyExamples": ["model routing", "token budgets", "prompt caching", "streaming", "background queue", "usage telemetry"],
+      "example": "Interactive suggestions use a fast model and stream output, while a large menu import runs asynchronously with progress updates and a per-job token budget."
+    }
+  ],
+  "productThinkingTopics": [
+    {
+      "question": "How do you determine whether a feature was successful?",
+      "coreAnswer": "Define the user behavior and business outcome before building, establish a baseline and guardrails, then compare quantitative signals with qualitative feedback after release.",
+      "technologyExamples": ["task success rate", "conversion", "retention", "error rate", "support volume", "Core Web Vitals"],
+      "example": "For clinic discovery, measure successful clinic selection and booking starts while guarding search latency, accessibility, and irrelevant-result rates.",
+      "commonMistake": "Using page views or shipping completion as the only definition of success."
+    },
+    {
+      "question": "How do you challenge a feature request constructively?",
+      "coreAnswer": "Clarify the underlying problem and evidence, identify constraints, then offer the smallest option that can test the assumption without dismissing the stakeholder's goal.",
+      "technologyExamples": ["problem statement", "assumption mapping", "prototype", "experiment", "opportunity cost"],
+      "example": "Instead of immediately building a complex restaurant report, ask which decision it should support and test whether a smaller comparison view answers that question.",
+      "commonMistake": "Saying no based only on implementation effort or accepting a solution without understanding the problem."
+    },
+    {
+      "question": "How do you turn an unclear business problem into technical scope?",
+      "coreAnswer": "Identify actors, desired outcomes, current workflow, constraints, data, exceptions, and success measures; then propose a thin end-to-end slice with explicit assumptions.",
+      "technologyExamples": ["user journey", "domain model", "acceptance criteria", "event flow", "risk register", "thin slice"],
+      "example": "For automated menu setup, map upload, extraction, review, correction, and publishing before deciding which AI model or queue technology to use.",
+      "commonMistake": "Starting with screens or a preferred stack before the workflow and decision boundaries are understood."
+    },
+    {
+      "question": "How do you prioritize usability, performance, SEO, and delivery speed?",
+      "coreAnswer": "Set a non-negotiable quality floor, connect each concern to the route's user and business purpose, then sequence improvements according to measured risk and expected value.",
+      "technologyExamples": ["quality floor", "Core Web Vitals", "search intent", "accessibility", "risk-based scope", "incremental delivery"],
+      "example": "A public clinic page prioritizes indexability, performance, and accessible booking; an internal dashboard may prioritize interaction speed and operational clarity over public SEO.",
+      "commonMistake": "Applying the same optimization priorities to every route."
+    },
+    {
+      "question": "How do you communicate technical trade-offs to non-engineers?",
+      "coreAnswer": "Explain choices through user impact, cost, risk, timing, and reversibility; present concrete options and a recommendation without hiding behind implementation jargon.",
+      "technologyExamples": ["option framing", "risk", "cost of delay", "reversible decision", "service-level objective"],
+      "example": "Describe a queue as a way to keep imports responsive and recoverable, then explain the added operational cost and why synchronous processing becomes risky at expected volume.",
+      "commonMistake": "Giving a technical lecture instead of helping the stakeholder make a decision."
+    },
+    {
+      "question": "How do you decide whether to build or buy?",
+      "coreAnswer": "Compare strategic differentiation, total ownership cost, integration effort, security, compliance, reliability, vendor lock-in, and exit options—not only subscription price.",
+      "technologyExamples": ["total cost of ownership", "SLA", "vendor lock-in", "integration boundary", "data portability", "exit plan"],
+      "example": "Use a proven email provider rather than operate mail delivery, but keep product-specific restaurant workflows in-house because they differentiate DineEase.",
+      "commonMistake": "Building commodity infrastructure for control or buying a core differentiator that the team cannot shape."
+    },
+    {
+      "question": "How do you define an MVP without creating disposable architecture?",
+      "coreAnswer": "Minimize product scope, not correctness at critical boundaries. Keep data integrity, security, observability, accessibility, and clear contracts while deferring optional capabilities.",
+      "technologyExamples": ["thin vertical slice", "modular monolith", "feature flag", "migration path", "quality floor", "instrumentation"],
+      "example": "Launch one reliable restaurant order workflow with a clear order model and instrumentation before adding kiosk variants, advanced analytics, and automation.",
+      "commonMistake": "Using MVP as permission for hidden data, security, or maintainability problems that block the next release."
+    }
+  ],
+  "metricGuidance": [
+    {
+      "weak": "I increased traffic to 170.6K.",
+      "strong": "I contributed frontend, technical SEO, and performance work to a platform whose supplied reporting showed 170.6K organic traffic.",
+      "reason": "It is specific without claiming sole ownership of a multi-team outcome."
+    },
+    {
+      "weak": "The app became much faster.",
+      "strong": "The supplied mobile report passed Core Web Vitals with 1 second LCP, 85 ms INP, and 0.04 CLS.",
+      "reason": "It names the evidence and the user-facing performance dimensions."
+    },
+    {
+      "weak": "I built a scalable platform.",
+      "strong": "I separated shared domain contracts from restaurant-specific surfaces so orders, kiosks, analytics, and menu workflows could evolve without duplicating core rules.",
+      "reason": "It explains what scalable means in the context of the design."
+    },
+    {
+      "weak": "I know all parts of the stack.",
+      "strong": "My deepest expertise is frontend systems, and I can lead across API contracts, data flow, deployment risks, and product delivery.",
+      "reason": "It presents range without weakening your strongest differentiator."
+    },
+    {
+      "weak": "I handled DevOps for the platform.",
+      "strong": "I can explain and contribute to frontend deployment, containerized application delivery, environment configuration, release checks, observability, and rollback; I distinguish the infrastructure I operated directly from managed platform capabilities.",
+      "reason": "It demonstrates operational literacy without overstating ownership of infrastructure you did not configure."
+    },
+    {
+      "weak": "Our deployment was reliable.",
+      "strong": "We reduced release risk through repeatable builds, environment-specific configuration, focused checks, observable releases, and a defined recovery path.",
+      "reason": "It names the engineering controls that make reliability credible."
+    }
+  ],
+  "courses": [
+    {
+      "id": "load-balancing",
+      "module": "System design",
+      "title": "Top 6 Load Balancing Algorithms Every Developer Should Know",
+      "source": "ByteByteGo",
+      "youtubeId": "dBmxNsS3BGE",
+      "takeaway": "Compare round robin, weighted routing, least connections, hashing, and health-aware distribution."
+    },
+    {
+      "id": "caching",
+      "module": "System design",
+      "title": "Caching: System Design Interview Concepts",
+      "source": "ByteByteGo",
+      "youtubeId": "mWArFVAjwYc",
+      "takeaway": "Focus on cache placement, keys, invalidation, TTL, hot keys, and stampede prevention."
+    },
+    {
+      "id": "web-vitals",
+      "module": "Frontend performance",
+      "title": "Core Web Vitals",
+      "source": "Chrome for Developers",
+      "youtubeId": "F0NYT7DIlDQ",
+      "takeaway": "Connect LCP, INP, and CLS to actual loading, responsiveness, and visual stability decisions."
+    },
+    {
+      "id": "react-profiling",
+      "module": "React performance",
+      "title": "React Performance Profiling",
+      "source": "React Alicante",
+      "youtubeId": "Q7NEfD4FNYE",
+      "takeaway": "Learn to use profiling evidence before reaching for memoization or architectural rewrites."
+    }
+  ],
+  "weeklyRoutine": [
+    { "day": "Monday", "focus": "Project and product stories", "exercise": "Record one answer connecting the user problem, technical decision, trade-off, evidence, and result." },
+    { "day": "Tuesday", "focus": "Architecture and backend", "exercise": "Draw one system, then explain four backend terms with a technology and project example for each." },
+    { "day": "Wednesday", "focus": "Frontend and UI/UX", "exercise": "Explain one frontend boundary, one browser concept, and one accessibility or usability decision." },
+    { "day": "Thursday", "focus": "React, Vue, and quality", "exercise": "Compare how both frameworks solve one problem, then describe the tests that would protect the behavior." },
+    { "day": "Friday", "focus": "Security and deployment", "exercise": "Trace one request from browser to production and name its trust boundaries, release checks, telemetry, and recovery path." },
+    { "day": "Saturday", "focus": "Agile and leadership", "exercise": "Practice one scope change, disagreement, deadline risk, mentorship, and retrospective answer." },
+    { "day": "Sunday", "focus": "Mock interview", "exercise": "Mix seven questions across categories, review weak wording, and update this reference with stronger evidence." }
+  ]
+}

@@ -1,0 +1,37 @@
+.wedding-passport {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(170, 155, 126, 0.18), transparent 25rem),
+    radial-gradient(circle at 90% 82%, rgba(104, 132, 112, 0.14), transparent 28rem),
+    #e3dfd4;
+  font-family: "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+}
+
+.passport-cover {
+  background: #30453b;
+}
+
+.passport-cover-image {
+  background:
+    linear-gradient(180deg, rgba(36, 58, 48, 0.16), rgba(22, 37, 31, 0.92)),
+    url("https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=85") center / cover;
+  filter: saturate(0.72) contrast(0.95);
+}
+
+.passport-cover::after {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgba(238, 233, 219, 0.025) 0 1px, transparent 1px 4px);
+  content: "";
+  pointer-events: none;
+}
+
+.passport-stamp {
+  transform: rotate(8deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedding-passport * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

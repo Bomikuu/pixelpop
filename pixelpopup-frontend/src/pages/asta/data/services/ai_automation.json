@@ -1,0 +1,45 @@
+{
+  "id": "ai-automation",
+  "slug": "ai-automation",
+  "title": "AI Automation",
+  "menuDescription": "Programming and workflow automation that connects software, data, and repeatable operations.",
+  "summary": "Practical AI-assisted programming and workflow automation for connected software and repeatable business operations.",
+  "icon": "bot",
+  "featured": true,
+  "order": 2,
+  "overview": {
+    "title": "Automate the work that needs judgment, structure, and reliable handoffs.",
+    "paragraphs": [
+      "We design AI-assisted workflows around a specific operational task, the data it needs, the tools it can use, and the decisions that still require a person.",
+      "The goal is not an isolated chatbot. It is a controlled software workflow with clear inputs, outputs, review points, and recovery paths."
+    ]
+  },
+  "features": [
+    { "id": "discovery", "icon": "search", "title": "Workflow discovery", "description": "Map the current process, repeated decisions, data sources, exceptions, and human ownership." },
+    { "id": "tools", "icon": "plug", "title": "Tool and API actions", "description": "Connect models to approved systems so workflows can retrieve data and perform defined actions." },
+    { "id": "knowledge", "icon": "database", "title": "Knowledge retrieval", "description": "Ground responses in controlled documents, product data, or vector search when the use case requires it." },
+    { "id": "outputs", "icon": "file-check", "title": "Structured outputs", "description": "Return predictable fields and machine-readable results that downstream software can validate." },
+    { "id": "review", "icon": "shield-check", "title": "Human review points", "description": "Keep approval, correction, and escalation visible where automated decisions carry business risk." },
+    { "id": "measurement", "icon": "chart-no-axes-combined", "title": "Evaluation and monitoring", "description": "Track workflow quality, failures, latency, cost, and the cases that need further tuning." }
+  ],
+  "aiExpertise": [
+    { "id": "openai", "name": "OpenAI", "detail": "GPT models, embeddings, tool calling, structured outputs, and multimodal workflows." },
+    { "id": "anthropic", "name": "Anthropic Claude", "detail": "Long-context analysis, tool use, structured tasks, and document-centered workflows." },
+    { "id": "gemini", "name": "Google Gemini", "detail": "Multimodal model integration, structured generation, and Google ecosystem workflows." },
+    { "id": "coding", "name": "Codex and GitHub Copilot", "detail": "AI-assisted programming workflows for implementation, review, debugging, and documentation." },
+    { "id": "automation", "name": "n8n and Make", "detail": "Event-driven workflow orchestration across business tools, APIs, and internal systems." },
+    { "id": "rag", "name": "RAG and vector search", "detail": "Retrieval pipelines, embeddings, source grounding, and controlled knowledge access." }
+  ],
+  "banner": {
+    "title": "Have a workflow that is repetitive but not fully predictable?",
+    "description": "Bring us the steps, systems, decisions, and failure cases. We will identify where AI can help safely.",
+    "ctaLabel": "Map an AI workflow"
+  },
+  "faqs": [
+    { "id": "starting", "question": "What is a good first AI automation project?", "answer": "A focused workflow with clear inputs, repeated effort, measurable output, and a person who owns the result is usually a better start than a broad company-wide assistant." },
+    { "id": "models", "question": "Which AI providers can you integrate?", "answer": "We work with OpenAI, Anthropic Claude, and Google Gemini, and select the provider around the task, data constraints, latency, cost, and integration environment." },
+    { "id": "replace", "question": "Does automation remove people from the workflow?", "answer": "Not by default. We identify where people need to approve, correct, or handle exceptions, then make those review points explicit in the software." },
+    { "id": "data", "question": "Can the workflow use our internal documents and data?", "answer": "Yes, when access and governance allow it. Retrieval and permission boundaries are designed around the sources the workflow is approved to use." },
+    { "id": "reliability", "question": "How do you handle incorrect AI output?", "answer": "We constrain outputs, validate structure, ground responses where appropriate, define confidence and escalation rules, and monitor failure cases instead of treating model output as automatically correct." }
+  ]
+}

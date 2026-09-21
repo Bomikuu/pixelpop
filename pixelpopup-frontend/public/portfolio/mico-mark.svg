@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Mico Ang developer mark</title>
+  <rect width="64" height="64" fill="#020617"/>
+  <path d="M18 19 8 32l10 13M46 19l10 13-10 13" fill="none" stroke="#67e8f9" stroke-width="5" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="m37 13-10 38" stroke="#bef264" stroke-width="5"/>
+</svg>

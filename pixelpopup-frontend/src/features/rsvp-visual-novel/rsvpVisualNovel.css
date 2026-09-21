@@ -1,0 +1,64 @@
+.rsvp-vn-page {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(186, 174, 142, 0.18), transparent 24rem),
+    #121518;
+  font-family: var(--pp-font);
+}
+
+.rsvp-vn-stage {
+  min-height: min(820px, calc(100vh - 100px));
+  image-rendering: pixelated;
+}
+
+.rsvp-vn-stage::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(19, 25, 25, 0.76), transparent 45%, rgba(12, 15, 17, 0.6)), linear-gradient(0deg, rgba(11, 14, 15, 0.94), transparent 48%);
+  content: "";
+  pointer-events: none;
+}
+
+.rsvp-vn-vignette {
+  background: radial-gradient(ellipse at center, transparent 38%, rgba(7, 9, 10, 0.72) 100%);
+  pointer-events: none;
+}
+
+.rsvp-vn-scanlines {
+  opacity: 0.13;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, #fff 3px 4px);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.rsvp-vn-shell:fullscreen {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  border: 0;
+  box-shadow: none;
+}
+
+.rsvp-vn-shell:fullscreen .rsvp-vn-stage {
+  min-height: 0;
+  flex: 1;
+}
+
+.rsvp-vn-portrait img {
+  animation: rsvp-vn-idle 3.2s ease-in-out infinite;
+}
+
+@keyframes rsvp-vn-idle {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-3px) rotate(-0.7deg); }
+}
+
+@media (max-width: 640px) {
+  .rsvp-vn-stage {
+    min-height: 760px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rsvp-vn-portrait img { animation: none; }
+  .rsvp-vn-page * { transition-duration: 0.01ms !important; }
+}

@@ -1,10 +1,15 @@
 export { default as Window } from "./Window";
 export { default as RetroButton } from "./Button";
 export { default as RetroInput } from "./Input";
+export { default as RetroSelect } from "./Select";
+export { default as RetroTextarea } from "./Textarea";
+export { default as RetroCheckbox } from "./Checkbox";
+export { default as RetroTabs } from "./Tabs";
 export { default as RetroPanel } from "./Panel";
 export { default as RetroSlider } from "./Slider";
 export { default as RetroIconButton } from "./IconButton";
 export { default as RetroLoading } from "./Loading";
+export { default as RetroStage } from "./Stage";
 
 export { default as RetroModal } from "./Modal";
 export { default as ToastHost, useToastController } from "./Toast";

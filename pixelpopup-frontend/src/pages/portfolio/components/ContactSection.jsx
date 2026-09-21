@@ -1,0 +1,311 @@
+import { createElement, useState } from "react";
+import {
+  ArrowUpRight,
+  Github,
+  Lightbulb,
+  Linkedin,
+  Mail,
+  MessageCircle,
+  Send,
+  Waypoints,
+} from "lucide-react";
+import { portfolioLinks } from "../portfolioData";
+import Reveal from "./Reveal";
+import TurnstileWidget from "./TurnstileWidget";
+
+const iconMap = { LinkedIn: Linkedin, GitHub: Github, Email: Mail };
+
+const contactPrinciples = [
+  {
+    title: "Direct conversation",
+    detail: "Your inquiry reaches my inbox.",
+    icon: MessageCircle,
+  },
+  {
+    title: "Practical feedback",
+    detail: "We can focus on product and technical tradeoffs.",
+    icon: Lightbulb,
+  },
+  {
+    title: "A useful next step",
+    detail: "The reply starts with the next useful question.",
+    icon: Waypoints,
+  },
+];
+
+const defaultProjectTypeOptions = [
+  "Product frontend",
+  "Full-stack web app",
+  "Frontend architecture review",
+  "SEO and performance",
+  "Technical leadership",
+  "Something else",
+];
+
+const fieldClassName =
+  "mt-2 w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-950 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-[#2f5bff] focus:bg-white focus:ring-4 focus:ring-blue-100";
+
+export default function ContactSection({
+  id = "contact",
+  heading = "Let’s build something useful.",
+  description = "Tell me what you’re building, where the interface is getting difficult, and what success should look like. Your inquiry is sent directly to my inbox.",
+  formTitle = "Start a conversation",
+  formSubtitle = "I usually reply with the next useful question.",
+  projectTypeLabel = "What are we building?",
+  projectTypeOptions = defaultProjectTypeOptions,
+  defaultProjectType = "Product frontend",
+  messageLabel = "Project details",
+  messagePlaceholder = "What needs to ship, improve, or become easier to use?",
+}) {
+  const [status, setStatus] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [messageLength, setMessageLength] = useState(0);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const honeypot = String(data.get("companyWebsite") || "").trim();
+
+    if (honeypot) {
+      setStatus("Thanks — your message was sent.");
+      return;
+    }
+
+    const name = String(data.get("name") || "").trim().slice(0, 100);
+    const email = String(data.get("email") || "").trim().slice(0, 254);
+    const projectType = String(data.get("projectType") || "").slice(0, 80);
+    const message = String(data.get("message") || "").trim().slice(0, 2000);
+
+    if (!turnstileToken) {
+      setStatus("Please complete the bot verification before sending.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus("Sending your inquiry...");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          projectType,
+          message,
+          companyWebsite: honeypot,
+          turnstileToken,
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        if (result.error === "BOT_VERIFICATION_FAILED") {
+          setStatus("Bot verification expired. Please complete it again.");
+          setTurnstileToken("");
+          setTurnstileResetKey((current) => current + 1);
+          return;
+        }
+
+        if (result.error === "RATE_LIMITED") {
+          setStatus("Too many attempts. Please wait a few minutes and try again.");
+          return;
+        }
+
+        throw new Error("Contact request failed");
+      }
+
+      form.reset();
+      setMessageLength(0);
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
+      setStatus("Thanks — your inquiry was sent successfully.");
+    } catch {
+      setStatus("Unable to send your inquiry. Please try again or email me directly.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const statusTone = status.startsWith("Thanks")
+    ? "text-emerald-700"
+    : status.startsWith("Sending")
+      ? "text-[#2f5bff]"
+      : "text-rose-700";
+
+  return (
+    <section id={id} className="relative isolate scroll-mt-24 overflow-hidden bg-[#071a33] py-24 text-white sm:py-32">
+      <div
+        className="pointer-events-none absolute -left-28 top-20 h-72 w-72 rotate-45 border border-blue-300/10 bg-blue-500/[0.025]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute -right-40 top-24 h-96 w-96 rotate-12 bg-blue-500/[0.07]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute left-[4%] top-10 size-36 bg-[radial-gradient(circle,rgba(96,165,250,0.42)_1px,transparent_1.5px)] bg-[size:18px_18px] opacity-50"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute bottom-10 right-[4%] size-36 bg-[radial-gradient(circle,rgba(96,165,250,0.38)_1px,transparent_1.5px)] bg-[size:18px_18px] opacity-45"
+        aria-hidden="true"
+      />
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
+        <div className="grid items-start gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 xl:gap-28">
+          <Reveal>
+            <div className="lg:pt-8">
+              <h2 className="portfolio-display max-w-2xl text-5xl font-semibold leading-[1.02] tracking-[-0.04em] text-balance sm:text-6xl lg:text-7xl">
+                {heading}
+              </h2>
+              <p className="mt-7 max-w-xl text-lg leading-8 text-blue-100/80">{description}</p>
+
+              <div className="mt-10 grid gap-7 border-y border-white/15 py-8 sm:grid-cols-3 lg:gap-5">
+                {contactPrinciples.map(({ title, detail, icon }) => (
+                  <div key={title}>
+                    <span className="grid size-11 place-items-center rounded-xl border border-blue-300/20 bg-blue-300/10 text-blue-300">
+                      {createElement(icon, { size: 20, strokeWidth: 1.8, "aria-hidden": true })}
+                    </span>
+                    <strong className="mt-4 block text-sm font-semibold text-white">{title}</strong>
+                    <span className="mt-1.5 block text-sm leading-6 text-blue-100/65">{detail}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-7">
+                <span className="block text-sm font-medium text-blue-100/60">Connect with me</span>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {portfolioLinks.map((link) => {
+                    const Icon = iconMap[link.label];
+                    const isExternal = link.href.startsWith("http");
+
+                    return (
+                      <a
+                        key={link.label}
+                        href={link.href}
+                        target={isExternal ? "_blank" : undefined}
+                        rel={isExternal ? "noreferrer" : undefined}
+                        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/20 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-blue-300 hover:bg-blue-300/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-300"
+                      >
+                        <Icon size={16} aria-hidden="true" />
+                        {link.label}
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal delay={1}>
+            <form
+              onSubmit={handleSubmit}
+              aria-busy={isSubmitting}
+              className="rounded-3xl bg-white p-6 text-slate-950 shadow-[0_32px_90px_-52px_rgba(0,0,0,0.78)] sm:p-8 lg:p-10"
+            >
+              <label className="absolute -left-[10000px] top-auto size-px overflow-hidden" aria-hidden="true">
+                Company website
+                <input
+                  name="companyWebsite"
+                  type="text"
+                  tabIndex="-1"
+                  autoComplete="off"
+                  data-lpignore="true"
+                />
+              </label>
+
+              <div className="flex items-start justify-between gap-5 border-b border-slate-200 pb-6">
+                <div>
+                  <h3 className="portfolio-display text-xl font-semibold tracking-[-0.025em] text-slate-950">
+                    {formTitle}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-6 text-slate-500">{formSubtitle}</p>
+                </div>
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-blue-50 text-[#2f5bff]">
+                  <Send size={19} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+              </div>
+
+              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  Name
+                  <input
+                    name="name"
+                    required
+                    maxLength="100"
+                    autoComplete="name"
+                    className={fieldClassName}
+                    placeholder="Your name"
+                  />
+                </label>
+                <label className="text-sm font-semibold text-slate-700">
+                  Email
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    maxLength="254"
+                    autoComplete="email"
+                    className={fieldClassName}
+                    placeholder="you@company.com"
+                  />
+                </label>
+              </div>
+
+              <label className="mt-5 block text-sm font-semibold text-slate-700">
+                {projectTypeLabel}
+                <select
+                  name="projectType"
+                  defaultValue={defaultProjectType}
+                  className={fieldClassName}
+                >
+                  {projectTypeOptions.map((option) => (
+                    <option key={option}>{option}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="mt-5 block text-sm font-semibold text-slate-700">
+                <span className="flex items-center justify-between gap-4">
+                  <span>{messageLabel}</span>
+                  <span className="text-xs font-medium tabular-nums text-slate-400">{messageLength}/2000</span>
+                </span>
+                <textarea
+                  name="message"
+                  required
+                  maxLength="2000"
+                  rows="6"
+                  onChange={(event) => setMessageLength(event.target.value.length)}
+                  className={`${fieldClassName} resize-y`}
+                  placeholder={messagePlaceholder}
+                />
+              </label>
+
+              <div className="mt-5 rounded-xl bg-blue-50 px-4 pb-4 pt-px text-blue-950 [&>p]:mt-4 [&>p]:text-sm [&>p]:text-amber-800 [&>div]:mt-4">
+                <TurnstileWidget key={turnstileResetKey} onTokenChange={setTurnstileToken} />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2f5bff] px-5 py-3.5 font-semibold text-white transition hover:bg-[#2149dc] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff] disabled:cursor-wait disabled:opacity-65"
+              >
+                {isSubmitting ? "Sending..." : "Send inquiry"}
+                <ArrowUpRight size={18} aria-hidden="true" />
+              </button>
+              <p className={`mt-3 min-h-6 text-sm ${statusTone}`} role="status" aria-live="polite">
+                {status}
+              </p>
+            </form>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}

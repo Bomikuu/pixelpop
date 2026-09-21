@@ -1,0 +1,28 @@
+.wedding-page {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(194, 176, 147, 0.16), transparent 25rem),
+    radial-gradient(circle at 90% 80%, rgba(152, 174, 157, 0.16), transparent 28rem),
+    #f2efe7;
+  font-family: "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+}
+
+.wedding-page::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: repeating-linear-gradient(0deg, rgba(70, 77, 69, 0.025) 0 1px, transparent 1px 4px);
+  content: "";
+  pointer-events: none;
+}
+
+.wedding-page > div {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedding-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

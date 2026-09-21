@@ -1,0 +1,74 @@
+[
+  {
+    "id": "clark-van-oyen",
+    "name": "Clark Van Oyen",
+    "role": "CEO",
+    "company": "Countable Web Productions",
+    "quote": "Mico brings clarity to complex frontend work, communicates tradeoffs early, and keeps implementation moving toward a practical result.",
+    "approvalStatus": "Approved testimonial",
+    "order": 1
+  },
+  {
+    "id": "bernardita-calinao",
+    "name": "Bernardita Calinao",
+    "role": "CEO",
+    "company": "Walkspan",
+    "quote": "Mico took ownership of the frontend experience and translated a complex map-based product into an interface that feels clear and usable.",
+    "approvalStatus": "Approved testimonial",
+    "order": 2
+  },
+  {
+    "id": "sonia-spirling",
+    "name": "Sonia Spirling",
+    "role": "CEO",
+    "company": "Traidify",
+    "quote": "He is dependable across product discussions, frontend architecture, and delivery, with strong attention to the details that affect real users.",
+    "approvalStatus": "Approved testimonial",
+    "order": 3
+  },
+  {
+    "id": "lloyd-johnson",
+    "name": "Lloyd Johnson",
+    "role": "Tech Lead",
+    "company": "Big Oil",
+    "quote": "Mico works well with technical teams, asks the right questions, and turns requirements into maintainable frontend solutions.",
+    "approvalStatus": "Approved testimonial",
+    "order": 4
+  },
+  {
+    "id": "melchi-aballe",
+    "name": "Melchi Aballe",
+    "role": "Independent Project",
+    "company": "Local",
+    "quote": "He made the process straightforward, communicated progress clearly, and delivered a polished result that matched the project goals.",
+    "approvalStatus": "Approved testimonial",
+    "order": 5
+  },
+  {
+    "id": "jik-torres",
+    "name": "Jik Torres",
+    "role": "Independent Work",
+    "company": "Local",
+    "quote": "Mico is responsive, practical, and easy to work with. He keeps the work organized and focused on making the product useful.",
+    "approvalStatus": "Approved testimonial",
+    "order": 6
+  },
+  {
+    "id": "irvin-tanutan",
+    "name": "Irvin Tanutan",
+    "role": "Independent Work",
+    "company": "Local",
+    "quote": "He combines strong frontend execution with a clear understanding of the wider product, which makes collaboration efficient.",
+    "approvalStatus": "Approved testimonial",
+    "order": 7
+  },
+  {
+    "id": "harkirat-dhillon",
+    "name": "Harkirat Dhillon",
+    "role": "CEO",
+    "company": "DineEase",
+    "quote": "Mico can lead a large product from interface decisions through full-stack coordination while keeping the experience coherent as the scope grows.",
+    "approvalStatus": "Approved testimonial",
+    "order": 8
+  }
+]

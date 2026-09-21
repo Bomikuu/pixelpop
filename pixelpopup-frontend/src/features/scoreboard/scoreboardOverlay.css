@@ -1,0 +1,184 @@
+.scoreboard-overlay-page {
+  font-family: var(--pp-font);
+}
+
+.scoreboard-overlay-background {
+  filter: saturate(0.84) contrast(1.05);
+  transform: scale(1.03);
+}
+
+.scoreboard-overlay-shade {
+  background:
+    linear-gradient(90deg, rgba(13, 34, 41, 0.8), rgba(13, 34, 41, 0.35) 47%, rgba(13, 34, 41, 0.78)),
+    linear-gradient(0deg, rgba(12, 25, 35, 0.82), transparent 65%);
+}
+
+.scoreboard-overlay-shade::after {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(245, 238, 211, 0.06) 3px 4px);
+  content: "";
+  pointer-events: none;
+}
+
+.scoreboard-overlay-broadcast-header {
+  text-shadow: 2px 2px 0 #172335, -1px -1px 0 #172335;
+}
+
+.scoreboard-overlay-subline {
+  background: rgba(17, 30, 45, 0.5);
+}
+
+.scoreboard-overlay-stats {
+  isolation: isolate;
+}
+
+.scoreboard-overlay-stats-pattern {
+  opacity: 0.26;
+  background:
+    linear-gradient(115deg, transparent 0 50%, rgba(240, 223, 54, 0.55) 50.5% 51%, transparent 51.5%),
+    repeating-linear-gradient(0deg, transparent 0 24px, rgba(240, 223, 54, 0.14) 25px 26px);
+  pointer-events: none;
+}
+
+.scoreboard-overlay-mini-car::before,
+.scoreboard-overlay-mini-car::after {
+  position: absolute;
+  bottom: 12px;
+  content: "";
+}
+
+.scoreboard-overlay-mini-car::before {
+  left: 10%;
+  right: 10%;
+  height: 21px;
+  border: 3px solid var(--overlay-accent);
+  border-radius: 45% 52% 18% 15%;
+  background: var(--overlay-accent);
+  box-shadow: inset 0 -7px 0 rgba(12, 22, 36, 0.75), 3px 3px 0 #101928;
+  transform: skewX(-12deg);
+}
+
+.scoreboard-overlay-mini-car::after {
+  left: 25%;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #101928;
+  border-radius: 999px;
+  background: #28354a;
+  box-shadow: 58px 0 0 #28354a, 58px 0 0 3px #101928;
+}
+
+.scoreboard-overlay-portrait-panel {
+  isolation: isolate;
+}
+
+.scoreboard-overlay-portrait-stage {
+  isolation: isolate;
+}
+
+.scoreboard-overlay-portrait-glow {
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--overlay-accent) 55%, transparent), transparent 68%);
+  filter: blur(12px);
+  opacity: 0.7;
+}
+
+.scoreboard-overlay-portrait-frame {
+  box-shadow: 0 0 22px color-mix(in srgb, var(--overlay-accent) 62%, transparent), 5px 5px 0 rgba(8, 17, 27, 0.8);
+  transform: rotate(-2deg);
+}
+
+.scoreboard-overlay-portrait-stage img {
+  filter: saturate(0.78) contrast(1.08);
+  mix-blend-mode: multiply;
+}
+
+.scoreboard-overlay-result-list {
+  scrollbar-color: #ece13b rgba(19, 31, 47, 0.8);
+}
+
+.scoreboard-overlay-result-row {
+  min-height: 37px;
+  border-radius: 0;
+  border-color: #e5db43;
+  box-shadow: 2px 2px 0 #131b26;
+}
+
+.scoreboard-overlay-result-row:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 #131b26;
+}
+
+.scoreboard-overlay-result-row-selected {
+  border-color: #fff4a5;
+  background: var(--overlay-accent) !important;
+  box-shadow: 2px 2px 0 #131b26, 0 0 14px color-mix(in srgb, var(--overlay-accent) 70%, transparent);
+  animation: scoreboard-overlay-highlight 240ms ease-out;
+}
+
+@keyframes scoreboard-overlay-highlight {
+  0% { transform: scale(0.985); }
+  70% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 1023px) {
+  .scoreboard-overlay-broadcast-grid {
+    grid-template-columns: minmax(180px, 0.7fr) minmax(240px, 1fr);
+  }
+
+  .scoreboard-overlay-portrait-panel {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 330px;
+  }
+
+  .scoreboard-overlay-stats {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .scoreboard-overlay-results {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .scoreboard-overlay-broadcast-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .scoreboard-overlay-broadcast-header > :nth-child(2) {
+    display: none;
+  }
+
+  .scoreboard-overlay-broadcast-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .scoreboard-overlay-portrait-panel {
+    min-height: 320px;
+    order: 1;
+  }
+
+  .scoreboard-overlay-stats {
+    min-height: 310px;
+    order: 2;
+  }
+
+  .scoreboard-overlay-results {
+    min-height: 440px;
+    order: 3;
+  }
+
+  .scoreboard-overlay-announcement {
+    top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scoreboard-overlay-result-row-selected { animation: none; }
+  .scoreboard-overlay-result-row { transition: none; }
+}

@@ -1,0 +1,696 @@
+{
+  "page": {
+    "title": "Senior interview review",
+    "description": "A study-first review of architecture, frontend systems, services, performance, and technical leadership grounded in Mico Ang's project experience."
+  },
+  "answerFramework": [
+    { "id": "context", "label": "Context", "description": "Name the user, business goal, and operating environment." },
+    { "id": "constraints", "label": "Constraints", "description": "Surface scale, time, data, reliability, and team constraints." },
+    { "id": "decision", "label": "Decision", "description": "Explain the architecture and why it fits those constraints." },
+    { "id": "tradeoffs", "label": "Tradeoffs", "description": "State what the decision improves, what it costs, and how you measure it." }
+  ],
+  "backendGlossary": [
+    { "term": "Cache", "definition": "A faster temporary copy of frequently requested data that reduces latency and backend work.", "useWhen": "Reads repeat often and slightly stale data is acceptable." },
+    { "term": "Cache invalidation", "definition": "The rules for expiring or updating cached data when the source changes.", "useWhen": "Cached responses must remain acceptably fresh." },
+    { "term": "TTL", "definition": "Time to live, the duration before cached data automatically expires.", "useWhen": "Freshness can be expressed as a time window." },
+    { "term": "Load balancer", "definition": "A component that distributes incoming requests across healthy application instances.", "useWhen": "One server cannot safely handle all traffic or availability matters." },
+    { "term": "Horizontal scaling", "definition": "Adding more application instances instead of making one server larger.", "useWhen": "The workload can be distributed across stateless or partitioned workers." },
+    { "term": "Vertical scaling", "definition": "Increasing CPU, memory, or storage on an existing server.", "useWhen": "Fast simplicity matters and the current machine still has room to grow." },
+    { "term": "Reverse proxy", "definition": "A server that receives client traffic and forwards it to internal services, often handling TLS, routing, or caching.", "useWhen": "Clients need one controlled entry point to backend services." },
+    { "term": "CDN", "definition": "A geographically distributed network that serves static or cached content closer to users.", "useWhen": "Assets or cacheable responses serve users across multiple regions." },
+    { "term": "Database index", "definition": "A data structure that speeds specific lookups and sorting at the cost of storage and slower writes.", "useWhen": "Query plans show frequent scans on selective fields." },
+    { "term": "Read replica", "definition": "A database copy used mainly for reads to reduce load on the primary database.", "useWhen": "Read traffic dominates and some replication delay is acceptable." },
+    { "term": "Message queue", "definition": "A buffer that lets producers submit work for asynchronous processing by consumers.", "useWhen": "Work is slow, retryable, bursty, or should not block a request." },
+    { "term": "Idempotency", "definition": "The property that repeating the same operation does not create an additional unintended effect.", "useWhen": "Clients or workers may retry writes after timeouts." },
+    { "term": "Rate limiting", "definition": "Restricting how many requests a client can make during a time window.", "useWhen": "Protecting capacity, preventing abuse, or enforcing service tiers." },
+    { "term": "Circuit breaker", "definition": "A resilience pattern that temporarily stops calls to a failing dependency so the wider system can recover.", "useWhen": "Repeated dependency failures would otherwise cascade." },
+    { "term": "Eventual consistency", "definition": "A model where distributed data may briefly differ but converges after updates propagate.", "useWhen": "Availability and independent services matter more than immediate global consistency." },
+    { "term": "Observability", "definition": "Using logs, metrics, and traces to understand a system's internal state from its outputs.", "useWhen": "Operating production systems and diagnosing cross-service failures." }
+  ],
+  "rapidReview": [
+    { "id": "ssr-csr-ssg", "question": "What is the difference between SSR, CSR, and SSG?", "answer": "SSR renders per request, CSR renders mainly in the browser, and SSG renders during build. Choose based on freshness, personalization, SEO, and operating cost.", "terms": ["Hydration", "Time to first byte", "Static generation", "SEO"] },
+    { "id": "react-rerender", "question": "What causes a React component to re-render?", "answer": "State changes, parent renders, context updates, and external-store subscriptions can trigger rendering. Optimize measured expensive work, not every render.", "terms": ["Reconciliation", "Memoization", "useMemo", "useCallback"] },
+    { "id": "state-management", "question": "When would you use local, URL, server, or global state?", "answer": "Keep interaction state local, share navigable filters in the URL, manage remote cached data as server state, and reserve global stores for genuinely cross-cutting client state.", "terms": ["Server state", "URL state", "Derived state", "Single source of truth"] },
+    { "id": "debounce-throttle", "question": "What is the difference between debounce and throttle?", "answer": "Debounce waits until events stop before running. Throttle limits execution to a maximum frequency while events continue.", "terms": ["Event rate", "Search input", "Resize", "Scroll"] },
+    { "id": "rest-graphql", "question": "REST or GraphQL: when would you choose each?", "answer": "REST offers simple resource-oriented contracts and HTTP caching. GraphQL helps clients compose varying data needs but adds schema, resolver, authorization, and query-cost complexity.", "terms": ["Resource", "Schema", "Resolver", "Over-fetching"] },
+    { "id": "sql-nosql", "question": "SQL or NoSQL: how do you decide?", "answer": "Choose from access patterns and consistency needs. SQL fits relational data and transactions; NoSQL can fit flexible documents, key-value access, or specialized scale patterns.", "terms": ["ACID", "Schema", "Document store", "Access pattern"] },
+    { "id": "authentication-authorization", "question": "Authentication versus authorization?", "answer": "Authentication verifies who a user is. Authorization determines what that authenticated identity may access or change.", "terms": ["Identity", "Role", "Permission", "Least privilege"] },
+    { "id": "cors", "question": "What is CORS?", "answer": "Cross-Origin Resource Sharing is a browser-enforced policy that lets a server declare which origins may read its responses. It is not authentication.", "terms": ["Origin", "Preflight", "Access-Control-Allow-Origin", "Browser policy"] },
+    { "id": "xss-csrf", "question": "What are XSS and CSRF?", "answer": "XSS injects executable content into a trusted page. CSRF tricks a signed-in browser into sending an unwanted request. Use output encoding, CSP, safe cookies, and CSRF protections.", "terms": ["Content Security Policy", "SameSite", "Output encoding", "CSRF token"] },
+    { "id": "transactions", "question": "What does ACID mean in database transactions?", "answer": "Atomicity, Consistency, Isolation, and Durability describe guarantees that keep transactions valid despite concurrency and failures.", "terms": ["Atomicity", "Consistency", "Isolation", "Durability"] },
+    { "id": "race-condition", "question": "What is a race condition?", "answer": "A race condition occurs when correctness depends on unpredictable operation timing. Prevent it with atomic operations, locking, transactions, versions, or idempotent designs.", "terms": ["Optimistic locking", "Mutex", "Atomic operation", "Version check"] },
+    { "id": "webhook", "question": "What is a webhook, and how do you make it reliable?", "answer": "A webhook is an HTTP callback triggered by an event. Verify signatures, acknowledge quickly, queue processing, deduplicate deliveries, and retry safely.", "terms": ["Signature verification", "Idempotency", "Retry", "Event ID"] },
+    { "id": "docker", "question": "What problem does Docker solve?", "answer": "Docker packages an application and its runtime dependencies into a reproducible container image, improving consistency across development, CI, and deployment.", "terms": ["Image", "Container", "Layer", "Registry"] },
+    { "id": "cicd", "question": "What is CI/CD?", "answer": "Continuous Integration validates small merged changes frequently. Continuous Delivery or Deployment makes releases repeatable, observable, and low-risk through automation.", "terms": ["Pipeline", "Artifact", "Deployment", "Rollback"] },
+    { "id": "deployment-strategies", "question": "Blue-green versus canary deployment?", "answer": "Blue-green switches traffic between two complete environments. Canary gradually exposes a release to a small traffic segment while monitoring outcomes.", "terms": ["Traffic shift", "Rollback", "Canary", "Blue-green"] },
+    { "id": "cap-theorem", "question": "What is the CAP theorem?", "answer": "During a network partition, a distributed system must choose between always-consistent responses and always-available responses. The practical design question is how each operation behaves during partition.", "terms": ["Consistency", "Availability", "Partition tolerance", "Distributed system"] }
+  ],
+  "sections": [
+    { "id": "system-architecture", "label": "System architecture", "description": "Boundaries, data flow, scale, and failure modes.", "icon": "Network", "order": 1 },
+    { "id": "backend-fundamentals", "label": "Backend fundamentals", "description": "Caching, scaling, databases, and async work.", "icon": "ServerCog", "order": 2 },
+    { "id": "frontend-architecture", "label": "Frontend architecture", "description": "Maintainable interfaces and product systems.", "icon": "Layers3", "order": 3 },
+    { "id": "services-apis", "label": "Services and APIs", "description": "Contracts, integrations, and distributed workflows.", "icon": "Workflow", "order": 4 },
+    { "id": "performance-reliability", "label": "Performance and reliability", "description": "Evidence-led optimization and graceful failure.", "icon": "Gauge", "order": 5 },
+    { "id": "leadership-delivery", "label": "Leadership and delivery", "description": "Technical direction, risk, and team execution.", "icon": "UsersRound", "order": 6 },
+    { "id": "typical-interview", "label": "Typical questions", "description": "Common senior and behavioral interview prompts.", "icon": "MessageSquareText", "order": 7 },
+    { "id": "case-studies", "label": "Project case studies", "description": "Architecture stories from shipped products.", "icon": "BriefcaseBusiness", "order": 8 }
+  ],
+  "questions": [
+    {
+      "id": "new-product-architecture",
+      "sectionId": "system-architecture",
+      "order": 1,
+      "level": "Senior",
+      "question": "How do you approach the architecture of a new product?",
+      "interviewerIntent": "They want to see whether you begin with business constraints and evolve the system deliberately instead of reaching for fashionable infrastructure.",
+      "scenario": "A small product team needs to launch quickly, but the product may grow into multiple operational workflows and integrations.",
+      "concepts": ["Domain boundaries", "Modular monolith", "Evolutionary architecture", "Observability", "Data ownership"],
+      "reflectionPrompts": [
+        "What must be true for the first release to succeed?",
+        "Which boundaries are stable enough to encode now?",
+        "What signals would justify splitting a service later?"
+      ],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "experience", "label": "Product experience", "detail": "Web, mobile, kiosk" },
+          { "id": "application", "label": "Application boundary", "detail": "Modules by business capability" },
+          { "id": "data", "label": "Data and events", "detail": "Clear ownership and audit trail" },
+          { "id": "operations", "label": "Operations", "detail": "Metrics, logs, deployment" }
+        ]
+      },
+      "shortAnswer": "I start with the user journey, business capabilities, and failure costs. I usually favor a modular monolith for a new product, with explicit module boundaries and contracts, then split services only when scale, ownership, or deployment independence creates a measurable need.",
+      "deepAnswer": [
+        "Map the critical journeys and non-functional requirements before choosing infrastructure.",
+        "Separate business capabilities in code and data access even when they deploy together.",
+        "Define API contracts, ownership, logs, and metrics early so the architecture is observable.",
+        "Record decisions and the signals that would trigger a different architecture later."
+      ],
+      "tradeoffs": [
+        { "choice": "Modular monolith", "benefit": "Faster delivery and simpler operations", "risk": "Weak boundaries can become hidden coupling" },
+        { "choice": "Microservices", "benefit": "Independent scale and ownership", "risk": "Distributed failure and operational overhead" }
+      ],
+      "seniorSignals": ["Starts with constraints", "Names migration triggers", "Treats operability as architecture"],
+      "projectProof": { "project": "DineEase", "summary": "A broad restaurant operations platform benefits from capability boundaries across orders, menus, staff, kiosks, and analytics without forcing every capability into a separate service on day one." },
+      "followUps": ["When would you split the first service?", "How would you avoid a distributed monolith?"]
+    },
+    {
+      "id": "service-boundaries",
+      "sectionId": "system-architecture",
+      "order": 2,
+      "level": "Senior",
+      "question": "How do you decide between a modular monolith and microservices?",
+      "interviewerIntent": "They are testing whether you can balance organizational scale, technical complexity, and operational cost.",
+      "scenario": "A growing platform has several workflows, but one team still owns most of the system.",
+      "concepts": ["Team topology", "Deployment independence", "Transaction boundaries", "Latency", "Operational maturity"],
+      "reflectionPrompts": ["Do capabilities need independent releases?", "Where are the real scaling hotspots?", "Can the team operate distributed systems well?"],
+      "diagram": {
+        "type": "layers",
+        "nodes": [
+          { "id": "team", "label": "Organization", "detail": "Ownership and release cadence" },
+          { "id": "domain", "label": "Domain", "detail": "Business boundaries and transactions" },
+          { "id": "runtime", "label": "Runtime", "detail": "Scale, latency, and failure isolation" }
+        ]
+      },
+      "shortAnswer": "I use microservices when independent ownership, scaling, or release cadence outweighs the cost of distributed communication. If one team owns the product and the domains still change together, a modular monolith is usually the stronger default.",
+      "deepAnswer": ["Evaluate team ownership before technical decomposition.", "Keep transaction-heavy capabilities together until eventual consistency is justified.", "Measure deployment coupling and scaling hotspots instead of predicting them.", "Extract one boundary at a time with an explicit contract and rollback plan."],
+      "tradeoffs": [
+        { "choice": "Stay together", "benefit": "Local transactions and easier debugging", "risk": "Shared releases can slow independent teams" },
+        { "choice": "Split apart", "benefit": "Failure and release isolation", "risk": "Network, consistency, and observability complexity" }
+      ],
+      "seniorSignals": ["Connects architecture to team structure", "Avoids premature distribution", "Plans extraction incrementally"],
+      "projectProof": { "project": "ASTA Softwares", "summary": "Small delivery teams need clear internal boundaries and dependable releases more than service count. Architecture should match the team that operates it." },
+      "followUps": ["What metrics would justify extraction?", "How do you handle shared data during migration?"]
+    },
+    {
+      "id": "caching-purpose",
+      "sectionId": "backend-fundamentals",
+      "order": 1,
+      "level": "Backend foundation",
+      "question": "What is caching, and when would you use it?",
+      "interviewerIntent": "They are checking whether you understand that caching is a latency and capacity tradeoff, not just a speed switch.",
+      "scenario": "A frequently requested dashboard repeatedly calculates the same expensive summary.",
+      "concepts": ["Cache", "Cache invalidation", "TTL", "Cache hit", "Cache miss"],
+      "reflectionPrompts": ["What is expensive to recompute?", "How stale may the data be?", "What invalidates the cached value?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "request", "label": "Request", "detail": "Ask for data" },
+        { "id": "cache", "label": "Cache lookup", "detail": "Return on a cache hit" },
+        { "id": "source", "label": "Source of truth", "detail": "Compute on a miss" },
+        { "id": "store", "label": "Store with TTL", "detail": "Reuse the result" }
+      ] },
+      "shortAnswer": "Caching stores a reusable copy of expensive or frequently requested data closer to the consumer. I use it when repeated reads are costly and the business can define acceptable staleness, then I make cache keys, TTL, invalidation, and failure behavior explicit.",
+      "deepAnswer": ["Measure the expensive read before adding a cache.", "Choose the cache level: browser, CDN, application, or database result.", "Define cache-aside, write-through, or event-driven invalidation.", "Monitor hit rate, memory use, stale reads, and fallback behavior."],
+      "tradeoffs": [
+        { "choice": "Long TTL", "benefit": "Higher hit rate and lower backend load", "risk": "Stale data lasts longer" },
+        { "choice": "Short TTL", "benefit": "Fresher data", "risk": "More misses and recomputation" }
+      ],
+      "seniorSignals": ["Defines freshness", "Explains invalidation", "Measures hit rate and fallback"],
+      "projectProof": { "project": "Walkspan", "summary": "Geospatial and establishment results can be cached by normalized location, walking radius, filters, and data version to avoid repeating expensive external lookups." },
+      "followUps": ["What is the cache-aside pattern?", "How do you prevent a cache stampede?"]
+    },
+    {
+      "id": "load-balancing-scaling",
+      "sectionId": "backend-fundamentals",
+      "order": 2,
+      "level": "Backend foundation",
+      "question": "What does a load balancer do, and how does horizontal scaling work?",
+      "interviewerIntent": "They want to know whether you can distribute traffic safely and keep application instances replaceable.",
+      "scenario": "Traffic outgrows one application server and availability matters during deployments or failures.",
+      "concepts": ["Load balancer", "Horizontal scaling", "Vertical scaling", "Health check", "Sticky session"],
+      "reflectionPrompts": ["Can any instance serve any request?", "Where is session state stored?", "How are unhealthy instances removed?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "traffic", "label": "Client traffic", "detail": "Incoming requests" },
+        { "id": "balancer", "label": "Load balancer", "detail": "Routes to healthy targets" },
+        { "id": "instances", "label": "App instances", "detail": "Stateless workers" },
+        { "id": "shared", "label": "Shared services", "detail": "Database, cache, queue" }
+      ] },
+      "shortAnswer": "A load balancer distributes requests across healthy instances using a routing strategy such as round robin or least connections. Horizontal scaling adds more instances, so I keep application nodes stateless, move shared session data out of process, and use health checks plus graceful shutdowns.",
+      "deepAnswer": ["Use readiness and liveness checks for safe routing.", "Avoid local-only session state unless sticky sessions are a deliberate compromise.", "Scale on meaningful capacity signals, not CPU alone.", "Drain connections during deployments so in-flight requests finish."],
+      "tradeoffs": [
+        { "choice": "Horizontal scaling", "benefit": "Resilience and elastic capacity", "risk": "Coordination and shared-state complexity" },
+        { "choice": "Vertical scaling", "benefit": "Operational simplicity", "risk": "A larger single failure domain and a hard ceiling" }
+      ],
+      "seniorSignals": ["Mentions stateless instances", "Explains health checks", "Connects scaling to observability"],
+      "projectProof": { "project": "Cortico", "summary": "Traffic-heavy patient discovery and content surfaces benefit from cacheable frontend delivery and backend instances that can scale without carrying local user state." },
+      "followUps": ["What are common load-balancing algorithms?", "When are sticky sessions acceptable?"]
+    },
+    {
+      "id": "database-indexes",
+      "sectionId": "backend-fundamentals",
+      "order": 3,
+      "level": "Backend foundation",
+      "question": "What is a database index, and why not index every column?",
+      "interviewerIntent": "They are testing practical query optimization and whether you understand the write and storage cost of indexes.",
+      "scenario": "A filtered list becomes slow as the table grows, while create and update traffic remains significant.",
+      "concepts": ["Database index", "Query plan", "Composite index", "Selectivity", "Full table scan"],
+      "reflectionPrompts": ["Which query is slow?", "Which fields filter and sort together?", "What is the write cost?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "query", "label": "Slow query", "detail": "Filter and sort" },
+        { "id": "plan", "label": "Query plan", "detail": "Find scans and estimates" },
+        { "id": "index", "label": "Targeted index", "detail": "Match access pattern" },
+        { "id": "verify", "label": "Verify", "detail": "Latency and write impact" }
+      ] },
+      "shortAnswer": "An index is an additional data structure that helps the database locate rows without scanning the whole table. I add indexes for measured access patterns and verify them with the query plan because every index consumes storage and makes inserts, updates, and maintenance more expensive.",
+      "deepAnswer": ["Inspect the real query and execution plan.", "Choose column order for filtering, joins, and sorting.", "Prefer selective indexes and remove unused duplicates.", "Recheck performance as data distribution changes."],
+      "tradeoffs": [
+        { "choice": "More indexes", "benefit": "Faster targeted reads", "risk": "Slower writes and more storage" },
+        { "choice": "Fewer indexes", "benefit": "Cheaper writes", "risk": "Expensive scans as data grows" }
+      ],
+      "seniorSignals": ["Uses query plans", "Indexes access patterns", "Names write amplification"],
+      "projectProof": { "project": "DineEase", "summary": "Order, menu, employee, and reporting queries need indexes shaped around tenant, status, timestamp, and frequent filtering patterns." },
+      "followUps": ["How does column order affect a composite index?", "What is the N+1 query problem?"]
+    },
+    {
+      "id": "queues-background-jobs",
+      "sectionId": "backend-fundamentals",
+      "order": 4,
+      "level": "Backend foundation",
+      "question": "When should work move to a message queue or background job?",
+      "interviewerIntent": "They want to see whether you can decouple slow or unreliable work without losing correctness.",
+      "scenario": "A request triggers email, analytics, document generation, and a third-party integration.",
+      "concepts": ["Message queue", "Producer", "Consumer", "Idempotency", "Dead-letter queue"],
+      "reflectionPrompts": ["Must the user wait for this work?", "Can it be retried safely?", "How will failed jobs be recovered?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "request", "label": "Request", "detail": "Persist essential state" },
+        { "id": "queue", "label": "Message queue", "detail": "Buffer durable work" },
+        { "id": "worker", "label": "Workers", "detail": "Process and retry" },
+        { "id": "failure", "label": "Failure handling", "detail": "Dead letter and alert" }
+      ] },
+      "shortAnswer": "I move work to a queue when it is slow, retryable, bursty, or not required to complete the user's request. The request persists the essential state, publishes a durable job, and workers process it idempotently with bounded retries, backoff, monitoring, and a dead-letter path.",
+      "deepAnswer": ["Commit essential business state before returning success.", "Use idempotency keys so retries do not duplicate effects.", "Apply exponential backoff and retry only recoverable failures.", "Monitor queue depth, job age, failure rate, and dead-letter volume."],
+      "tradeoffs": [
+        { "choice": "Synchronous work", "benefit": "Immediate result and simpler flow", "risk": "Long requests and dependency coupling" },
+        { "choice": "Queued work", "benefit": "Resilience and burst handling", "risk": "Eventual completion and operational complexity" }
+      ],
+      "seniorSignals": ["Separates essential state", "Designs retries safely", "Explains dead-letter recovery"],
+      "projectProof": { "project": "ASTA projects", "summary": "Email, reports, data imports, AI-assisted workflows, and third-party synchronization are typical candidates for observable background processing." },
+      "followUps": ["What is a dead-letter queue?", "How do you guarantee exactly-once processing?"]
+    },
+    {
+      "id": "cdn-reverse-proxy",
+      "sectionId": "backend-fundamentals",
+      "order": 5,
+      "level": "Backend foundation",
+      "question": "What are a CDN and reverse proxy used for?",
+      "interviewerIntent": "They are checking whether you understand the request path before traffic reaches application code.",
+      "scenario": "A global product serves static assets and APIs from a small number of backend regions.",
+      "concepts": ["CDN", "Reverse proxy", "Edge cache", "TLS termination", "Origin server"],
+      "reflectionPrompts": ["What can be served at the edge?", "Which requests must reach the origin?", "Where should TLS and routing live?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "user", "label": "Global user", "detail": "Nearest edge" },
+        { "id": "cdn", "label": "CDN", "detail": "Assets and cacheable responses" },
+        { "id": "proxy", "label": "Reverse proxy", "detail": "TLS, routing, controls" },
+        { "id": "origin", "label": "Origin services", "detail": "Dynamic application work" }
+      ] },
+      "shortAnswer": "A CDN serves cacheable content from locations closer to users, while a reverse proxy is the controlled entry point that forwards requests to internal services and can handle TLS, routing, compression, or rate limits. They reduce origin work and keep infrastructure details away from clients.",
+      "deepAnswer": ["Use immutable asset names for long-lived edge caching.", "Set cache-control rules intentionally for dynamic responses.", "Keep the origin protected from direct public access where practical.", "Monitor edge hit rate and origin latency separately."],
+      "tradeoffs": [
+        { "choice": "Aggressive edge caching", "benefit": "Lower latency and origin load", "risk": "Invalidation and personalized-content mistakes" },
+        { "choice": "Origin delivery", "benefit": "Fresh dynamic responses", "risk": "Higher latency and centralized load" }
+      ],
+      "seniorSignals": ["Explains the request path", "Separates edge and origin", "Mentions cache-control"],
+      "projectProof": { "project": "Cortico", "summary": "A large SEO surface benefits from globally cached assets, optimized media, and controlled routing to dynamic clinic and booking experiences." },
+      "followUps": ["What should never be publicly cached?", "How does TLS termination work?"]
+    },
+    {
+      "id": "rate-limits-resilience",
+      "sectionId": "backend-fundamentals",
+      "order": 6,
+      "level": "Backend foundation",
+      "question": "How do rate limiting and circuit breakers protect a service?",
+      "interviewerIntent": "They want to hear how you prevent overload and cascading failure.",
+      "scenario": "A public API receives traffic spikes while a downstream provider starts timing out.",
+      "concepts": ["Rate limiting", "Circuit breaker", "Timeout", "Retry with backoff", "Bulkhead"],
+      "reflectionPrompts": ["Who should be limited?", "Which failures are retryable?", "How does the system degrade safely?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "limit", "label": "Rate limit", "detail": "Protect capacity" },
+        { "id": "timeout", "label": "Timeout", "detail": "Bound waiting" },
+        { "id": "breaker", "label": "Circuit breaker", "detail": "Stop repeated failure" },
+        { "id": "fallback", "label": "Fallback", "detail": "Degrade and recover" }
+      ] },
+      "shortAnswer": "Rate limiting controls how much traffic a client can send, while a circuit breaker stops repeated calls to a dependency that is already failing. I combine them with strict timeouts, selective retries with jitter, bounded concurrency, and a clear degraded response.",
+      "deepAnswer": ["Limit by a meaningful identity such as user, tenant, token, or IP.", "Return clear retry information when requests are rejected.", "Open the circuit after a failure threshold and probe recovery carefully.", "Avoid retry storms by using backoff, jitter, and retry budgets."],
+      "tradeoffs": [
+        { "choice": "Strict protection", "benefit": "Preserves system health", "risk": "Some valid traffic is rejected" },
+        { "choice": "Permissive traffic", "benefit": "Fewer immediate rejections", "risk": "Overload can cascade across services" }
+      ],
+      "seniorSignals": ["Bounds waiting", "Avoids retry storms", "Designs degraded behavior"],
+      "projectProof": { "project": "DineEase", "summary": "Payment, notification, and third-party menu integrations should fail in bounded ways without taking down ordering and restaurant operations." },
+      "followUps": ["What is exponential backoff with jitter?", "How do token-bucket rate limits work?"]
+    },
+    {
+      "id": "large-frontend-structure",
+      "sectionId": "frontend-architecture",
+      "order": 1,
+      "level": "Senior frontend",
+      "question": "How do you structure a large frontend so it remains maintainable?",
+      "interviewerIntent": "They want evidence that you can protect product speed as teams, routes, and workflows expand.",
+      "scenario": "A product has dashboards, configuration flows, real-time views, and several teams contributing to the same frontend.",
+      "concepts": ["Feature boundaries", "Design system", "Server state", "Local state", "Testing seams"],
+      "reflectionPrompts": ["What changes together?", "Which state must be shared?", "Where should product rules live?"],
+      "diagram": {
+        "type": "layers",
+        "nodes": [
+          { "id": "routes", "label": "Routes and journeys", "detail": "User-facing product boundaries" },
+          { "id": "features", "label": "Feature modules", "detail": "UI, state, and domain behavior" },
+          { "id": "platform", "label": "Frontend platform", "detail": "Design system, API client, telemetry" }
+        ]
+      },
+      "shortAnswer": "I organize the frontend around product capabilities rather than file types. Features own their UI, state, and domain behavior, while shared platform code is limited to stable primitives such as the design system, API client, authentication, and telemetry.",
+      "deepAnswer": ["Keep route-level boundaries aligned with user journeys.", "Separate server state from local interaction state.", "Make loading, empty, error, and permission states part of the feature contract.", "Promote code to shared layers only after it is genuinely stable and reused."],
+      "tradeoffs": [
+        { "choice": "Feature ownership", "benefit": "Changes stay localized", "risk": "Some deliberate duplication may remain" },
+        { "choice": "Global abstraction", "benefit": "Maximum reuse", "risk": "Product differences leak into complex configuration" }
+      ],
+      "seniorSignals": ["Optimizes for change", "Separates state types", "Treats edge states as first-class"],
+      "projectProof": { "project": "Cortico", "summary": "Clinic discovery, marketing surfaces, CMS workflows, and technical SEO required reusable foundations without flattening distinct product journeys into one generic component system." },
+      "followUps": ["When do you introduce a global store?", "How do you prevent a design system from becoming a bottleneck?"]
+    },
+    {
+      "id": "react-rendering-performance",
+      "sectionId": "frontend-architecture",
+      "order": 2,
+      "level": "React",
+      "question": "What causes a React component to re-render, and how do you diagnose unnecessary work?",
+      "interviewerIntent": "They want to hear a measured performance process, not reflexive use of memoization everywhere.",
+      "scenario": "A data-heavy dashboard feels sluggish when filters change, even though only one chart needs new data.",
+      "concepts": ["Render cycle", "Props and state", "Context", "React Profiler", "Memoization"],
+      "reflectionPrompts": ["Which update starts the render?", "How far does that update propagate?", "Is the work expensive enough to optimize?"],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "trigger", "label": "State, props, or context", "detail": "A component receives an update" },
+          { "id": "render", "label": "Render phase", "detail": "React calculates the next UI tree" },
+          { "id": "commit", "label": "Commit phase", "detail": "Only changed DOM work is applied" }
+        ]
+      },
+      "shortAnswer": "A component renders when its state changes, its parent renders, or consumed context changes. I first reproduce the slow interaction with the React Profiler, identify expensive renders and unstable props, then reduce state scope or component boundaries before adding memoization where measurement proves it helps.",
+      "deepAnswer": ["Separate urgent interaction state from expensive derived work.", "Keep state close to the components that own it so updates do not invalidate a broad subtree.", "Stabilize object and callback identities only when they affect memoized children or dependency arrays.", "Use virtualization, deferred updates, or server-side aggregation when rendering volume is the real bottleneck."],
+      "tradeoffs": [
+        { "choice": "Memoization", "benefit": "Can skip expensive repeated work", "risk": "Adds comparison cost and stale-dependency complexity" },
+        { "choice": "Smaller state boundaries", "benefit": "Prevents broad update propagation", "risk": "Can increase component coordination" }
+      ],
+      "seniorSignals": ["Profiles before optimizing", "Understands render versus DOM commit", "Fixes ownership before adding caching"],
+      "projectProof": { "project": "DineEase", "summary": "Real-time order feeds, analytics, calendars, and operational controls benefit from localized state and deliberate update boundaries so live data does not invalidate the whole interface." },
+      "followUps": ["When would you use useMemo or React.memo?", "How does concurrent rendering change the user experience?"]
+    },
+    {
+      "id": "react-state-strategy",
+      "sectionId": "frontend-architecture",
+      "order": 3,
+      "level": "React",
+      "question": "How do you choose between local state, Context, a global store, and a server-state library in React?",
+      "interviewerIntent": "They are testing whether you distinguish state by ownership and lifecycle instead of choosing one tool for everything.",
+      "scenario": "A product needs form state, authenticated-user data, shared UI preferences, and paginated API results.",
+      "concepts": ["State ownership", "Context", "Global store", "Server state", "Cache invalidation"],
+      "reflectionPrompts": ["Who owns the value?", "Where is its source of truth?", "How is it refreshed or invalidated?"],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "local", "label": "Local interaction state", "detail": "Forms, toggles, temporary UI" },
+          { "id": "shared", "label": "Shared client state", "detail": "Cross-route preferences and workflows" },
+          { "id": "server", "label": "Server state", "detail": "Cached remote data with freshness rules" }
+        ]
+      },
+      "shortAnswer": "I use local state by default, Context for low-frequency values needed across a subtree, a global store for genuinely shared client workflows, and a server-state library for remote data that needs caching, deduplication, retries, and invalidation. The choice follows ownership and lifecycle, not component count.",
+      "deepAnswer": ["Keep form drafts and transient interaction state near the owning feature.", "Avoid putting frequently changing values into one broad Context because every consumer can be affected.", "Model server data separately from client state because freshness, retries, and invalidation are different concerns.", "Define mutation and cache-invalidation rules at the feature boundary."],
+      "tradeoffs": [
+        { "choice": "Central store", "benefit": "Explicit shared workflow state", "risk": "Can become a dumping ground" },
+        { "choice": "Server-state cache", "benefit": "Consistent fetching and freshness behavior", "risk": "Requires disciplined cache keys and invalidation" }
+      ],
+      "seniorSignals": ["Classifies state by source and lifetime", "Defaults to the smallest ownership boundary", "Plans invalidation before adopting a cache"],
+      "projectProof": { "project": "Cortico", "summary": "Clinic discovery and authenticated CMS workflows require different state lifecycles: remote clinic data needs freshness rules while filters and editing interactions should stay locally owned." },
+      "followUps": ["When does Context become a performance problem?", "How would you handle optimistic updates?"]
+    },
+    {
+      "id": "vue-reactivity-system",
+      "sectionId": "frontend-architecture",
+      "order": 4,
+      "level": "Vue",
+      "question": "How does Vue reactivity work, and where can reactive state become difficult to reason about?",
+      "interviewerIntent": "They want practical command of refs, reactive objects, computed values, watchers, and dependency tracking.",
+      "scenario": "A Vue dashboard has derived metrics, nested filters, and watchers that trigger duplicate API calls.",
+      "concepts": ["Proxy reactivity", "ref", "computed", "watch", "Effect scope"],
+      "reflectionPrompts": ["Is this source state or derived state?", "Does this need a watcher at all?", "Who owns the side effect?"],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "source", "label": "ref or reactive source", "detail": "Vue tracks reads and writes" },
+          { "id": "derived", "label": "computed value", "detail": "Cached derivation updates on demand" },
+          { "id": "effect", "label": "watch or render effect", "detail": "Side effects run when dependencies change" }
+        ]
+      },
+      "shortAnswer": "Vue tracks reactive reads and writes through refs and proxies, then re-runs dependent render effects, computed values, or watchers. I keep source state minimal, prefer computed values for pure derivation, and reserve watchers for explicit side effects such as persistence or network calls.",
+      "deepAnswer": ["Use ref for scalar values and reactive when an object-shaped state model is clearer.", "Avoid copying props into local state unless the component intentionally owns a draft.", "Use computed instead of watchers when no side effect is required.", "Cancel or invalidate asynchronous watcher work so older requests cannot overwrite newer results."],
+      "tradeoffs": [
+        { "choice": "Watcher-driven coordination", "benefit": "Responds flexibly to changes", "risk": "Hidden dependencies and duplicate effects" },
+        { "choice": "Explicit actions and computed state", "benefit": "Clearer data flow", "risk": "Requires more deliberate event design" }
+      ],
+      "seniorSignals": ["Separates derivation from side effects", "Controls asynchronous watcher cleanup", "Keeps reactive ownership explicit"],
+      "projectProof": { "project": "Walkspan", "summary": "Map filters, walking radii, establishment categories, and neighborhood scores are easier to maintain when source filters, computed presentation state, and map side effects are clearly separated." },
+      "followUps": ["When would you use shallowRef?", "What is the difference between watch and watchEffect?"]
+    },
+    {
+      "id": "vue-nuxt-application-architecture",
+      "sectionId": "frontend-architecture",
+      "order": 5,
+      "level": "Vue and Nuxt",
+      "question": "How would you structure composables, Pinia state, and server data in a large Vue or Nuxt application?",
+      "interviewerIntent": "They want architecture choices that preserve SSR correctness, feature ownership, and maintainability.",
+      "scenario": "A Nuxt product combines public SEO pages, authenticated dashboards, and shared domain workflows.",
+      "concepts": ["Composables", "Pinia", "SSR", "Hydration", "Feature boundaries"],
+      "reflectionPrompts": ["Can this state safely cross requests?", "Is the logic reusable or merely convenient?", "Where should fetching occur for SEO and freshness?"],
+      "diagram": {
+        "type": "layers",
+        "nodes": [
+          { "id": "routes", "label": "Nuxt routes and layouts", "detail": "Rendering and journey boundaries" },
+          { "id": "features", "label": "Feature modules and composables", "detail": "Domain behavior close to its consumers" },
+          { "id": "platform", "label": "Pinia and infrastructure", "detail": "Truly shared client state and stable services" }
+        ]
+      },
+      "shortAnswer": "I keep domain behavior inside feature-focused composables, use Pinia only for state that genuinely spans routes or distant features, and fetch server data at the Nuxt boundary that matches its SEO and freshness needs. I also verify that request-specific state is isolated during SSR and that hydration receives the same initial shape.",
+      "deepAnswer": ["Keep composables focused on one capability and make their dependencies explicit.", "Avoid turning Pinia into a replacement for component and server state.", "Use Nuxt server-data utilities for SSR-friendly fetching, stable keys, and hydration reuse.", "Keep browser-only APIs behind client guards and prevent shared module state from leaking across server requests."],
+      "tradeoffs": [
+        { "choice": "SSR data fetching", "benefit": "SEO and faster meaningful content", "risk": "Higher server cost and hydration constraints" },
+        { "choice": "Client-only fetching", "benefit": "Simpler server execution", "risk": "Slower content and weaker crawlability" }
+      ],
+      "seniorSignals": ["Understands per-request SSR state", "Uses Pinia selectively", "Connects rendering strategy to SEO and freshness"],
+      "projectProof": { "project": "Cortico", "summary": "Public clinic discovery pages need crawlable content and strong performance, while authenticated product surfaces need different data and state boundaries." },
+      "followUps": ["How do you prevent hydration mismatches?", "When should a composable become a store?"]
+    },
+    {
+      "id": "api-contracts",
+      "sectionId": "services-apis",
+      "order": 1,
+      "level": "Senior full-stack",
+      "question": "What makes an API contract maintainable for multiple clients?",
+      "interviewerIntent": "They are looking for compatibility thinking, predictable failures, and an understanding of consumer needs.",
+      "scenario": "A REST API serves a web dashboard, kiosk, and future mobile application.",
+      "concepts": ["Resource modeling", "Backward compatibility", "Idempotency", "Validation", "Observability"],
+      "reflectionPrompts": ["Who owns the contract?", "How are failures represented?", "Which operations may be retried?"],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "clients", "label": "Clients", "detail": "Web, kiosk, mobile" },
+          { "id": "contract", "label": "Versioned contract", "detail": "Schema, errors, idempotency" },
+          { "id": "domain", "label": "Domain services", "detail": "Business rules and ownership" },
+          { "id": "telemetry", "label": "Telemetry", "detail": "Trace requests and failures" }
+        ]
+      },
+      "shortAnswer": "A maintainable API is explicit about resources, validation, errors, retries, and compatibility. I keep transport concerns separate from domain rules, document schemas, make retried writes idempotent where needed, and evolve contracts without surprising existing clients.",
+      "deepAnswer": ["Use consistent resource and error shapes.", "Validate at the boundary while keeping business rules in the domain layer.", "Design write operations around retry and duplicate-submission behavior.", "Add contract checks and telemetry around high-value workflows."],
+      "tradeoffs": [
+        { "choice": "Strict contract", "benefit": "Predictable clients and failures", "risk": "Requires disciplined evolution" },
+        { "choice": "Flexible payloads", "benefit": "Fast early changes", "risk": "Ambiguity moves into every consumer" }
+      ],
+      "seniorSignals": ["Designs for consumers", "Explains failure semantics", "Protects compatibility"],
+      "projectProof": { "project": "DineEase", "summary": "Orders, kiosk actions, menu editing, staffing, and reporting need consistent contracts because the same business state appears across several interfaces." },
+      "followUps": ["How do you version an API?", "When would you use events instead of synchronous calls?"]
+    },
+    {
+      "id": "realtime-order-feed",
+      "sectionId": "services-apis",
+      "order": 2,
+      "level": "Senior full-stack",
+      "question": "How would you design a reliable real-time order feed?",
+      "interviewerIntent": "They want to hear how you handle ordering, reconnects, duplicates, and user trust instead of only naming WebSockets.",
+      "scenario": "Restaurant staff must see new and updated orders quickly across several screens, even after temporary connection loss.",
+      "concepts": ["Event ordering", "Reconnection", "Idempotency", "Snapshot plus stream", "Optimistic UI"],
+      "reflectionPrompts": ["What happens after a disconnect?", "Can events arrive twice or out of order?", "Which actions require confirmation?"],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "write", "label": "Order command", "detail": "Validated, idempotent write" },
+          { "id": "store", "label": "Source of truth", "detail": "Persist status and sequence" },
+          { "id": "stream", "label": "Event stream", "detail": "Push deltas to subscribers" },
+          { "id": "client", "label": "Client reconciliation", "detail": "Merge snapshot and events" }
+        ]
+      },
+      "shortAnswer": "I treat real-time transport as an acceleration layer, not the source of truth. Clients load a current snapshot, subscribe to sequenced updates, deduplicate events, and reconcile after reconnect. Important state transitions are confirmed by the server rather than trusted optimistically.",
+      "deepAnswer": ["Persist before broadcasting so updates can be recovered.", "Include event IDs, entity versions, and ordering information.", "On reconnect, resume from a cursor or fetch a fresh snapshot.", "Expose connection health and stale-state cues in the interface."],
+      "tradeoffs": [
+        { "choice": "WebSocket stream", "benefit": "Low-latency bidirectional updates", "risk": "Connection lifecycle and recovery complexity" },
+        { "choice": "Polling", "benefit": "Simple and resilient", "risk": "Higher latency and repeated work" }
+      ],
+      "seniorSignals": ["Separates truth from transport", "Designs recovery first", "Connects backend guarantees to UI trust"],
+      "projectProof": { "project": "DineEase", "summary": "The order feed must support restaurant operations where a missed or duplicated status change affects fulfillment, customers, and reporting." },
+      "followUps": ["How would you test reconnect behavior?", "How would you scale subscriptions across servers?"]
+    },
+    {
+      "id": "frontend-performance",
+      "sectionId": "performance-reliability",
+      "order": 1,
+      "level": "Senior frontend",
+      "question": "How do you improve frontend performance without guessing?",
+      "interviewerIntent": "They want a measurement strategy tied to user impact, not a list of generic optimizations.",
+      "scenario": "A content-heavy product ranks in search but has uneven mobile performance and complex interactive pages.",
+      "concepts": ["Core Web Vitals", "Real-user monitoring", "Bundle analysis", "Rendering path", "Regression budgets"],
+      "reflectionPrompts": ["Which users are slow?", "Which metric matches the complaint?", "How will you prevent regression?"],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "measure", "label": "Measure", "detail": "Field data and traces" },
+          { "id": "isolate", "label": "Isolate", "detail": "Network, render, script, data" },
+          { "id": "change", "label": "Change", "detail": "One targeted intervention" },
+          { "id": "verify", "label": "Verify", "detail": "User impact and regression guard" }
+        ]
+      },
+      "shortAnswer": "I begin with field data and a specific user journey, then isolate whether the bottleneck is network, rendering, JavaScript, media, or backend response. I make the smallest high-impact change, compare before and after, and add a budget or monitor to prevent regression.",
+      "deepAnswer": ["Segment real-user data by route, device, and connection.", "Use lab tooling to reproduce the field symptom rather than replace field evidence.", "Prioritize the critical rendering path and interaction latency.", "Track the chosen metric through release and establish an ownership loop."],
+      "tradeoffs": [
+        { "choice": "Aggressive code splitting", "benefit": "Smaller initial bundle", "risk": "Too many requests and delayed interactions" },
+        { "choice": "Eager loading", "benefit": "Predictable later interactions", "risk": "Higher initial cost" }
+      ],
+      "seniorSignals": ["Starts with evidence", "Optimizes a journey, not a score", "Builds regression prevention"],
+      "projectProof": { "project": "Cortico", "summary": "Technical SEO and frontend work contributed to passed Core Web Vitals, a reported mobile performance score of 94, and large search visibility outcomes." },
+      "followUps": ["How do you choose a performance budget?", "What would you do if lab and field data disagree?"]
+    },
+    {
+      "id": "technical-leadership",
+      "sectionId": "leadership-delivery",
+      "order": 1,
+      "level": "Technical lead",
+      "question": "What does hands-on technical leadership look like to you?",
+      "interviewerIntent": "They want to know whether you can create clarity and raise team output without becoming a delivery bottleneck.",
+      "scenario": "A small team is building an ambiguous product with changing priorities and mixed experience levels.",
+      "concepts": ["Decision clarity", "Risk slicing", "Standards", "Mentorship", "Feedback loops"],
+      "reflectionPrompts": ["Which decisions need a lead?", "How do you make ownership visible?", "How do you keep standards practical?"],
+      "diagram": {
+        "type": "layers",
+        "nodes": [
+          { "id": "direction", "label": "Direction", "detail": "Outcomes, constraints, architecture" },
+          { "id": "enablement", "label": "Enablement", "detail": "Patterns, reviews, pairing, unblockers" },
+          { "id": "feedback", "label": "Feedback", "detail": "Delivery signals and product learning" }
+        ]
+      },
+      "shortAnswer": "Hands-on leadership means creating a clear technical path, taking responsibility for risky parts, and enabling others to own meaningful work. I use lightweight architecture decisions, small delivery slices, reviews, and direct feedback so quality improves without routing every decision through me.",
+      "deepAnswer": ["Translate product ambiguity into explicit technical options and constraints.", "Prototype the riskiest assumptions before scaling implementation.", "Set a small number of enforceable quality standards.", "Delegate outcomes, review decisions, and coach through the reasoning."],
+      "tradeoffs": [
+        { "choice": "Lead implements everything critical", "benefit": "Fast short-term certainty", "risk": "Team dependency and weak ownership" },
+        { "choice": "Lead only coordinates", "benefit": "More delegation", "risk": "Architecture may drift away from implementation reality" }
+      ],
+      "seniorSignals": ["Creates leverage", "Stays close to implementation", "Balances standards with delivery"],
+      "projectProof": { "project": "ASTA Softwares", "summary": "As Co-founder and Technical Lead, the role combines technical direction, frontend depth, full-stack delivery, review, and team enablement across client products." },
+      "followUps": ["How do you handle disagreement?", "How do you measure whether your leadership is working?"]
+    },
+    {
+      "id": "tell-me-about-yourself",
+      "sectionId": "typical-interview",
+      "order": 1,
+      "level": "Common opener",
+      "question": "Tell me about yourself.",
+      "interviewerIntent": "They want a focused professional story that explains your current level, strongest value, and why this role is the logical next step.",
+      "scenario": "You have about two minutes to frame the rest of the interview for a senior frontend, full-stack, or technical leadership role.",
+      "concepts": ["Present role", "Career progression", "Technical strength", "Business impact", "Role fit"],
+      "reflectionPrompts": ["What is your professional headline?", "Which two outcomes prove it?", "Why does this opportunity fit now?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "present", "label": "Present", "detail": "Who you are now" },
+        { "id": "progression", "label": "Progression", "detail": "How you reached this level" },
+        { "id": "proof", "label": "Proof", "detail": "Relevant outcomes" },
+        { "id": "fit", "label": "Fit", "detail": "Why this role" }
+      ] },
+      "shortAnswer": "I am a senior frontend engineer and full-stack developer who specializes in turning complex product workflows into clear, high-performing interfaces. I have led frontend and product delivery across healthcare, geospatial, financial, and restaurant platforms, and I co-founded ASTA Softwares, where I combine hands-on engineering with technical direction and team leadership.",
+      "deepAnswer": ["Lead with senior frontend depth and full-stack range.", "Use Cortico to prove measurable performance and growth impact.", "Use Walkspan or DineEase to show complex product architecture.", "Close by connecting hands-on leadership to the target role."],
+      "tradeoffs": [
+        { "choice": "Broad career history", "benefit": "Shows range", "risk": "Can become unfocused" },
+        { "choice": "Focused role story", "benefit": "Makes your fit memorable", "risk": "Requires choosing only relevant evidence" }
+      ],
+      "seniorSignals": ["Clear professional identity", "Specific evidence", "Connects experience to the role"],
+      "projectProof": { "project": "Portfolio and ASTA", "summary": "The strongest narrative combines frontend mastery, full-stack delivery, product outcomes, and co-founder-level technical leadership." },
+      "followUps": ["Why are you looking for a new role?", "What kind of team helps you do your best work?"]
+    },
+    {
+      "id": "challenging-project",
+      "sectionId": "typical-interview",
+      "order": 2,
+      "level": "Behavioral",
+      "question": "Tell me about a technically challenging project.",
+      "interviewerIntent": "They want to understand your personal contribution, reasoning under constraints, and measurable result.",
+      "scenario": "Choose one project where complexity came from product behavior, data, scale, or ambiguity rather than merely a difficult library.",
+      "concepts": ["STAR method", "Constraints", "Personal ownership", "Tradeoffs", "Outcome"],
+      "reflectionPrompts": ["Why was it genuinely difficult?", "Which decision did you personally own?", "What changed because of your work?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "situation", "label": "Situation", "detail": "Business and technical context" },
+        { "id": "task", "label": "Task", "detail": "Your responsibility" },
+        { "id": "action", "label": "Action", "detail": "Decisions and execution" },
+        { "id": "result", "label": "Result", "detail": "Measured outcome" }
+      ] },
+      "shortAnswer": "Walkspan was challenging because it had to translate dense geospatial and establishment data into an interface people could understand quickly. I led the frontend architecture, organized the map and comparison states, and shaped progressive interactions for multiple walking radii and neighborhood criteria while keeping the experience responsive.",
+      "deepAnswer": ["Describe the geospatial and comprehension problem.", "Explain the frontend state and rendering boundaries you owned.", "Name performance and usability tradeoffs.", "Close with what users could do after the solution shipped."],
+      "tradeoffs": [
+        { "choice": "Show every data point", "benefit": "Maximum detail", "risk": "Visual overload and rendering cost" },
+        { "choice": "Progressive disclosure", "benefit": "Clearer exploration", "risk": "Some information requires another action" }
+      ],
+      "seniorSignals": ["Owns a concrete decision", "Explains complexity simply", "Connects engineering to user value"],
+      "projectProof": { "project": "Walkspan", "summary": "Multiple radii, establishment categories, character scores, map layers, and address comparison created a credible senior frontend architecture story." },
+      "followUps": ["What would you change if you rebuilt it?", "How did you work with backend or product partners?"]
+    },
+    {
+      "id": "technical-disagreement",
+      "sectionId": "typical-interview",
+      "order": 3,
+      "level": "Leadership",
+      "question": "Tell me about a technical disagreement and how you handled it.",
+      "interviewerIntent": "They are looking for judgment, listening, evidence, and the ability to disagree without damaging trust.",
+      "scenario": "Two credible approaches exist and the team has different views on architecture, scope, or implementation quality.",
+      "concepts": ["Decision record", "Shared criteria", "Prototype", "Disagree and commit", "Retrospective"],
+      "reflectionPrompts": ["What did the other person value?", "Which evidence could reduce opinion?", "Who owned the final decision?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "listen", "label": "Understand", "detail": "Interests and constraints" },
+        { "id": "criteria", "label": "Agree on criteria", "detail": "User, delivery, risk" },
+        { "id": "evidence", "label": "Test evidence", "detail": "Prototype or measurement" },
+        { "id": "commit", "label": "Decide and commit", "detail": "Record and revisit" }
+      ] },
+      "shortAnswer": "I first separate the technical proposal from the underlying concern, such as delivery risk, maintainability, or performance. We agree on decision criteria, gather the smallest useful evidence, document the choice and tradeoffs, then commit as a team even if my preferred option is not selected.",
+      "deepAnswer": ["Represent the other view accurately before arguing yours.", "Use a time-boxed prototype or measurement when opinions persist.", "Make decision ownership explicit.", "Revisit only when the recorded trigger or new evidence appears."],
+      "tradeoffs": [
+        { "choice": "Seek full consensus", "benefit": "High alignment", "risk": "Slow or impossible decisions" },
+        { "choice": "Clear decision owner", "benefit": "Maintains momentum", "risk": "Requires trust and transparent reasoning" }
+      ],
+      "seniorSignals": ["Listens before deciding", "Uses evidence", "Protects team commitment"],
+      "projectProof": { "project": "ASTA Softwares", "summary": "Co-founder and technical lead work regularly requires balancing delivery commitments, engineering quality, and the judgment of other owners and engineers." },
+      "followUps": ["What if the chosen approach fails?", "How do you challenge a more senior stakeholder?"]
+    },
+    {
+      "id": "production-incident",
+      "sectionId": "typical-interview",
+      "order": 4,
+      "level": "Reliability",
+      "question": "How do you handle a production incident?",
+      "interviewerIntent": "They want calm prioritization, communication, restoration, and learning without blame.",
+      "scenario": "A critical user journey is failing after a deployment and the root cause is not yet known.",
+      "concepts": ["Incident commander", "Mitigation", "Rollback", "Runbook", "Blameless postmortem"],
+      "reflectionPrompts": ["How do you reduce impact first?", "Who communicates status?", "What evidence must be preserved?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "assess", "label": "Assess", "detail": "Scope and severity" },
+        { "id": "mitigate", "label": "Mitigate", "detail": "Rollback, disable, reroute" },
+        { "id": "recover", "label": "Recover", "detail": "Verify the user journey" },
+        { "id": "learn", "label": "Learn", "detail": "Postmortem and prevention" }
+      ] },
+      "shortAnswer": "I prioritize restoring the user journey over proving the root cause immediately. I establish ownership, assess impact, communicate clearly, choose the safest mitigation such as rollback or feature disablement, verify recovery, then run a blameless postmortem with concrete prevention and detection actions.",
+      "deepAnswer": ["Assign an incident lead and one communication channel.", "Preserve logs, timestamps, and deployment context.", "Prefer reversible mitigation under uncertainty.", "Turn the postmortem into owned, prioritized follow-up work."],
+      "tradeoffs": [
+        { "choice": "Rollback quickly", "benefit": "Fast risk reduction", "risk": "May reverse unrelated improvements" },
+        { "choice": "Debug in place", "benefit": "Preserves the release", "risk": "Extends user impact" }
+      ],
+      "seniorSignals": ["Restores service first", "Communicates deliberately", "Builds prevention without blame"],
+      "projectProof": { "project": "Operational products", "summary": "Healthcare and restaurant workflows make user impact, rollback safety, and clear incident communication more important than heroic debugging." },
+      "followUps": ["What belongs in a postmortem?", "How do you decide incident severity?"]
+    },
+    {
+      "id": "why-hire-you",
+      "sectionId": "typical-interview",
+      "order": 5,
+      "level": "Closing question",
+      "question": "Why should we hire you for a senior role?",
+      "interviewerIntent": "They want a concise value proposition tied to their needs, not a generic confidence statement.",
+      "scenario": "The role needs frontend depth, enough backend range to lead delivery, and someone who can raise technical execution across a team.",
+      "concepts": ["Role requirements", "Differentiator", "Evidence", "Leadership leverage", "Business value"],
+      "reflectionPrompts": ["Which problem can you solve better than most candidates?", "What evidence supports that claim?", "How will the team become stronger?"],
+      "diagram": { "type": "flow", "nodes": [
+        { "id": "need", "label": "Their need", "detail": "Critical role outcomes" },
+        { "id": "strength", "label": "Your strength", "detail": "Frontend depth and range" },
+        { "id": "evidence", "label": "Evidence", "detail": "Products and measurable impact" },
+        { "id": "future", "label": "Future value", "detail": "What improves after hiring" }
+      ] },
+      "shortAnswer": "You would be hiring a senior engineer with deep frontend judgment who can also lead the full product build. I have shipped complex healthcare, geospatial, finance, and restaurant interfaces, improved measurable performance and search outcomes, and led delivery as an ASTA co-founder. I can own difficult frontend systems while helping the wider team make clearer technical decisions.",
+      "deepAnswer": ["Mirror the three most important requirements from the role.", "Prove each claim with one project or metric.", "Explain how your frontend mastery improves full-product execution.", "Describe the leadership leverage the team gains."],
+      "tradeoffs": [
+        { "choice": "List every skill", "benefit": "Shows breadth", "risk": "Weak differentiation" },
+        { "choice": "Lead with a focused advantage", "benefit": "Memorable and relevant", "risk": "Requires tailoring for each role" }
+      ],
+      "seniorSignals": ["Tailors the answer", "Uses evidence", "Frames leadership as team leverage"],
+      "projectProof": { "project": "Cortico, Walkspan, DineEase, and ASTA", "summary": "Together they show product breadth, frontend mastery, measurable outcomes, full-stack range, and technical leadership." },
+      "followUps": ["What would you aim to accomplish in your first 90 days?", "What support do you need from your manager?"]
+    },
+    {
+      "id": "walkspan-architecture",
+      "sectionId": "case-studies",
+      "order": 1,
+      "level": "Architecture story",
+      "question": "How would you explain the architecture of Walkspan in an interview?",
+      "interviewerIntent": "They want a concise system story connecting geospatial data, product decisions, and frontend execution.",
+      "scenario": "Users inspect neighborhood walkability across multiple radii, establishments, character criteria, and address comparisons.",
+      "concepts": ["Geospatial queries", "Progressive disclosure", "Map rendering", "Derived scoring", "Comparison views"],
+      "reflectionPrompts": ["Which work belongs on the server?", "What should be cached by radius?", "How does the UI explain derived scores?"],
+      "diagram": {
+        "type": "flow",
+        "nodes": [
+          { "id": "address", "label": "Address and radius", "detail": "0.25, 0.5, or 1 mile" },
+          { "id": "geo", "label": "Geospatial services", "detail": "Places, routes, and boundaries" },
+          { "id": "score", "label": "Scoring layer", "detail": "Lifestyle and neighborhood character" },
+          { "id": "map", "label": "Interactive map", "detail": "Explore and compare" }
+        ]
+      },
+      "shortAnswer": "Walkspan turns an address and walking radius into an explainable neighborhood view. The system combines geospatial and establishment data, derives lifestyle and character signals, then presents them through an interactive map and comparison workflow that keeps complex data understandable.",
+      "deepAnswer": ["Normalize address and radius inputs before querying external data.", "Cache expensive geospatial results using location, radius, and data version.", "Keep scoring rules explicit so the UI can explain nature, architecture, energy, comfort, and quiet.", "Use progressive rendering so the map remains responsive while richer layers load."],
+      "tradeoffs": [
+        { "choice": "Client-heavy map processing", "benefit": "Rich interaction", "risk": "Device performance and duplicated logic" },
+        { "choice": "Server-derived views", "benefit": "Consistent scoring and cacheability", "risk": "More requests during exploration" }
+      ],
+      "seniorSignals": ["Explains data flow", "Connects architecture to comprehension", "Names geospatial cost and caching"],
+      "projectProof": { "project": "Walkspan", "summary": "Mico led the frontend for a walkability product that shows nearby establishments and scores neighborhood qualities across three walking radii." },
+      "followUps": ["How would you test geospatial edge cases?", "How would you keep the map responsive with thousands of markers?"]
+    }
+  ]
+}

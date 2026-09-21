@@ -1,0 +1,37 @@
+{
+  "id": "threejs-development",
+  "slug": "threejs-development",
+  "title": "Three.js Development",
+  "menuDescription": "Interactive 3D web experiences for product storytelling, visualization, and browser-based tools.",
+  "summary": "Interactive 3D web experiences built for product storytelling, visualization, and browser-based tools.",
+  "icon": "box-3d",
+  "featured": true,
+  "order": 1,
+  "overview": {
+    "title": "Give people a product experience they can explore, not only watch.",
+    "paragraphs": [
+      "We use Three.js to build purposeful browser-based 3D experiences, from product configurators and technical visualization to interactive campaign moments.",
+      "Every scene is planned around the content, device constraints, loading strategy, controls, and a useful fallback when WebGL is unavailable."
+    ]
+  },
+  "features": [
+    { "id": "product-scenes", "icon": "box-3d", "title": "Interactive product scenes", "description": "Browser-based 3D experiences with controls shaped around the product and customer journey." },
+    { "id": "configurators", "icon": "workflow", "title": "Product configurators", "description": "Visual configuration flows that connect choices, product rules, and clear interface feedback." },
+    { "id": "visualization", "icon": "chart-no-axes-combined", "title": "Data and spatial visualization", "description": "Three-dimensional views for location, systems, simulations, and complex technical information." },
+    { "id": "performance", "icon": "gauge", "title": "Browser performance", "description": "Geometry, materials, rendering, and loading choices planned for practical device performance." },
+    { "id": "fallbacks", "icon": "accessibility", "title": "Accessible fallbacks", "description": "Alternative content and reduced-motion behavior that keep the experience understandable." },
+    { "id": "integration", "icon": "plug", "title": "Application integration", "description": "Three.js scenes connected to React interfaces, product data, APIs, analytics, and existing workflows." }
+  ],
+  "banner": {
+    "title": "Have a product or idea that needs spatial interaction?",
+    "description": "Show us what people need to inspect, understand, configure, or experience in the browser.",
+    "ctaLabel": "Start a 3D project"
+  },
+  "faqs": [
+    { "id": "fit", "question": "When is Three.js the right choice?", "answer": "Three.js is useful when spatial interaction, product configuration, simulation, or visual explanation adds real value. We do not recommend it when a standard image or video communicates the same thing more clearly." },
+    { "id": "models", "question": "Can you work with existing 3D models?", "answer": "Yes. We review the model format, topology, materials, textures, and browser performance before confirming what optimization or rebuilding is needed." },
+    { "id": "mobile", "question": "Will the experience work on mobile devices?", "answer": "Mobile behavior is planned from the start. Scene detail, controls, camera framing, and loading strategy are adapted around practical device constraints." },
+    { "id": "framework", "question": "Can Three.js work with our React or Vue application?", "answer": "Yes. The scene can be integrated as a focused rendering component while the surrounding product continues to use the existing application framework and state flow." },
+    { "id": "fallback", "question": "What happens when WebGL is unavailable?", "answer": "We provide an appropriate fallback, such as a still image, standard interface, or alternate product view, so essential information and actions remain available." }
+  ]
+}

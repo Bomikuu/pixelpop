@@ -1,0 +1,36 @@
+{
+  "id": "bug-fixing-responsiveness",
+  "slug": "bug-fixing-responsiveness",
+  "title": "Bug Fixing and Responsiveness",
+  "menuDescription": "Focused diagnosis and repairs for broken journeys, layouts, and browser behavior.",
+  "summary": "Find the cause of recurring interface problems and repair them without destabilizing the rest of the product.",
+  "icon": "wrench",
+  "order": 4,
+  "overview": {
+    "title": "Fix the underlying problem, not only the visible symptom.",
+    "paragraphs": [
+      "We reproduce the issue, trace the relevant code and data flow, and define the smallest safe correction before making changes.",
+      "The work is documented with affected areas and verification notes so your team can understand what changed."
+    ]
+  },
+  "features": [
+    { "id": "reproduction", "icon": "search", "title": "Reproducible diagnosis", "description": "Clear steps, affected environments, and likely boundaries established before the fix." },
+    { "id": "responsive", "icon": "smartphone", "title": "Responsive layout repairs", "description": "Corrections for overflow, breakpoints, touch targets, and real-content edge cases." },
+    { "id": "browser", "icon": "globe", "title": "Browser compatibility", "description": "Focused fixes for rendering and interaction differences across supported browsers." },
+    { "id": "frontend", "icon": "code", "title": "Frontend debugging", "description": "State, event, rendering, and styling issues traced through the relevant components." },
+    { "id": "integration", "icon": "plug", "title": "Integration debugging", "description": "Requests, responses, and interface contracts checked when issues cross system boundaries." },
+    { "id": "regression", "icon": "shield-check", "title": "Regression checks", "description": "Critical related journeys checked after the correction to reduce repeat failures." }
+  ],
+  "banner": {
+    "title": "Have a production issue your team cannot pin down?",
+    "description": "Send the symptoms, affected environment, and reproduction details. We will define the safest next step.",
+    "ctaLabel": "Request a technical review"
+  },
+  "faqs": [
+    { "id": "start", "question": "What information helps you start debugging?", "answer": "A URL or environment, steps to reproduce, expected behavior, screenshots or logs, browser and device details, and the approximate time the issue began are all useful." },
+    { "id": "access", "question": "Do you need repository access?", "answer": "Many code-level issues require repository and environment access. We agree on the minimum access needed and work within the permissions your team provides." },
+    { "id": "estimate", "question": "Can you estimate a bug before investigating?", "answer": "We can estimate an initial diagnostic phase. A reliable fix estimate usually follows reproduction and root-cause analysis because similar symptoms can come from very different causes." },
+    { "id": "framework", "question": "Can you debug a framework you did not originally build?", "answer": "Often, yes. We first review the stack, version, architecture, and available documentation to confirm that the issue is within our capability and safe to change." },
+    { "id": "urgent", "question": "Do you provide urgent production support?", "answer": "Availability depends on current commitments and the access required. Contact us with the impact and timing so we can confirm whether an expedited review is possible." }
+  ]
+}

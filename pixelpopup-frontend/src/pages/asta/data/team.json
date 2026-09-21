@@ -1,0 +1,62 @@
+[
+  {
+    "id": "mico-ang",
+    "name": "Mico Ang",
+    "role": "Co-founder & Technical Lead",
+    "department": "Engineering",
+    "image": "/portfolio/assets/mico-ang-portrait.jpg",
+    "shortBio": "Frontend engineering, technical direction, and full-stack product delivery.",
+    "skills": ["Frontend Engineering", "Technical Leadership", "Full-stack Delivery"],
+    "linkedinUrl": "https://www.linkedin.com/in/boomiyaah/",
+    "githubUrl": "https://github.com/Bomikuu",
+    "email": null,
+    "featured": true,
+    "placeholder": false,
+    "order": 1
+  },
+  {
+    "id": "anton-inaki-sison",
+    "name": "Anton Inaki Sison",
+    "role": "Backend Developer",
+    "department": "Engineering",
+    "image": "/portfolio/assets/team/anton-inaki-sison.jpeg",
+    "shortBio": "Backend developer focused on dependable application logic, well-structured APIs, and maintainable server-side systems.",
+    "skills": ["Backend Development", "API Development", "Server-side Engineering"],
+    "linkedinUrl": "https://www.linkedin.com/in/anton-i%C3%B1aki-sison-998005168/",
+    "githubUrl": null,
+    "email": "antoninakisison@gmail.com",
+    "featured": false,
+    "placeholder": false,
+    "order": 2
+  },
+  {
+    "id": "melchi-aballe",
+    "name": "Melchi Aballe",
+    "role": "Full-stack Engineer",
+    "department": "Engineering & Leadership",
+    "image": "/portfolio/assets/team/melchi-aballe.jpeg",
+    "shortBio": "Full-stack engineer working across backend systems and delivery leadership to keep complex projects moving clearly.",
+    "skills": ["Full-stack Engineering", "Backend Engineering", "Technical Leadership"],
+    "linkedinUrl": "https://www.linkedin.com/in/melchiaballe/",
+    "githubUrl": null,
+    "email": "dev.melchiaballe@gmail.com",
+    "featured": false,
+    "placeholder": false,
+    "order": 3
+  },
+  {
+    "id": "theressa-marie-tan",
+    "name": "Theressa Marie Tan",
+    "role": "Full-stack Engineer",
+    "department": "Engineering & Design",
+    "image": "/portfolio/assets/team/theressa-marie-tan.jpeg",
+    "shortBio": "Full-stack engineer with a frontend and design focus, translating product requirements into clear, usable interfaces.",
+    "skills": ["Full-stack Engineering", "Frontend Engineering", "Interface Design"],
+    "linkedinUrl": "https://www.linkedin.com/in/theressamarie/",
+    "githubUrl": null,
+    "email": "tmttan@gmail.com",
+    "featured": false,
+    "placeholder": false,
+    "order": 4
+  }
+]

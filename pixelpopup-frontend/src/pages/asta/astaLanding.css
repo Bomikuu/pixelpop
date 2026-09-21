@@ -1,0 +1,1805 @@
+.asta-site--agency {
+  --asta-agency-container: 1320px;
+  background: #ffffff;
+}
+
+.asta-site--agency .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.asta-agency-container {
+  width: min(calc(100% - 48px), var(--asta-agency-container));
+  margin-inline: auto;
+}
+
+.asta-site--agency .asta-nav {
+  position: relative;
+  min-height: 64px;
+  border-bottom: 1px solid #e4eaf0;
+  background: #ffffff;
+  backdrop-filter: none;
+}
+
+.asta-site--agency .asta-nav__inner {
+  width: min(calc(100% - 48px), var(--asta-agency-container));
+  min-height: 64px;
+  gap: 28px;
+}
+
+.asta-site--agency .asta-brand img {
+  width: 38px;
+  height: 38px;
+}
+
+.asta-site--agency .asta-brand span {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.asta-site--agency .asta-brand strong {
+  font-size: 18px;
+  letter-spacing: 0.025em;
+}
+
+.asta-site--agency .asta-brand small {
+  margin: 0;
+  color: var(--asta-ink);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.asta-site--agency .asta-nav__links {
+  gap: 32px;
+}
+
+.asta-site--agency .asta-nav__links a {
+  color: #4d6077;
+  font-size: 13px;
+}
+
+.asta-site--agency .asta-nav__links a::after {
+  bottom: -6px;
+}
+
+.asta-site--agency .asta-nav__mobile button {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--asta-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--asta-blue);
+  padding: 14px 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.asta-site--agency .asta-button--small {
+  min-height: 40px;
+  border-radius: 0;
+  cursor: pointer;
+  font-family: inherit;
+  padding-inline: 18px;
+}
+
+.asta-agency-hero {
+  position: relative;
+  height: calc(100svh - 64px);
+  min-height: 620px;
+  overflow: hidden;
+  background: #d9e2eb;
+}
+
+.asta-agency-hero__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 52%;
+}
+
+.asta-agency-hero__panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: min(50%, 800px);
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 46px 190px 46px max(48px, calc((100vw - var(--asta-agency-container)) / 2));
+  clip-path: polygon(0 0, 72% 0, 100% 100%, 0 100%);
+  background: var(--asta-navy);
+  color: #ffffff;
+}
+
+.asta-agency-hero__panel h1 {
+  margin: 0 0 8px;
+  font-size: clamp(38px, 3.6vw, 56px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.asta-agency-hero__panel > p {
+  max-width: 520px;
+  color: #d8e6f5;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.asta-agency-hero__details {
+  display: grid;
+  width: min(100%, 490px);
+  gap: 4px;
+  margin: 10px 0 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(159, 190, 221, 0.55);
+  color: #93acc5;
+  font-size: 11px;
+  letter-spacing: 0.045em;
+}
+
+.asta-agency-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--asta-blue);
+  border-radius: 0;
+  background: var(--asta-blue);
+  color: #ffffff !important;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600 !important;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 180ms ease-out, border-color 180ms ease-out;
+}
+
+.asta-agency-hero__scroll {
+  position: absolute;
+  right: max(24px, calc((100vw - var(--asta-agency-container)) / 2));
+  bottom: 28px;
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--asta-navy) !important;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700 !important;
+  text-decoration: none;
+}
+
+.asta-agency-hero__scroll svg {
+  width: 18px;
+  transition: transform 180ms ease-out;
+}
+
+.asta-agency-hero__scroll:hover svg { transform: translate(3px, 3px); }
+
+.asta-agency-button:hover {
+  border-color: var(--asta-blue-dark);
+  background: var(--asta-blue-dark);
+}
+
+.asta-agency-button:focus-visible {
+  outline: 3px solid #8bc0ff;
+  outline-offset: 3px;
+}
+
+.asta-agency-process {
+  border-bottom: 1px solid var(--asta-line);
+  background: #ffffff;
+}
+
+.asta-agency-process__list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 auto;
+  padding-block: 22px;
+  list-style: none;
+}
+
+.asta-agency-process__step {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 60px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 0 36px 0 0;
+}
+
+.asta-agency-process__step + .asta-agency-process__step {
+  padding-left: 36px;
+}
+
+.asta-agency-process__icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf2fb;
+  color: #0d61c9;
+}
+
+.asta-agency-process__icon svg {
+  width: 27px;
+  height: 27px;
+  stroke-width: 1.55;
+}
+
+.asta-agency-process__step h2 {
+  margin-bottom: 4px;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+}
+
+.asta-agency-process__step p {
+  max-width: 230px;
+  color: #65778b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.asta-agency-process__arrow {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 22px;
+  color: #91a4b7;
+  transform: translateY(-50%);
+  stroke-width: 1.25;
+}
+
+@media (max-width: 1100px) {
+  .asta-agency-hero__panel {
+    width: 64%;
+    padding-right: 180px;
+  }
+
+  .asta-agency-process__step,
+  .asta-agency-process__step + .asta-agency-process__step {
+    padding-inline: 20px 32px;
+  }
+
+}
+
+@media (max-width: 860px) {
+  .asta-site--agency .asta-nav__inner,
+  .asta-agency-container {
+    width: min(calc(100% - 36px), var(--asta-agency-container));
+  }
+
+  .asta-site--agency .asta-brand span {
+    display: grid;
+    gap: 1px;
+  }
+
+  .asta-site--agency .asta-brand strong {
+    font-size: 14px;
+  }
+
+  .asta-site--agency .asta-brand small {
+    color: var(--asta-muted);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .asta-agency-hero {
+    display: flex;
+    height: calc(100svh - 64px);
+    min-height: 680px;
+    flex-direction: column;
+  }
+
+  .asta-agency-hero__image {
+    height: clamp(300px, 42svh, 380px);
+    flex: 0 0 auto;
+    object-position: center 42%;
+  }
+
+  .asta-agency-hero__panel {
+    position: relative;
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+    padding: 34px max(18px, calc((100vw - var(--asta-agency-container)) / 2));
+    clip-path: none;
+  }
+
+  .asta-agency-hero__scroll { display: none; }
+
+  .asta-agency-hero__panel h1 {
+    font-size: 42px;
+  }
+
+  .asta-agency-process__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    padding-block: 0;
+  }
+
+  .asta-agency-process__step,
+  .asta-agency-process__step + .asta-agency-process__step {
+    min-height: 132px;
+    border-bottom: 1px solid var(--asta-line);
+    padding: 24px;
+  }
+
+  .asta-agency-process__step:nth-child(odd) {
+    border-right: 1px solid var(--asta-line);
+  }
+
+  .asta-agency-process__arrow {
+    display: none;
+  }
+
+}
+
+@media (max-width: 560px) {
+  .asta-site--agency .asta-nav__inner,
+  .asta-agency-container {
+    width: min(calc(100% - 32px), var(--asta-agency-container));
+  }
+
+  .asta-site--agency .asta-nav__inner {
+    min-height: 64px;
+  }
+
+  .asta-agency-hero__image {
+    height: clamp(280px, 40svh, 340px);
+    object-position: 55% 42%;
+  }
+
+  .asta-agency-hero__panel {
+    padding: 30px 16px 32px;
+  }
+
+  .asta-agency-hero__panel h1 {
+    font-size: 36px;
+  }
+
+  .asta-agency-hero__panel > p {
+    font-size: 15px;
+  }
+
+  .asta-agency-process__list {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .asta-agency-process__step,
+  .asta-agency-process__step + .asta-agency-process__step {
+    min-height: 118px;
+    border-right: 0;
+    padding: 22px 20px;
+  }
+
+}
+
+/* Expanded ASTA homepage */
+.asta-home-section {
+  padding: 104px 0;
+}
+
+.asta-home-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.72fr);
+  gap: 72px;
+  align-items: end;
+  margin-bottom: 48px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid var(--asta-line);
+}
+
+.asta-home-heading__eyebrow {
+  margin-bottom: 12px;
+  color: var(--asta-blue);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.asta-home-heading h2 {
+  margin: 0;
+  color: var(--asta-ink);
+  font-size: clamp(40px, 4.2vw, 62px);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.asta-home-heading__description {
+  max-width: 620px;
+  color: var(--asta-muted);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.asta-home-heading--inverse {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.asta-home-heading--inverse h2 {
+  color: #ffffff;
+}
+
+.asta-home-heading--inverse .asta-home-heading__description {
+  color: #aec2d7;
+}
+
+.asta-home-services {
+  background: #ffffff;
+}
+
+.asta-service-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--asta-line);
+  border-left: 1px solid var(--asta-line);
+}
+
+.asta-service-card {
+  position: relative;
+  min-height: 264px;
+  border-right: 1px solid var(--asta-line);
+  border-bottom: 1px solid var(--asta-line);
+  background: #ffffff;
+  padding: 30px 28px 32px;
+  transition: transform 220ms ease-out, border-color 220ms ease-out, background-color 220ms ease-out, box-shadow 220ms ease-out;
+}
+
+.asta-service-card::after,
+.asta-technology-item::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--asta-blue);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms ease-out;
+}
+
+.asta-service-card:hover {
+  z-index: 1;
+  border-color: #79ace8;
+  background: #f7fbff;
+  box-shadow: 0 20px 44px -36px rgba(7, 26, 51, 0.5);
+  transform: translateY(-4px);
+}
+
+.asta-service-card:hover::after,
+.asta-technology-item:hover::after {
+  transform: scaleX(1);
+}
+
+.asta-service-card__icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid #cfe0f2;
+  background: var(--asta-soft);
+  color: var(--asta-blue);
+  transition: background-color 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.asta-service-card:hover .asta-service-card__icon {
+  background: var(--asta-blue);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.asta-service-card__icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.65;
+}
+
+.asta-service-card h3 {
+  margin: 44px 0 10px;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.asta-service-card p {
+  color: var(--asta-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.asta-home-technology {
+  background: var(--asta-navy);
+  color: #ffffff;
+}
+
+.asta-technology-groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.asta-technology-group {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 170px minmax(0, 1fr);
+  border-right: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.asta-technology-group h3 {
+  display: flex;
+  align-items: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 20px 24px;
+  color: #dbe9f7;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.asta-technology-group ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.asta-technology-item {
+  position: relative;
+  display: grid;
+  min-height: 76px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 14px 22px;
+  transition: background-color 200ms ease-out;
+}
+
+.asta-technology-item:last-child {
+  border-right: 0;
+}
+
+.asta-technology-item:hover {
+  background: rgba(21, 112, 239, 0.12);
+}
+
+.asta-technology-item img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  transition: transform 200ms ease-out;
+}
+
+.asta-technology-item:hover img {
+  transform: translateY(-3px);
+}
+
+.asta-technology-item span {
+  display: grid;
+  gap: 2px;
+}
+
+.asta-technology-item strong {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.asta-technology-item small {
+  color: #8fa8c2;
+  font-size: 11px;
+}
+
+.asta-home-team {
+  background: #ffffff;
+}
+
+.asta-team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.asta-team-card {
+  min-width: 0;
+  border: 1px solid var(--asta-line);
+  background: #ffffff;
+  transition: border-color 220ms ease-out, transform 220ms ease-out, box-shadow 220ms ease-out;
+}
+
+.asta-team-card:hover {
+  border-color: #89b4e5;
+  box-shadow: 0 24px 54px -44px rgba(7, 26, 51, 0.62);
+  transform: translateY(-4px);
+}
+
+.asta-team-card__media {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: #eaf1f7;
+}
+
+.asta-team-card__media > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 420ms ease-out;
+}
+
+.asta-team-card:hover .asta-team-card__media > img {
+  transform: scale(1.035);
+}
+
+.asta-team-card__empty {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  color: #7b90a6;
+}
+
+.asta-team-card__empty svg {
+  width: 54px;
+  height: 54px;
+  stroke-width: 1.25;
+}
+
+.asta-team-card__empty span {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.asta-team-card__socials {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 220ms ease-out, transform 220ms ease-out;
+}
+
+.asta-team-card:hover .asta-team-card__socials,
+.asta-team-card:focus-within .asta-team-card__socials {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.asta-team-card__socials a {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  background: var(--asta-blue);
+  color: #ffffff !important;
+}
+
+.asta-team-card__socials svg {
+  width: 18px;
+}
+
+.asta-team-card__body {
+  min-height: 204px;
+  padding: 24px;
+}
+
+.asta-team-card__body > span {
+  color: var(--asta-blue);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.asta-team-card h3 {
+  margin: 12px 0 4px;
+  font-size: 22px;
+  letter-spacing: -0.025em;
+}
+
+.asta-team-card__body > strong {
+  display: block;
+  color: #4d6277;
+  font-size: 13px;
+}
+
+.asta-team-card__body > p {
+  margin-top: 14px;
+  color: var(--asta-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.asta-team-card--placeholder {
+  background: #f8fafc;
+}
+
+.asta-team-section__link {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+
+.asta-home-gallery {
+  background: #edf5fd;
+}
+
+.asta-activity-carousel {
+  max-width: 100%;
+  overflow: hidden;
+  border-top: 1px solid #c9d9e8;
+  border-bottom: 1px solid #c9d9e8;
+  background: #ffffff;
+}
+
+.asta-activity-carousel__toolbar {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--asta-line);
+  padding: 14px 18px 14px 24px;
+}
+
+.asta-activity-carousel__toolbar p {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #76899d;
+  font-size: 12px;
+}
+
+.asta-activity-carousel__toolbar strong {
+  color: var(--asta-ink);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.asta-activity-carousel__toolbar > div { display: flex; gap: 8px; }
+
+.asta-activity-carousel__toolbar button,
+.asta-activity-carousel__tabs button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.asta-activity-carousel__toolbar button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--asta-line);
+  border-radius: 0;
+  background: #ffffff;
+  color: var(--asta-ink);
+  transition: border-color 180ms ease-out, background-color 180ms ease-out, color 180ms ease-out;
+}
+
+.asta-activity-carousel__toolbar button:hover {
+  border-color: var(--asta-blue);
+  background: var(--asta-blue);
+  color: #ffffff;
+}
+
+.asta-activity-carousel__stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.4fr);
+  min-height: 560px;
+}
+
+.asta-activity-carousel__media {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  background: #cdd9e5;
+  padding: 0;
+  cursor: zoom-in;
+}
+
+.asta-activity-carousel__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: asta-activity-enter 420ms ease-out both;
+  transition: transform 420ms ease-out;
+}
+
+.asta-activity-carousel__media:hover img,
+.asta-activity-carousel__media:focus-visible img { transform: scale(1.025); }
+
+.asta-activity-carousel__expand {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 9px;
+  background: rgba(7, 26, 51, 0.92);
+  color: #ffffff;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.asta-activity-carousel__expand svg { width: 17px; }
+
+.asta-activity-carousel__caption {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-left: 1px solid var(--asta-line);
+  background: var(--asta-navy);
+  color: #ffffff;
+  padding: 42px 36px;
+}
+
+.asta-activity-carousel__caption > span {
+  color: #8fc4ff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.asta-activity-carousel__caption h3 {
+  margin: 14px 0 16px;
+  color: #ffffff;
+  font-size: clamp(30px, 3.2vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.asta-activity-carousel__caption p {
+  color: #b9cde0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.asta-activity-carousel__tabs {
+  display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  border-top: 1px solid var(--asta-line);
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-color: #9eb3c8 #edf3f8;
+  scrollbar-width: thin;
+}
+
+.asta-activity-carousel__tabs button {
+  display: grid;
+  min-width: 240px;
+  flex: 0 0 clamp(240px, 24vw, 310px);
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 0;
+  border-right: 1px solid var(--asta-line);
+  border-radius: 0;
+  background: #ffffff;
+  color: #66798c;
+  padding: 12px;
+  scroll-snap-align: center;
+  text-align: left;
+  transition: background-color 180ms ease-out, color 180ms ease-out;
+}
+
+.asta-activity-carousel__tabs button:last-child { border-right: 0; }
+.asta-activity-carousel__tabs button[aria-selected="true"] { background: #edf5fd; color: var(--asta-ink); }
+
+.asta-activity-carousel__tabs img {
+  width: 72px;
+  height: 52px;
+  object-fit: cover;
+}
+
+.asta-activity-carousel__tabs span { display: grid; gap: 4px; font-size: 12px; font-weight: 600; }
+.asta-activity-carousel__tabs small { color: var(--asta-blue); font-size: 9px; letter-spacing: 0.1em; }
+
+@keyframes asta-activity-enter {
+  from { opacity: 0.72; transform: scale(1.012); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.asta-gallery-dialog {
+  width: min(calc(100% - 48px), 1480px);
+  height: calc(100dvh - 48px);
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 0;
+  background: var(--asta-navy);
+  color: #ffffff;
+  padding: 0;
+}
+
+.asta-gallery-dialog::backdrop {
+  background: rgba(2, 12, 25, 0.88);
+}
+
+.asta-gallery-dialog__media {
+  position: relative;
+  min-height: 0;
+  background: #020b16;
+}
+
+.asta-gallery-dialog__frame {
+  display: grid;
+  height: 100%;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.asta-gallery-dialog__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.asta-gallery-dialog__close,
+.asta-gallery-dialog__previous,
+.asta-gallery-dialog__next {
+  position: absolute;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 0;
+  background: rgba(7, 26, 51, 0.9);
+  color: #ffffff;
+}
+
+.asta-gallery-dialog__close {
+  top: 16px;
+  right: 16px;
+}
+
+.asta-gallery-dialog__previous,
+.asta-gallery-dialog__next {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.asta-gallery-dialog__previous { left: 16px; }
+.asta-gallery-dialog__next { right: 16px; }
+
+.asta-gallery-dialog__caption {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(300px, 1.2fr) auto;
+  gap: 32px;
+  align-items: center;
+  padding: 24px 28px;
+}
+
+.asta-gallery-dialog__caption span,
+.asta-gallery-dialog__caption small {
+  color: #91b8df;
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.asta-gallery-dialog__caption h2 {
+  margin-top: 4px;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.asta-gallery-dialog__caption p {
+  color: #bfd0e1;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.asta-project-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(calc(100% - 48px), 1120px);
+  height: min(680px, calc(100dvh - 48px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  overflow: hidden;
+  border: 1px solid rgba(143, 196, 255, 0.24);
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow: 0 36px 90px -34px rgba(1, 10, 22, 0.72);
+  color: var(--asta-ink);
+  padding: 0;
+  overscroll-behavior: contain;
+}
+
+.asta-project-dialog[open] { animation: asta-project-dialog-enter 220ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+.asta-project-dialog::backdrop {
+  background: rgba(2, 12, 25, 0.84);
+  backdrop-filter: blur(3px);
+}
+
+@keyframes asta-project-dialog-enter {
+  from { opacity: 0; transform: translateY(16px) scale(0.988); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.asta-project-dialog__shell {
+  position: relative;
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: minmax(340px, 0.72fr) minmax(0, 1.28fr);
+}
+
+.asta-project-dialog__intro {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--asta-navy);
+  color: #ffffff;
+  padding: 52px 44px;
+}
+
+.asta-project-dialog__intro > span {
+  color: #8fc4ff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.asta-project-dialog__intro h2 {
+  margin: 20px 0 24px;
+  max-width: 100%;
+  color: #ffffff;
+  font-size: clamp(38px, 3vw, 50px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.asta-project-dialog__intro > p {
+  max-width: 48ch;
+  color: #bfd0e1;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.asta-project-dialog__intro > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 42px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.asta-project-dialog__intro svg { width: 18px; color: #8fc4ff; }
+.asta-project-dialog__intro a { color: #ffffff !important; font-size: 13px; text-decoration: none; }
+
+.asta-project-dialog__form {
+  position: relative;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 58px 44px 40px;
+  scrollbar-gutter: stable;
+}
+
+.asta-project-dialog__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--asta-line);
+  border-radius: 0;
+  background: #ffffff;
+  color: var(--asta-ink);
+  cursor: pointer;
+  z-index: 2;
+  transition: border-color 180ms ease-out, background-color 180ms ease-out, color 180ms ease-out;
+}
+
+.asta-project-dialog__close:hover {
+  border-color: var(--asta-navy);
+  background: var(--asta-navy);
+  color: #ffffff;
+}
+
+.asta-project-dialog__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 18px;
+}
+
+.asta-project-dialog__actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--asta-line);
+}
+
+.asta-project-dialog__actions button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--asta-blue);
+  border-radius: 0;
+  background: var(--asta-blue);
+  color: #ffffff;
+  padding: 11px 20px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.asta-project-dialog__actions button:hover:not(:disabled) { border-color: var(--asta-blue-dark); background: var(--asta-blue-dark); }
+.asta-project-dialog__actions button:disabled { cursor: wait; opacity: 0.68; }
+.asta-project-dialog__actions p { color: #66798c; font-size: 11px; line-height: 1.55; }
+
+.asta-home-testimonials {
+  background: #ffffff;
+}
+
+.asta-testimonials__notice {
+  margin: -22px 0 28px;
+  color: #7c8da0;
+  font-size: 11px;
+}
+
+.asta-testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.asta-testimonial-card {
+  position: relative;
+  display: flex;
+  min-height: 330px;
+  flex-direction: column;
+  border: 1px solid var(--asta-line);
+  background: #ffffff;
+  padding: 30px;
+  transition: transform 220ms ease-out, border-color 220ms ease-out, box-shadow 220ms ease-out;
+}
+
+.asta-testimonial-card:hover {
+  border-color: #7eade1;
+  box-shadow: 0 24px 54px -44px rgba(7, 26, 51, 0.58);
+  transform: translateY(-4px);
+}
+
+.asta-testimonial-card__quote {
+  width: 34px;
+  height: 34px;
+  color: var(--asta-blue);
+  stroke-width: 1.35;
+  transition: transform 220ms ease-out;
+}
+
+.asta-testimonial-card:hover .asta-testimonial-card__quote {
+  transform: translateY(-3px);
+}
+
+.asta-testimonial-card__empty {
+  flex: 1;
+  margin: 38px 0 30px;
+}
+
+.asta-testimonial-card__empty h3 {
+  margin: 0 0 14px;
+  color: #233a52;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.asta-testimonial-card__empty p {
+  color: #607489;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.asta-testimonial-card footer {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding-top: 18px;
+  border-top: 1px solid var(--asta-line);
+}
+
+.asta-testimonial-card__avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  background: #e9f2fb;
+  color: var(--asta-blue);
+}
+
+.asta-testimonial-card footer div:last-child {
+  display: grid;
+  gap: 3px;
+}
+
+.asta-testimonial-card footer strong {
+  color: var(--asta-ink);
+  font-size: 13px;
+}
+
+.asta-testimonial-card footer span,
+.asta-testimonial-card > small {
+  color: #7a8c9e;
+  font-size: 10px;
+}
+
+.asta-testimonial-card > small {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.asta-home-careers {
+  background: var(--asta-navy);
+  color: #ffffff;
+  padding: 104px 0;
+}
+
+.asta-careers-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(620px, 1.12fr);
+  gap: 64px;
+  align-items: start;
+}
+
+.asta-careers-copy {
+  position: sticky;
+  top: 88px;
+}
+
+.asta-careers-copy__icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin: 28px 0 32px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #8fc4ff;
+}
+
+.asta-careers-copy__icon svg {
+  width: 26px;
+  stroke-width: 1.5;
+}
+
+.asta-careers-copy h2 {
+  max-width: 620px;
+  color: #ffffff;
+  font-size: clamp(42px, 4.2vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.asta-careers-copy > p:not(.asta-home-heading__eyebrow) {
+  max-width: 580px;
+  margin-top: 24px;
+  color: #b6c9dc;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.asta-careers-copy__note {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  color: #8fa9c3;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.asta-careers-copy__note svg {
+  width: 20px;
+}
+
+.asta-careers-form-wrap {
+  background: #ffffff;
+  color: var(--asta-ink);
+  padding: 34px;
+}
+
+.asta-careers-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 18px;
+}
+
+.asta-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.asta-field > span,
+.asta-consent {
+  color: #33495f;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.asta-field input,
+.asta-field select,
+.asta-field textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #cad6e1;
+  border-radius: 0;
+  background: #f8fafc;
+  color: var(--asta-ink);
+  padding: 11px 13px;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.asta-field textarea {
+  min-height: 116px;
+  resize: vertical;
+}
+
+.asta-field input:focus,
+.asta-field select:focus,
+.asta-field textarea:focus {
+  border-color: var(--asta-blue);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(21, 112, 239, 0.12);
+}
+
+.asta-field input[aria-invalid="true"],
+.asta-field select[aria-invalid="true"],
+.asta-field textarea[aria-invalid="true"] {
+  border-color: #b42318;
+}
+
+.asta-field--wide {
+  margin-top: 22px;
+}
+
+.asta-field__error {
+  color: #b42318;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.asta-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 18px;
+  line-height: 1.5;
+}
+
+.asta-consent input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  accent-color: var(--asta-blue);
+}
+
+.asta-careers-form__actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--asta-line);
+}
+
+.asta-careers-form__actions button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--asta-blue);
+  border-radius: 0;
+  background: var(--asta-blue);
+  color: #ffffff;
+  padding: 11px 20px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.asta-careers-form__actions button:hover:not(:disabled) {
+  border-color: var(--asta-blue-dark);
+  background: var(--asta-blue-dark);
+}
+
+.asta-careers-form__actions button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.asta-careers-form__actions button svg {
+  width: 17px;
+}
+
+.asta-careers-form__actions p {
+  color: #66798c;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.asta-activity-carousel button:focus-visible,
+.asta-gallery-dialog button:focus-visible,
+.asta-project-dialog button:focus-visible,
+.asta-team-card__socials a:focus-visible,
+.asta-careers-form button:focus-visible,
+.asta-consent input:focus-visible {
+  outline: 3px solid #8bc0ff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 1100px) {
+  .asta-home-section,
+  .asta-home-careers {
+    padding-block: 88px;
+  }
+
+  .asta-home-heading {
+    gap: 44px;
+  }
+
+  .asta-service-grid,
+  .asta-team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .asta-careers-layout {
+    grid-template-columns: minmax(0, 0.78fr) minmax(540px, 1.22fr);
+    gap: 48px;
+  }
+}
+
+@media (max-width: 860px) {
+  .asta-home-heading {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-bottom: 38px;
+  }
+
+  .asta-home-heading__description {
+    max-width: 68ch;
+  }
+
+  .asta-team-grid,
+  .asta-testimonial-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .asta-activity-carousel__stage {
+    grid-template-columns: 1fr;
+  }
+
+  .asta-activity-carousel__media { min-height: 480px; }
+
+  .asta-activity-carousel__caption {
+    min-height: 230px;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    border-left: 0;
+  }
+
+  .asta-activity-carousel__tabs button { flex-basis: min(280px, 44vw); }
+
+  .asta-project-dialog { overflow-y: auto; }
+  .asta-project-dialog__shell { height: auto; grid-template-columns: 1fr; }
+  .asta-project-dialog__intro { min-height: 0; padding: 44px 32px; }
+  .asta-project-dialog__intro h2 { max-width: 12ch; }
+  .asta-project-dialog__form { overflow: visible; padding: 60px 32px 36px; }
+
+  .asta-careers-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .asta-careers-copy {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .asta-home-section,
+  .asta-home-careers {
+    padding-block: 72px;
+  }
+
+  .asta-home-heading {
+    margin-bottom: 30px;
+    padding-bottom: 24px;
+  }
+
+  .asta-home-heading h2 {
+    font-size: 40px;
+  }
+
+  .asta-home-heading__description {
+    font-size: 15px;
+  }
+
+  .asta-service-grid,
+  .asta-team-grid,
+  .asta-testimonial-grid,
+  .asta-careers-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .asta-service-card {
+    min-height: 214px;
+    padding: 26px 22px;
+  }
+
+  .asta-service-card h3 {
+    margin-top: 34px;
+  }
+
+  .asta-team-card__body {
+    min-height: 0;
+  }
+
+  .asta-team-card__media {
+    aspect-ratio: 4 / 4.6;
+  }
+
+  .asta-technology-group {
+    grid-template-columns: 1fr;
+  }
+
+  .asta-technology-group h3 {
+    min-height: 56px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .asta-technology-group ul {
+    grid-template-columns: 1fr;
+  }
+
+  .asta-technology-item {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .asta-technology-item:last-child {
+    border-bottom: 0;
+  }
+
+  .asta-team-card__socials {
+    opacity: 1;
+    transform: none;
+  }
+
+  .asta-team-section__link {
+    justify-content: stretch;
+  }
+
+  .asta-team-section__link .asta-agency-button {
+    width: 100%;
+  }
+
+  .asta-activity-carousel__toolbar { min-height: 64px; padding-inline: 14px; }
+  .asta-activity-carousel__media { min-height: 320px; }
+  .asta-activity-carousel__caption { min-height: 210px; padding: 28px 22px; }
+  .asta-activity-carousel__tabs { scroll-snap-type: x mandatory; }
+  .asta-activity-carousel__tabs button,
+  .asta-activity-carousel__tabs button:nth-child(2) {
+    min-width: 220px;
+    flex-basis: 220px;
+    border-right: 1px solid var(--asta-line);
+    scroll-snap-align: start;
+  }
+  .asta-activity-carousel__tabs img { width: 64px; height: 46px; }
+
+  .asta-gallery-dialog {
+    width: calc(100% - 20px);
+    height: calc(100dvh - 20px);
+    border-inline: 0;
+  }
+
+  .asta-gallery-dialog__caption {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .asta-gallery-dialog__caption p {
+    grid-column: 1 / -1;
+  }
+
+  .asta-project-dialog {
+    width: calc(100% - 20px);
+    height: calc(100dvh - 20px);
+  }
+
+  .asta-project-dialog__intro { padding: 36px 20px; }
+  .asta-project-dialog__intro h2 { font-size: 40px; }
+  .asta-project-dialog__intro > div { margin-top: 28px; }
+  .asta-project-dialog__form { padding: 58px 20px 28px; }
+  .asta-project-dialog__grid { grid-template-columns: 1fr; }
+  .asta-project-dialog__actions { grid-template-columns: 1fr; }
+  .asta-project-dialog__actions button { width: 100%; }
+
+  .asta-testimonial-card {
+    min-height: 310px;
+    padding: 26px 22px;
+  }
+
+  .asta-testimonial-card > small {
+    top: 26px;
+    right: 22px;
+  }
+
+  .asta-careers-copy h2 {
+    font-size: 46px;
+  }
+
+  .asta-careers-form-wrap {
+    margin-inline: -16px;
+    padding: 26px 16px;
+  }
+
+  .asta-careers-form__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .asta-careers-form__actions button {
+    width: 100%;
+  }
+}
+
+/* Keep the agency refinement last in the cascade. */
+.asta-site--agency .asta-nav { position: sticky; min-height: 72px; }
+.asta-site--agency .asta-nav__inner { min-height: 72px; }
+.asta-site--agency .asta-brand img { width: 40px; height: 40px; }
+.asta-site--agency .asta-brand span { display: grid; gap: 4px; align-items: initial; line-height: 1.05; }
+.asta-site--agency .asta-brand strong { color: var(--asta-navy); font-size: 16px; letter-spacing: -0.01em; }
+.asta-site--agency .asta-brand small { margin: 0; color: #718196; font-size: 9px; font-weight: 600; letter-spacing: 0.085em; text-transform: uppercase; }
+.asta-site--agency .asta-nav__links { gap: 26px; }
+
+.asta-agency-hero { height: calc(100svh - 72px); min-height: 650px; isolation: isolate; }
+.asta-agency-hero__image { position: absolute; inset: 0; z-index: 0; object-position: center 50%; }
+.asta-agency-hero__panel { z-index: 3; width: 50vw; min-height: clamp(380px, 43vh, 470px); padding: 52px clamp(150px, 12vw, 220px) 52px max(48px, calc((100vw - var(--asta-agency-container)) / 2)); clip-path: polygon(0 0, 72% 0, 100% 100%, 0 100%); background: rgba(7, 26, 51, 0.97); }
+.asta-agency-hero__panel h1 { max-width: 430px; margin-bottom: 18px; font-size: clamp(46px, 4.6vw, 72px); line-height: 0.92; letter-spacing: -0.04em; }
+.asta-agency-hero__panel h1 span { display: block; color: #8fc4ff; }
+.asta-agency-hero__panel > p { max-width: 37ch; color: #c5d7e8; font-size: 16px; line-height: 1.65; }
+
+.asta-service-grid { gap: 1px; overflow: hidden; border: 1px solid var(--asta-line); background: var(--asta-line); }
+.asta-service-card { display: flex; min-height: 330px; flex-direction: column; border: 0; padding: 30px; }
+.asta-service-card h3 { margin-top: 34px; font-size: 22px; }
+.asta-service-card p { flex: 1; margin-top: 2px; line-height: 1.72; }
+.asta-service-card:first-child { background: var(--asta-navy); color: white; }
+.asta-service-card:first-child h3, .asta-service-card:first-child .asta-service-card__action { color: white; }
+.asta-service-card:first-child p { color: #a9bed2; }
+
+.asta-home-testimonials { overflow: hidden; background: #070d18; color: white; }
+.asta-testimonial-card { width: 360px; min-height: 390px; flex: 0 0 auto; border-color: rgba(255, 255, 255, 0.14); background: #0c1421; color: white; padding: 27px; }
+.asta-testimonial-card:hover { border-color: rgba(111, 170, 242, 0.72); background: #0f1c2c; box-shadow: 0 28px 70px -56px rgba(0, 0, 0, 0.95); transform: translateY(-3px); }
+.asta-testimonial-card footer { display: block; margin-top: auto; border-color: rgba(255, 255, 255, 0.12); color: #71869d; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+@media (max-width: 1100px) {
+  .asta-agency-hero__panel { width: 58vw; padding-right: 170px; }
+}
+
+@media (max-width: 860px) {
+  .asta-site--agency .asta-nav, .asta-site--agency .asta-nav__inner { min-height: 68px; }
+  .asta-agency-hero { display: block; height: calc(100svh - 68px); min-height: 680px; }
+  .asta-agency-hero__image, .asta-agency-hero__scene { height: 58%; }
+  .asta-agency-hero__panel { position: absolute; bottom: 0; left: 0; width: 100%; min-height: 46%; padding: 36px 24px; clip-path: none; }
+  .asta-agency-hero__panel h1 { font-size: clamp(42px, 10vw, 58px); }
+  .asta-testimonial-publish-note { align-items: flex-start; flex-direction: column; gap: 5px; margin-top: 0; }
+}
+
+@media (max-width: 560px) {
+  .asta-site--agency .asta-brand img { width: 36px; height: 36px; }
+  .asta-site--agency .asta-brand strong { font-size: 14px; }
+  .asta-site--agency .asta-brand small { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .asta-agency-hero__panel { justify-content: flex-end; padding: 32px 20px 38px; }
+  .asta-agency-hero__panel > p { font-size: 14px; }
+  .asta-service-card { min-height: 290px; }
+  .asta-testimonial-card { width: min(84vw, 330px); min-height: 350px; }
+}
+
+.asta-agency-hero__scene { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+.asta-agency-hero__canvas { width: 100%; height: 100%; opacity: 0; transition: opacity 500ms ease-out; }
+.asta-agency-hero__canvas[data-ready="true"] { opacity: 1; }
+.asta-agency-hero__panel .asta-agency-button { min-height: 48px; margin-top: 28px; padding-inline: 21px; }
+
+.asta-service-card__action { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 14px; margin-top: 28px; border: 0; border-top: 1px solid var(--asta-line); border-radius: 0; background: transparent; color: var(--asta-ink); padding: 18px 0 0; font: inherit; font-size: 12px; font-weight: 700; text-align: left; cursor: pointer; }
+.asta-service-card__action svg { color: var(--asta-blue); transition: transform 180ms ease-out; }
+.asta-service-card__action:hover svg, .asta-service-card__action:focus-visible svg { transform: translate(2px, -2px); }
+.asta-service-card__action:focus-visible { outline: 3px solid #8bc0ff; outline-offset: 5px; }
+.asta-service-card:first-child .asta-service-card__action { border-color: rgba(255, 255, 255, 0.18); }
+.asta-service-card:first-child .asta-service-card__icon { border-color: rgba(143, 196, 255, 0.3); background: rgba(21, 112, 239, 0.16); }
+
+.asta-home-testimonials .asta-home-heading { border-color: rgba(255, 255, 255, 0.16); }
+.asta-testimonial-publish-note { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: -18px; color: #7890aa; font-size: 11px; }
+.asta-testimonial-publish-note strong { color: #d9e7f5; font-size: 13px; }
+.asta-testimonial-marquee { width: 100%; margin-top: 38px; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+.asta-testimonial-track { display: flex; width: max-content; gap: 16px; padding-inline: 8px; animation: asta-testimonial-scroll 72s linear infinite; }
+.asta-testimonial-marquee:hover .asta-testimonial-track, .asta-testimonial-marquee:focus-within .asta-testimonial-track { animation-play-state: paused; }
+.asta-testimonial-card__head { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 13px; align-items: center; }
+.asta-testimonial-card__identity { display: grid; gap: 4px; }
+.asta-testimonial-card__head strong { color: white; font-size: 13px; }
+.asta-testimonial-card__head span { color: #71869d; font-size: 10px; }
+.asta-testimonial-card__avatar { width: 44px; height: 44px; background: #dcecff; color: #0b55c7; font-size: 9px; font-weight: 800; letter-spacing: 0.08em; }
+.asta-testimonial-card__quote { width: 21px; color: #6faaf2; }
+.asta-testimonial-card__copy { flex: 1; margin: 28px 0 0; color: #b7c6d6; font-size: 15px; line-height: 1.75; }
+.asta-testimonial-card__organization { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; align-items: center; margin-top: 28px; border-top: 1px solid rgba(255, 255, 255, 0.12); border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-block: 20px; }
+.asta-testimonial-card__organization > svg { width: 22px; color: #6faaf2; stroke-width: 1.5; }
+.asta-testimonial-card__organization > div { display: grid; gap: 5px; }
+.asta-testimonial-card__organization span { color: #647a91; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
+.asta-testimonial-card__organization strong { color: #d9e7f5; font-size: 14px; line-height: 1.35; }
+.asta-site--agency .asta-footer .asta-brand strong { color: white; }
+
+@keyframes asta-testimonial-scroll { to { transform: translateX(calc(-50% - 8px)); } }
+
+@media (max-width: 860px) {
+  .asta-testimonial-publish-note { align-items: flex-start; flex-direction: column; gap: 5px; margin-top: 0; }
+}
+
+@media (max-width: 560px) {
+  .asta-testimonial-marquee { mask-image: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asta-agency-hero__canvas, .asta-testimonial-track { transition: none; animation: none; }
+}

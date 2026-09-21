@@ -1,0 +1,50 @@
+[
+  {
+    "id": "portfolio-welcome",
+    "message": "Meow! Want to see the work?",
+    "routes": ["/portfolio"],
+    "weight": 3,
+    "actionLabel": "View selected work",
+    "actionUrl": "/portfolio#work"
+  },
+  {
+    "id": "portfolio-stack",
+    "message": "Curious about Mico's technology stack?",
+    "routes": ["/portfolio"],
+    "weight": 2,
+    "actionLabel": "Explore the stack",
+    "actionUrl": "/portfolio#stack"
+  },
+  {
+    "id": "portfolio-contact",
+    "message": "Have a product problem worth solving?",
+    "routes": ["/portfolio"],
+    "weight": 2,
+    "actionLabel": "Start a conversation",
+    "actionUrl": "/portfolio#contact"
+  },
+  {
+    "id": "asta-services",
+    "message": "We build software around real business needs.",
+    "routes": ["/asta*"],
+    "weight": 3,
+    "actionLabel": "View services",
+    "actionUrl": "/asta#services"
+  },
+  {
+    "id": "asta-team",
+    "message": "Meet the people behind ASTA.",
+    "routes": ["/asta*"],
+    "weight": 2,
+    "actionLabel": "Meet the team",
+    "actionUrl": "/asta#team"
+  },
+  {
+    "id": "asta-project",
+    "message": "Need a software partner? Let’s talk.",
+    "routes": ["/asta*"],
+    "weight": 2,
+    "actionLabel": "Start a project",
+    "actionUrl": "mailto:business.astasoftwares@gmail.com"
+  }
+]

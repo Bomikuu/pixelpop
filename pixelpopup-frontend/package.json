@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "node ./scripts/dev-all.mjs",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:public": "node ./scripts/deploy-public.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
@@ -18,8 +20,11 @@
     "mapbox-gl": "^3.18.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.13.0",
     "reactflow": "^11.11.4",
+    "remark-gfm": "^4.0.1",
+    "three": "^0.183.1",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
   },

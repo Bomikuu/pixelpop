@@ -1,0 +1,16 @@
+[
+  { "id": "vue", "name": "Vue", "category": "Frontend", "icon": "vue.svg", "capability": "Core expertise", "order": 1 },
+  { "id": "nuxt", "name": "Nuxt", "category": "Frontend", "icon": "nuxt.svg", "capability": "Core expertise", "order": 2 },
+  { "id": "react", "name": "React", "category": "Frontend", "icon": "react.svg", "capability": "Frequently used", "order": 3 },
+  { "id": "typescript", "name": "TypeScript", "category": "Frontend", "icon": "typescript.svg", "capability": "Frequently used", "order": 4 },
+  { "id": "tailwind-css", "name": "Tailwind CSS", "category": "Frontend", "icon": "tailwind.svg", "capability": "Frequently used", "order": 5 },
+  { "id": "javascript", "name": "JavaScript", "category": "Frontend", "icon": "javascript.svg", "capability": "Core expertise", "order": 6 },
+  { "id": "node-js", "name": "Node.js", "category": "Backend", "icon": "node.svg", "capability": "Supported", "order": 7 },
+  { "id": "django", "name": "Django", "category": "Backend", "icon": "django.svg", "capability": "Core expertise", "order": 8 },
+  { "id": "python", "name": "Python", "category": "Backend", "icon": "python.svg", "capability": "Frequently used", "order": 9 },
+  { "id": "postgresql", "name": "PostgreSQL", "category": "Platform", "icon": "postgresql.svg", "capability": "Frequently used", "order": 10 },
+  { "id": "docker", "name": "Docker", "category": "Platform", "icon": "docker.svg", "capability": "Frequently used", "order": 11 },
+  { "id": "aws", "name": "AWS", "category": "Platform", "icon": "aws.svg", "capability": "Supported", "order": 12 },
+  { "id": "nginx", "name": "Nginx", "category": "Delivery", "icon": "nginx.svg", "capability": "Frequently used", "order": 13 },
+  { "id": "git", "name": "Git", "category": "Delivery", "icon": "git.svg", "capability": "Core workflow", "order": 14 }
+]

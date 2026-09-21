@@ -1,0 +1,36 @@
+{
+  "id": "website-maintenance-security",
+  "slug": "website-maintenance-security",
+  "title": "Website Maintenance and Security",
+  "menuDescription": "Planned technical care for updates, releases, recovery, and operational risk.",
+  "summary": "Keep your website maintainable with a clear cadence for updates, changes, and operational checks.",
+  "icon": "shield",
+  "order": 5,
+  "overview": {
+    "title": "Replace reactive maintenance with a visible operating routine.",
+    "paragraphs": [
+      "We help define the updates, checks, ownership, and release practices needed to keep your site in a supportable state.",
+      "Coverage is scoped around the platform and business impact, with clear boundaries for planned work and urgent issues."
+    ]
+  },
+  "features": [
+    { "id": "dependencies", "icon": "package-check", "title": "Dependency maintenance", "description": "Planned review and updates for supported libraries, plugins, and platform components." },
+    { "id": "security", "icon": "shield-check", "title": "Security hygiene", "description": "Configuration, access, and known vulnerability checks within the agreed system scope." },
+    { "id": "recovery", "icon": "history", "title": "Backup and recovery review", "description": "Existing backup coverage and restore procedures checked where the hosting platform supports them." },
+    { "id": "monitoring", "icon": "activity", "title": "Operational monitoring", "description": "Relevant availability and error signals organized around the agreed support needs." },
+    { "id": "changes", "icon": "git-pull-request", "title": "Controlled changes", "description": "Small enhancements and content-related engineering delivered through a visible release process." },
+    { "id": "reporting", "icon": "clipboard-check", "title": "Maintenance reporting", "description": "Completed work, identified risks, and recommended next actions summarized clearly." }
+  ],
+  "banner": {
+    "title": "Need a clearer plan for keeping your website supportable?",
+    "description": "We can review the current platform and define a maintenance scope around its real operating needs.",
+    "ctaLabel": "Plan maintenance coverage"
+  },
+  "faqs": [
+    { "id": "coverage", "question": "What can a maintenance agreement cover?", "answer": "Coverage can include dependency updates, platform checks, small enhancements, release support, and agreed monitoring. The exact responsibilities and response expectations are documented before work begins." },
+    { "id": "security", "question": "Does maintenance guarantee that a site cannot be compromised?", "answer": "No provider can make that guarantee. Maintenance reduces avoidable risk through updates, access hygiene, configuration review, monitoring, and a defined response process." },
+    { "id": "hosting", "question": "Do you need to host the website?", "answer": "Not necessarily. We can work with an existing hosting setup when access, documentation, and platform capabilities are sufficient for the agreed maintenance work." },
+    { "id": "changes", "question": "Can maintenance include new features?", "answer": "Small changes may fit within a maintenance scope. Larger features are estimated separately so they receive the design, engineering, and verification time they require." },
+    { "id": "handover", "question": "Can you take over a site built by another team?", "answer": "Yes, after an initial review of the codebase, hosting, dependencies, access, and known issues. That review determines whether the system is ready for ongoing support." }
+  ]
+}

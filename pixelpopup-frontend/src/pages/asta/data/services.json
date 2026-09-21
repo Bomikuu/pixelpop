@@ -1,0 +1,58 @@
+[
+  {
+    "id": "custom-software-development",
+    "title": "Custom Software Development",
+    "description": "Purpose-built systems shaped around the workflows, constraints, and decisions unique to your business.",
+    "icon": "blocks",
+    "order": 1
+  },
+  {
+    "id": "web-application-development",
+    "title": "Web Application Development",
+    "description": "Responsive customer and operations platforms designed for clarity, maintainability, and real use.",
+    "icon": "monitor-smartphone",
+    "order": 2
+  },
+  {
+    "id": "mobile-application-development",
+    "title": "Mobile Application Development",
+    "description": "Mobile-first product experiences that keep essential tasks understandable across devices.",
+    "icon": "smartphone",
+    "order": 3
+  },
+  {
+    "id": "ui-ux-design",
+    "title": "UI/UX Design",
+    "description": "Interface systems that turn complicated processes into focused, accessible user journeys.",
+    "icon": "pen-tool",
+    "order": 4
+  },
+  {
+    "id": "api-systems-integration",
+    "title": "API & Systems Integration",
+    "description": "Dependable connections between products, services, data sources, and existing operational tools.",
+    "icon": "plug-zap",
+    "order": 5
+  },
+  {
+    "id": "cloud-devops",
+    "title": "Cloud & DevOps",
+    "description": "Practical deployment foundations and delivery workflows built for repeatable releases.",
+    "icon": "cloud-cog",
+    "order": 6
+  },
+  {
+    "id": "maintenance-support",
+    "title": "Maintenance & Support",
+    "description": "Ongoing technical care, focused improvements, and clear support after the first release.",
+    "icon": "wrench",
+    "order": 7
+  },
+  {
+    "id": "business-process-automation",
+    "title": "Business Process Automation",
+    "description": "Connected workflows that reduce repetitive work and make important operational signals visible.",
+    "icon": "workflow",
+    "order": 8
+  }
+]

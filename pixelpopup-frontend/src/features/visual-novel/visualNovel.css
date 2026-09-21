@@ -1,0 +1,484 @@
+.vn-page {
+  min-height: 100vh;
+  padding: 22px;
+  color: #f0eee4;
+  background:
+    linear-gradient(rgba(14, 16, 18, 0.9), rgba(14, 16, 18, 0.9)),
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 255, 255, 0.025) 3px 4px),
+    #101214;
+  font-family: var(--pp-font);
+}
+
+.vn-shell {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 3px solid #d1c8ae;
+  background: #202226;
+  box-shadow: 8px 8px 0 #090a0b;
+}
+
+.vn-topbar,
+.vn-studio-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.vn-topbar {
+  min-height: 58px;
+  padding: 10px 16px;
+  border-bottom: 3px solid #d1c8ae;
+  background: linear-gradient(90deg, #292d31, #353836 55%, #46433d);
+  color: #eee8d6;
+  letter-spacing: 0.08em;
+  text-shadow: 2px 2px 0 #17191c;
+}
+
+.vn-brand,
+.vn-topbar-actions,
+.vn-lights,
+.vn-import-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vn-brand {
+  font-size: clamp(0.75rem, 1.8vw, 1.05rem);
+  font-weight: 900;
+}
+
+.vn-lights i {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #17191c;
+  background: #ed625d;
+  box-shadow: 1px 1px 0 #d1c8ae;
+}
+
+.vn-lights i:nth-child(2) { background: #f4c95d; }
+.vn-lights i:nth-child(3) { background: #7ed885; }
+
+.vn-scene-counter,
+.vn-kicker,
+.vn-editor-label {
+  color: #c4bca4;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.vn-small-button,
+.vn-add-button,
+.vn-file-button,
+.vn-end-button,
+.vn-choice-list button {
+  border: 2px solid #cfc5a8;
+  background: #353a3e;
+  color: #f0ead9;
+  box-shadow: 3px 3px 0 #0b0c0e;
+  font-family: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.vn-small-button {
+  padding: 8px 10px;
+  font-size: 0.67rem;
+}
+
+.vn-small-button:hover,
+.vn-add-button:hover,
+.vn-file-button:hover,
+.vn-end-button:hover,
+.vn-choice-list button:hover {
+  transform: translate(-1px, -1px);
+  background: #505653;
+}
+
+.vn-small-button:focus-visible,
+.vn-add-button:focus-visible,
+.vn-file-button:focus-visible,
+.vn-end-button:focus-visible,
+.vn-choice-list button:focus-visible,
+.vn-dialogue-box:focus-visible,
+.vn-scene-list button:focus-visible {
+  outline: 3px solid #9bcfc4;
+  outline-offset: 3px;
+}
+
+.vn-stage-wrap {
+  padding: 20px;
+  background: #17191c;
+}
+
+.vn-stage {
+  position: relative;
+  min-height: min(720px, 70vh);
+  overflow: hidden;
+  background-color: #343a3e;
+  background-position: center;
+  background-size: cover;
+  image-rendering: pixelated;
+}
+
+.vn-stage::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, rgba(19, 13, 36, 0.75), transparent 38%, rgba(11, 7, 26, 0.46)), linear-gradient(0deg, rgba(4, 5, 18, 0.92), transparent 42%);
+  pointer-events: none;
+}
+
+.vn-stage-video {
+  background: #22272b;
+}
+
+.vn-background-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vn-stage-vignette,
+.vn-stage-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.vn-stage-vignette {
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(5, 5, 17, 0.66) 100%);
+}
+
+.vn-stage-scanlines {
+  opacity: 0.16;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, #fff 3px 4px);
+  mix-blend-mode: soft-light;
+}
+
+.vn-stage-label {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  padding: 6px 8px;
+  border: 2px solid rgba(207, 197, 168, 0.7);
+  background: rgba(20, 22, 24, 0.72);
+  color: #e4dcc4;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.vn-dialogue-area {
+  position: absolute;
+  right: 5%;
+  bottom: 4%;
+  left: 5%;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 156px 1fr;
+  align-items: end;
+}
+
+.vn-portrait-frame {
+  position: relative;
+  z-index: 3;
+  width: 166px;
+  height: 166px;
+  overflow: hidden;
+  margin-right: -12px;
+  border: 3px solid #d7cdaa;
+  border-radius: 14px;
+  background: #30353a;
+  box-shadow: 5px 5px 0 #0b0c0e;
+  animation: vn-portrait-idle 3.2s ease-in-out infinite;
+}
+
+.vn-portrait-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+@keyframes vn-portrait-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-0.6deg); }
+}
+
+.vn-dialogue-box {
+  position: relative;
+  min-height: 150px;
+  padding: 24px 42px 24px 38px;
+  border: 3px solid #d7cdaa;
+  border-radius: 16px;
+  background: rgba(43, 50, 56, 0.96);
+  box-shadow: 5px 5px 0 #0b0c0e, inset 0 0 0 2px rgba(155, 207, 196, 0.2);
+  cursor: pointer;
+}
+
+.vn-dialogue-box p {
+  max-width: 900px;
+  margin: 10px 0 0;
+  color: #f0eee4;
+  font-family: "Trebuchet MS", system-ui, sans-serif;
+  font-size: clamp(1rem, 2vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.vn-speaker {
+  display: inline-block;
+  padding: 5px 11px;
+  border: 2px solid #d7cdaa;
+  background: #55574f;
+  color: #f0ead9;
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.vn-next-caret {
+  position: absolute;
+  right: 24px;
+  bottom: 14px;
+  color: #9bcfc4;
+  animation: vn-bob 900ms steps(2, end) infinite;
+}
+
+@keyframes vn-bob {
+  50% { transform: translateY(4px); }
+}
+
+.vn-choice-list {
+  position: absolute;
+  right: 4%;
+  bottom: calc(100% + 18px);
+  left: 20%;
+  display: grid;
+  gap: 10px;
+}
+
+.vn-choice-list button {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.vn-choice-list span {
+  margin-right: 7px;
+  color: #9bcfc4;
+}
+
+.vn-end-button {
+  position: absolute;
+  right: 18px;
+  top: -52px;
+  padding: 10px 14px;
+  font-size: 0.7rem;
+}
+
+.vn-studio {
+  padding: 22px;
+  border-top: 3px solid #d1c8ae;
+  background: #17191c;
+}
+
+.vn-studio h1 {
+  margin: 4px 0 0;
+  color: #eee8d6;
+  font-family: var(--pp-font);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  line-height: 1.1;
+}
+
+.vn-studio-grid {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.7fr) minmax(280px, 1.3fr);
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.vn-scenes-panel,
+.vn-editor-panel {
+  padding: 16px;
+  border: 2px solid #4b5357;
+  background: #262b2f;
+}
+
+.vn-scene-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.vn-scene-list button {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+  border: 2px solid #4b5357;
+  background: #1b1e21;
+  color: #d7d8d0;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.vn-scene-list button.is-selected {
+  border-color: #cfc5a8;
+  background: #44483f;
+  color: #eee8d6;
+}
+
+.vn-scene-list span,
+.vn-scene-list small {
+  color: #9bcfc4;
+  font-size: 0.64rem;
+}
+
+.vn-scene-list strong {
+  overflow: hidden;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vn-add-button {
+  width: 100%;
+  padding: 9px;
+  font-size: 0.7rem;
+}
+
+.vn-editor-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.vn-editor-panel label {
+  display: grid;
+  gap: 6px;
+  color: #d7d8d0;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.vn-editor-panel input,
+.vn-editor-panel textarea,
+.vn-editor-panel select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  border: 2px solid #626a6e;
+  border-radius: 0;
+  background: #141719;
+  color: #f0ead9;
+  font: 0.8rem "Trebuchet MS", system-ui, sans-serif;
+}
+
+.vn-editor-panel textarea {
+  resize: vertical;
+}
+
+.vn-editor-panel input:focus,
+.vn-editor-panel textarea:focus,
+.vn-editor-panel select:focus {
+  border-color: #9bcfc4;
+  outline: 2px solid rgba(155, 207, 196, 0.22);
+}
+
+.vn-import-row {
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.vn-file-button {
+  position: relative;
+  flex: 1 1 220px;
+  padding: 10px;
+  text-align: center;
+  font-size: 0.67rem;
+}
+
+.vn-file-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.vn-choice-heading {
+  padding-top: 6px;
+  border-top: 1px solid #4b5357;
+}
+
+.vn-choice-editor {
+  display: grid;
+  grid-template-columns: 1fr 0.9fr;
+  gap: 8px;
+}
+
+.vn-studio-note {
+  margin: 16px 0 0;
+  color: #9b9f9b;
+  font-family: "Trebuchet MS", system-ui, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.vn-shell:fullscreen {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  border: 0;
+  box-shadow: none;
+}
+
+.vn-shell:fullscreen .vn-stage-wrap {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.vn-shell:fullscreen .vn-stage {
+  min-height: 0;
+  flex: 1;
+}
+
+@media (max-width: 760px) {
+  .vn-page { padding: 0; }
+  .vn-shell { border-right: 0; border-left: 0; }
+  .vn-topbar { align-items: flex-start; flex-direction: column; }
+  .vn-topbar-actions { width: 100%; justify-content: space-between; }
+  .vn-stage-wrap { padding: 8px; }
+  .vn-stage { min-height: 76vh; }
+  .vn-dialogue-area { right: 3%; bottom: 3%; left: 3%; display: block; }
+  .vn-portrait-frame { position: absolute; bottom: calc(100% - 8px); left: 10px; width: 104px; height: 104px; }
+  .vn-dialogue-box { min-height: 166px; padding: 42px 22px 22px; }
+  .vn-dialogue-box p { font-size: 1rem; }
+  .vn-choice-list { right: 0; bottom: calc(100% + 12px); left: 0; }
+  .vn-studio { padding: 16px 10px; }
+  .vn-studio-heading { align-items: flex-start; flex-direction: column; }
+  .vn-studio-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vn-portrait-frame { animation: none; }
+  .vn-next-caret { animation: none; }
+  .vn-small-button:hover,
+  .vn-add-button:hover,
+  .vn-file-button:hover,
+  .vn-end-button:hover,
+  .vn-choice-list button:hover { transform: none; }
+}

@@ -279,6 +279,62 @@ JWT auth
 
 13. Current project status
 
+14. Portfolio content backend
+
+The portfolio content API is versioned under `/api/v1/portfolio/`.
+
+Public endpoints:
+
+- `GET /api/v1/portfolio/profiles/`
+- `GET /api/v1/portfolio/profiles/{slug}/`
+- `GET /api/v1/portfolio/cover-letters/{slug}/`
+- `GET /api/v1/portfolio/articles/`
+- `GET /api/v1/portfolio/articles/{slug}/`
+
+Cover letters are retrieve-only on the public API so job-specific letters are
+not exposed through a public index. Draft, archived, private application notes,
+recipient email addresses, and job descriptions remain staff-only.
+
+Staff CRUD endpoints use the same prefix under `/admin/`:
+
+- profiles
+- cover-letter-templates
+- job-applications
+- cover-letters
+- article-categories
+- article-tags
+- articles
+
+All staff endpoints require an authenticated Django staff user. Article lists
+support pagination, search, category/tag filters, featured filtering, and
+ordering.
+
+Interactive API documentation:
+
+- OpenAPI schema: `/api/schema/`
+- Swagger UI: `/api/docs/`
+
+Local setup:
+
+```bash
+cd backendv2
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Content workflow:
+
+1. Create a `ProfessionalProfile`.
+2. Optionally create one or more reusable `CoverLetterTemplate` records.
+3. Create a private `JobApplication` containing the company and role context.
+4. Create a versioned `CoverLetter`, then publish it when ready.
+5. Create article categories and tags before publishing articles.
+
 ✅ Backend architecture complete
 ✅ Admin workflow usable
 ✅ Validation + safety in place

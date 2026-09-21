@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 
@@ -190,3 +191,265 @@ class Payment(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+def validate_list_value(value):
+    if not isinstance(value, list):
+        raise DjangoValidationError("This value must be a JSON list.")
+
+
+class ProfessionalProfile(models.Model):
+    slug = models.SlugField(max_length=80, unique=True)
+    full_name = models.CharField(max_length=120)
+    headline = models.CharField(max_length=180)
+    professional_summary = models.TextField()
+    email = models.EmailField()
+    phone = models.CharField(max_length=40, blank=True, default="")
+    location = models.CharField(max_length=120, blank=True, default="")
+    website_url = models.URLField(blank=True, default="")
+    linkedin_url = models.URLField(blank=True, default="")
+    github_url = models.URLField(blank=True, default="")
+    resume_url = models.URLField(blank=True, default="")
+    signature = models.CharField(max_length=120, blank=True, default="")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["full_name"]
+
+    def __str__(self):
+        return self.full_name
+
+
+class CoverLetterTemplate(models.Model):
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.CharField(max_length=240, blank=True, default="")
+    subject_template = models.CharField(
+        max_length=200,
+        blank=True,
+        default="Application for {job_title} at {company_name}",
+    )
+    opening_template = models.TextField()
+    body_template = models.TextField()
+    closing_template = models.TextField()
+    default_highlights = models.JSONField(
+        default=list,
+        blank=True,
+        validators=[validate_list_value],
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class JobApplication(models.Model):
+    STATUS = [
+        ("draft", "Draft"),
+        ("applied", "Applied"),
+        ("interview", "Interview"),
+        ("offer", "Offer"),
+        ("rejected", "Rejected"),
+        ("withdrawn", "Withdrawn"),
+        ("closed", "Closed"),
+    ]
+
+    slug = models.SlugField(max_length=140, unique=True)
+    company_name = models.CharField(max_length=160)
+    company_website = models.URLField(blank=True, default="")
+    job_title = models.CharField(max_length=160)
+    job_url = models.URLField(blank=True, default="")
+    recipient_name = models.CharField(max_length=120, blank=True, default="Hiring Manager")
+    recipient_title = models.CharField(max_length=120, blank=True, default="")
+    recipient_email = models.EmailField(blank=True, default="")
+    source = models.CharField(max_length=80, blank=True, default="")
+    job_description = models.TextField(blank=True, default="")
+    notes_private = models.TextField(blank=True, default="")
+    status = models.CharField(max_length=16, choices=STATUS, default="draft")
+    applied_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="portfolio_job_applications",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.job_title} at {self.company_name}"
+
+
+class CoverLetter(models.Model):
+    STATUS = [
+        ("draft", "Draft"),
+        ("published", "Published"),
+        ("archived", "Archived"),
+    ]
+
+    application = models.ForeignKey(
+        JobApplication,
+        on_delete=models.CASCADE,
+        related_name="cover_letters",
+    )
+    profile = models.ForeignKey(
+        ProfessionalProfile,
+        on_delete=models.PROTECT,
+        related_name="cover_letters",
+    )
+    template = models.ForeignKey(
+        CoverLetterTemplate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="cover_letters",
+    )
+    slug = models.SlugField(max_length=160, unique=True)
+    version = models.PositiveIntegerField(default=1)
+    subject = models.CharField(max_length=200)
+    opening = models.TextField()
+    body = models.TextField()
+    closing = models.TextField()
+    highlights = models.JSONField(
+        default=list,
+        blank=True,
+        validators=[validate_list_value],
+    )
+    status = models.CharField(max_length=12, choices=STATUS, default="draft")
+    published_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["application", "version"],
+                name="uniq_cover_letter_version_per_application",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.status == "published" and self.published_at is None:
+            self.published_at = timezone.now()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.application} (v{self.version})"
+
+
+class ArticleCategory(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    slug = models.SlugField(max_length=80, unique=True)
+    description = models.CharField(max_length=240, blank=True, default="")
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "name"]
+        verbose_name_plural = "article categories"
+
+    def __str__(self):
+        return self.name
+
+
+class ArticleTag(models.Model):
+    name = models.CharField(max_length=60, unique=True)
+    slug = models.SlugField(max_length=60, unique=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Article(models.Model):
+    STATUS = [
+        ("draft", "Draft"),
+        ("published", "Published"),
+        ("archived", "Archived"),
+    ]
+    CONTENT_FORMAT = [
+        ("markdown", "Markdown"),
+        ("plain", "Plain text"),
+    ]
+
+    title = models.CharField(max_length=180)
+    slug = models.SlugField(max_length=180, unique=True)
+    excerpt = models.CharField(max_length=320)
+    content = models.TextField()
+    content_format = models.CharField(
+        max_length=12,
+        choices=CONTENT_FORMAT,
+        default="markdown",
+    )
+    category = models.ForeignKey(
+        ArticleCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="articles",
+    )
+    tags = models.ManyToManyField(ArticleTag, blank=True, related_name="articles")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="portfolio_articles",
+    )
+    author_profile = models.ForeignKey(
+        ProfessionalProfile,
+        on_delete=models.PROTECT,
+        related_name="articles",
+    )
+    cover_image = models.ImageField(
+        upload_to="portfolio/articles/%Y/%m/",
+        null=True,
+        blank=True,
+    )
+    cover_image_alt = models.CharField(max_length=180, blank=True, default="")
+    seo_title = models.CharField(max_length=70, blank=True, default="")
+    seo_description = models.CharField(max_length=170, blank=True, default="")
+    status = models.CharField(max_length=12, choices=STATUS, default="draft")
+    is_featured = models.BooleanField(default=False)
+    published_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-published_at", "-created_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.author_profile_id:
+            profile_slug = settings.PORTFOLIO_AUTHOR_PROFILE_SLUG
+            try:
+                self.author_profile = ProfessionalProfile.objects.get(
+                    slug=profile_slug,
+                    is_active=True,
+                )
+            except ProfessionalProfile.DoesNotExist as error:
+                raise DjangoValidationError(
+                    f'Create an active professional profile with slug "{profile_slug}" before saving articles.'
+                ) from error
+
+            if kwargs.get("update_fields") is not None:
+                kwargs["update_fields"] = set(kwargs["update_fields"]) | {"author_profile"}
+
+        if self.status == "published" and self.published_at is None:
+            self.published_at = timezone.now()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
