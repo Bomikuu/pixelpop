@@ -10,6 +10,7 @@ export {
   IcosahedronGeometry,
   Line,
   LineBasicMaterial,
+  LineLoop,
   LineSegments,
   Mesh,
   MeshBasicMaterial,

@@ -105,6 +105,30 @@ export const projects = [
     ],
   },
   {
+    id: "pixelcore",
+    title: "PixelCore",
+    type: "Connected business operating system",
+    summary:
+      "A shared business workspace connecting public sites, commerce, bookings, events, operations, workforce, point of sale, and customer displays.",
+    role: "Product architecture / Frontend systems / Full-stack delivery",
+    link: "/portfolio/pixelcore",
+    linkLabel: "Explore PixelCore",
+    technologies: ["Nuxt", "Vue", "TypeScript", "Django", "PostgreSQL", "Tailwind CSS", "shadcn/ui", "Three.js"],
+    outcomes: [
+      "Connected storefronts, service bookings, event sites, public business cards, and displays to business-owned content.",
+      "Unified products, services, variants, inventory rules, promotions, point of sale, and customer ordering around one catalog.",
+      "Linked calendars, venues, guests, staff, capacity, and event operations through a shared scheduling model.",
+      "Brought inventory, suppliers, purchasing, finance, workforce, attendance, and reporting into the same operational workspace.",
+    ],
+    slides: [
+      { src: "/portfolio/pixelcore/01-platform-landing.png", title: "Connected platform", caption: "One business record powering customer touchpoints and daily operations.", alt: "PixelCore platform landing page" },
+      { src: "/portfolio/pixelcore/04-published-storefront.png", title: "Published storefront", caption: "A customer-facing storefront built from the shared catalog and brand system.", alt: "Published PixelCore storefront" },
+      { src: "/portfolio/pixelcore/11-calendar-reservations.png", title: "Calendar and venues", caption: "Bookings, resources, capacity, and events in one scheduling workspace.", alt: "PixelCore calendar and venue scheduling workspace" },
+      { src: "/portfolio/pixelcore/14-operations.png", title: "Connected operations", caption: "Inventory, purchasing, finance, and reporting linked through shared records.", alt: "PixelCore operations workspace" },
+      { src: "/portfolio/pixelcore/16-display-studio.png", title: "Display studio", caption: "Business content repurposed for posters, menus, promotions, and live customer screens.", alt: "PixelCore display authoring studio" },
+    ],
+  },
+  {
     id: "traidify",
     title: "Traidify",
     type: "Financial analytics platform",

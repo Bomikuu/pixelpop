@@ -139,8 +139,113 @@ function buildDineEaseScene(THREE, scene, track) {
   };
 }
 
+function buildPixelCoreScene(THREE, scene, track) {
+  const root = new THREE.Group();
+  scene.add(root);
+
+  const evergreen = track(new THREE.MeshStandardMaterial({ color: 0x1d6a58, emissive: 0x082b25, emissiveIntensity: 0.34, metalness: 0.28, roughness: 0.42 }));
+  const mint = track(new THREE.MeshStandardMaterial({ color: 0x83d8b9, emissive: 0x163f35, emissiveIntensity: 0.34, metalness: 0.16, roughness: 0.48 }));
+  const amber = track(new THREE.MeshStandardMaterial({ color: 0xf2a43a, emissive: 0x5f2b05, emissiveIntensity: 0.38, metalness: 0.18, roughness: 0.44 }));
+  const ice = track(new THREE.MeshStandardMaterial({ color: 0xd7f2e8, emissive: 0x173e35, emissiveIntensity: 0.22, metalness: 0.2, roughness: 0.4 }));
+  const wire = track(new THREE.MeshBasicMaterial({ color: 0xa7ead3, transparent: true, opacity: 0.22, wireframe: true }));
+
+  const core = new THREE.Group();
+  root.add(core);
+
+  const coreBlocks = [
+    { position: [0, 0, 0], scale: [1.3, 1.3, 1.3], material: evergreen },
+    { position: [0.88, 0.72, -0.36], scale: [0.58, 0.58, 0.58], material: amber },
+    { position: [-0.92, -0.62, 0.42], scale: [0.5, 0.5, 0.5], material: mint },
+    { position: [-0.78, 0.9, -0.52], scale: [0.36, 0.36, 0.36], material: ice },
+  ].map(({ position, scale, material }) => {
+    const block = new THREE.Mesh(track(new THREE.BoxGeometry(1.35, 1.35, 1.35)), material);
+    block.position.set(...position);
+    block.scale.set(...scale);
+    core.add(block);
+    return block;
+  });
+
+  const shell = new THREE.Mesh(track(new THREE.BoxGeometry(2.5, 2.5, 2.5)), wire);
+  shell.rotation.set(0.22, Math.PI / 4, -0.12);
+  core.add(shell);
+
+  const channelPositions = [
+    [3.15, 1.05, -0.35],
+    [2.55, -1.65, 0.75],
+    [-2.8, 1.55, 0.4],
+    [-3.05, -1.25, -0.55],
+    [0.25, 2.8, -1.1],
+  ];
+  const channelMaterials = [mint, amber, ice, mint, amber];
+  const channels = channelPositions.map((position, index) => {
+    const group = new THREE.Group();
+    group.position.set(...position);
+    const node = new THREE.Mesh(track(new THREE.BoxGeometry(0.62, 0.62, 0.62)), channelMaterials[index]);
+    node.rotation.set(index * 0.2, index * 0.34, index * 0.16);
+    group.add(node);
+    root.add(group);
+
+    const lineMaterial = track(new THREE.LineBasicMaterial({ color: index % 2 ? 0xf2a43a : 0x83d8b9, transparent: true, opacity: 0.42 }));
+    const lineGeometry = track(new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, 0),
+      new THREE.Vector3(position[0] * 0.52, position[1] * 0.52, position[2] * 0.52),
+      new THREE.Vector3(...position),
+    ]));
+    root.add(new THREE.Line(lineGeometry, lineMaterial));
+    return { group, node, base: [...position], offset: index * 1.2 };
+  });
+
+  const orbitMaterial = track(new THREE.LineBasicMaterial({ color: 0x83d8b9, transparent: true, opacity: 0.13 }));
+  const orbits = [
+    { radius: 3.65, rotation: [1.05, 0.1, 0.4] },
+    { radius: 3.25, rotation: [0.3, 0.7, 1.0] },
+  ].map(({ radius, rotation }) => {
+    const points = Array.from({ length: 72 }, (_, index) => {
+      const angle = (index / 72) * Math.PI * 2;
+      return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
+    });
+    const orbit = new THREE.LineLoop(track(new THREE.BufferGeometry().setFromPoints(points)), orbitMaterial);
+    orbit.rotation.set(...rotation);
+    root.add(orbit);
+    return orbit;
+  });
+
+  return {
+    cameraPosition: [0, 0.6, 8.5],
+    mobileCameraPosition: [0, 0.75, 9.6],
+    lookAt: [0, 0, 0],
+    resize(compact) {
+      root.position.set(compact ? 1.05 : 2.55, compact ? -0.72 : 0.05, 0);
+      root.scale.setScalar(compact ? 0.58 : 0.8);
+    },
+    update(time, pointer) {
+      root.rotation.y += ((time * 0.09 + pointer.x * 0.12) - root.rotation.y) * 0.025;
+      root.rotation.x += ((pointer.y * -0.06) - root.rotation.x) * 0.03;
+      core.rotation.y = time * -0.16;
+      core.rotation.x = Math.sin(time * 0.38) * 0.08;
+      shell.rotation.y = Math.PI / 4 + time * 0.2;
+      shell.rotation.x = 0.22 + Math.sin(time * 0.3) * 0.1;
+      coreBlocks.forEach((block, index) => {
+        const pulse = 1 + Math.sin(time * 1.15 + index * 0.8) * 0.025;
+        block.rotation.y = time * (index % 2 ? 0.22 : -0.18);
+        block.scale.multiplyScalar(pulse / Math.max(block.userData.lastPulse || 1, 0.001));
+        block.userData.lastPulse = pulse;
+      });
+      channels.forEach(({ group, node, base, offset }) => {
+        group.position.y = base[1] + Math.sin(time * 0.72 + offset) * 0.12;
+        node.rotation.x += 0.004;
+        node.rotation.y += 0.007;
+      });
+      orbits.forEach((orbit, index) => {
+        orbit.rotation.z += index ? -0.0012 : 0.001;
+      });
+    },
+  };
+}
+
 const sceneBuilders = {
   dineease: buildDineEaseScene,
+  pixelcore: buildPixelCoreScene,
 };
 
 export default function ProjectHeroScene({ variant, className = "" }) {
