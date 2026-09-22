@@ -23,6 +23,22 @@ display typography, Instrument Sans body typography, interactive Three.js hero
 scenes, animated evidence metrics, a responsive project workflow, and a
 recommendation matcher for direct Mico or ASTA team engagements.
 
+## Portfolio application materials
+
+The portfolio also includes recruiter-facing application pages that share the
+same modern editorial system as the main portfolio:
+
+- `/portfolio/introduction-letter` presents a downloadable general cover
+  letter with applicant context, contact details, and a print-like reading
+  surface.
+- `/portfolio/introduction-letter/:coverLetterSlug` loads a published,
+  opportunity-specific letter from the Django portfolio API while retaining a
+  safe default if the request is unavailable.
+- `/portfolio/intro-video` provides the companion personal-introduction page.
+
+The application pages preserve accessible headings, keyboard-visible actions,
+responsive single-column layouts, and clear loading or fallback messages.
+
 ## Requirements
 
 - Node.js 20 or newer
@@ -84,6 +100,8 @@ at `/api/docs/`.
 - `/portfolio/work-with-me` - engagement options and project matcher
 - `/portfolio/services` - services overview
 - `/portfolio/articles` - article library
+- `/portfolio/introduction-letter` - downloadable introduction letter
+- `/portfolio/intro-video` - personal introduction video page
 - `/asta` - ASTA Softwares landing page
 - `/components` - component catalogue
 - `/examples/playground` - interactive examples
