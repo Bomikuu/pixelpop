@@ -34,6 +34,7 @@ const applicationLinks = [
   ["Interview review", "/portfolio/interview-review"],
   ["Introduction letter", "/portfolio/introduction-letter"],
   ["Intro video", "/portfolio/intro-video"],
+  ["Work setup", "/portfolio/work-setup"],
 ];
 
 const socialIcons = { LinkedIn: Linkedin, GitHub: Github, Email: Mail };

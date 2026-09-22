@@ -22,6 +22,7 @@ __pycache__/
 *.env
 pixelpopup-frontend/.env
 pixelpopup-frontend/.env*.local
+backendv2/.vercel/
 
 # Logs
 logs/

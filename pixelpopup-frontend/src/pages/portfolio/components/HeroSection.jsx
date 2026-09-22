@@ -37,7 +37,7 @@ export default function HeroSection() {
               View selected work
               <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" size={18} aria-hidden="true" />
             </a>
-            <a href="#contact" className="group inline-flex min-h-12 items-center gap-5 rounded-md border border-slate-300 bg-white/90 px-6 py-3.5 font-semibold text-slate-950 transition duration-200 hover:-translate-y-0.5 hover:border-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-950">
+            <a href="/portfolio/work-with-me" className="group inline-flex min-h-12 items-center gap-5 rounded-md border border-slate-300 bg-white/90 px-6 py-3.5 font-semibold text-slate-950 transition duration-200 hover:-translate-y-0.5 hover:border-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-950">
               Start a conversation <ArrowRight className="transition-transform duration-200 group-hover:translate-x-0.5" size={17} aria-hidden="true" />
             </a>
           </div>

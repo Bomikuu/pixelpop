@@ -12,6 +12,7 @@ import PortfolioModern from "./pages/portfolio/PortfolioModern";
 import PortfolioProjectPage from "./pages/portfolio/PortfolioProjectPage";
 import IntroductionLetterPage from "./pages/portfolio/application/IntroductionLetterPage";
 import IntroVideoPage from "./pages/portfolio/application/IntroVideoPage";
+import WorkSetupPage from "./pages/portfolio/application/WorkSetupPage";
 import ArticleIndexPage from "./pages/portfolio/articles/ArticleIndexPage";
 import ArticleDetailPage from "./pages/portfolio/articles/ArticleDetailPage";
 import InterviewReviewPage from "./pages/portfolio/interview/InterviewReviewPage";
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/portfolio/introduction-letter" element={<IntroductionLetterPage />} />
           <Route path="/portfolio/introduction-letter/:coverLetterSlug" element={<IntroductionLetterPage />} />
           <Route path="/portfolio/intro-video" element={<IntroVideoPage />} />
+          <Route path="/portfolio/work-setup" element={<WorkSetupPage />} />
           <Route path="/portfolio/articles" element={<ArticleIndexPage />} />
           <Route path="/portfolio/articles/:articleSlug" element={<ArticleDetailPage />} />
           <Route path="/portfolio/interview-review" element={<InterviewReviewPage />} />

@@ -240,5 +240,71 @@
     "category": "Team dinner",
     "featured": false,
     "order": 22
+  },
+  {
+    "id": "holiday-team-gathering-2026",
+    "title": "Holiday team gathering",
+    "description": "A group photo from the team's holiday dinner and gift exchange.",
+    "image": "/portfolio/assets/team-activities/asta-activity-23.webp",
+    "alt": "Six ASTA team members posing beside a Christmas tree with gifts",
+    "date": null,
+    "category": "Celebration",
+    "featured": false,
+    "order": 23
+  },
+  {
+    "id": "holiday-gift-exchange-handshake",
+    "title": "Holiday gift exchange",
+    "description": "A gift exchange moment shared during the team's holiday gathering.",
+    "image": "/portfolio/assets/team-activities/asta-activity-24.webp",
+    "alt": "Two ASTA team members shaking hands during a holiday gift exchange",
+    "date": null,
+    "category": "Celebration",
+    "featured": false,
+    "order": 24
+  },
+  {
+    "id": "holiday-gift-photo",
+    "title": "Holiday gift moment",
+    "description": "A candid photo from the team's year-end gift exchange.",
+    "image": "/portfolio/assets/team-activities/asta-activity-25.webp",
+    "alt": "Two ASTA team members posing with a holiday gift bag",
+    "date": null,
+    "category": "Celebration",
+    "featured": false,
+    "order": 25
+  },
+  {
+    "id": "holiday-raffle-handoff",
+    "title": "Holiday raffle handoff",
+    "description": "The team handing over one of the prizes from the holiday raffle.",
+    "image": "/portfolio/assets/team-activities/asta-activity-26.webp",
+    "alt": "Three ASTA team members posing behind a boxed raffle prize",
+    "date": null,
+    "category": "Celebration",
+    "featured": false,
+    "order": 26
+  },
+  {
+    "id": "holiday-prize-pickup",
+    "title": "Holiday prize pickup",
+    "description": "A final team photo while loading holiday prizes for the trip home.",
+    "image": "/portfolio/assets/team-activities/asta-activity-27.webp",
+    "alt": "Three ASTA team members standing beside boxed prizes in an open vehicle",
+    "date": null,
+    "category": "Celebration",
+    "featured": false,
+    "order": 27
+  },
+  {
+    "id": "year-end-dinner-table",
+    "title": "Year-end team dinner",
+    "description": "The team gathered around the table for a year-end dinner together.",
+    "image": "/portfolio/assets/team-activities/asta-activity-28.webp",
+    "alt": "ASTA team members seated together around a restaurant table",
+    "date": null,
+    "category": "Team dinner",
+    "featured": false,
+    "order": 28
   }
 ]
