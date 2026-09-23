@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { ArrowRight, BriefcaseBusiness, Mail } from "lucide-react";
 import AstaReveal from "../AstaReveal";
 import { contact } from "../astaData";
+import TurnstileWidget from "../../portfolio/components/TurnstileWidget";
+import { newSubmissionId, submitInquiry } from "../../../lib/inquiries";
 
 const initialValues = {
   fullName: "",
@@ -12,6 +14,18 @@ const initialValues = {
   profileUrl: "",
   message: "",
   consent: false,
+};
+
+const statusMessages = {
+  idle: "Your application will be sent securely to ASTA.",
+  invalid: "Review the highlighted fields and try again.",
+  "verification-required": "Complete the bot verification before applying.",
+  "verification-failed": "Verification expired. Complete it again and retry.",
+  "rate-limited": "Too many attempts. Wait a few minutes and retry.",
+  sending: "Sending your application…",
+  failed: "We could not confirm delivery. Verify again and retry.",
+  delayed: "Your application was saved, but email notification is delayed. You do not need to apply again.",
+  sent: "Your application was sent. We’ll be in touch.",
 };
 
 function validateApplication(values) {
@@ -36,19 +50,23 @@ function validateApplication(values) {
 
 export default function AstaCareersSection() {
   const formRef = useRef(null);
+  const submissionIdRef = useRef(null);
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   function updateField(event) {
     const { name, type, checked, value } = event.target;
     setValues((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
     setErrors((current) => ({ ...current, [name]: undefined }));
+    submissionIdRef.current = null;
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (status === "preparing") return;
+    if (["sending", "sent", "delayed"].includes(status)) return;
     const nextErrors = validateApplication(values);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
@@ -58,24 +76,34 @@ export default function AstaCareersSection() {
       return;
     }
 
-    setStatus("preparing");
-    await new Promise((resolve) => window.setTimeout(resolve, 250));
+    if (!turnstileToken) {
+      setStatus("verification-required");
+      return;
+    }
+
+    setStatus("sending");
     try {
-      const subject = encodeURIComponent(`ASTA application: ${values.interest}`);
-      const body = encodeURIComponent([
-        `Name: ${values.fullName}`,
-        `Email: ${values.email}`,
-        `Phone: ${values.phone || "Not provided"}`,
-        `Area of interest: ${values.interest}`,
-        `Work preference: ${values.workPreference}`,
-        `Profile: ${values.profileUrl || "Not provided"}`,
-        "",
-        values.message,
-      ].join("\n"));
-      setStatus("ready");
-      window.location.href = `mailto:${contact.email}?subject=${subject}&body=${body}`;
-    } catch {
-      setStatus("failed");
+      submissionIdRef.current ||= newSubmissionId();
+      const result = await submitInquiry({
+        kind: "asta_careers", submissionId: submissionIdRef.current,
+        name: values.fullName.trim(), email: values.email.trim(), phone: values.phone.trim(),
+        interest: values.interest, workPreference: values.workPreference,
+        profileUrl: values.profileUrl.trim(), message: values.message.trim(), consent: values.consent,
+        companyWebsite: String(new FormData(formRef.current).get("companyWebsite") || "").trim(),
+        turnstileToken,
+      });
+      if (result.deliveryStatus !== "sent") {
+        setStatus("delayed");
+      } else {
+        setValues(initialValues);
+        setStatus("sent");
+      }
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
+    } catch (error) {
+      setStatus(error.code === "BOT_VERIFICATION_FAILED" ? "verification-failed" : error.status === 429 ? "rate-limited" : error.status === 503 ? "unavailable" : "failed");
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
     }
   }
 
@@ -87,10 +115,11 @@ export default function AstaCareersSection() {
           <span className="asta-careers-copy__icon"><BriefcaseBusiness aria-hidden="true" /></span>
           <h2 id="asta-careers-title">Build meaningful software with us.</h2>
           <p>We want to meet people who enjoy solving real business problems, collaborating closely, and building software others can rely on.</p>
-          <div className="asta-careers-copy__note"><Mail aria-hidden="true" /><span>Applications are currently handled through email. Your form values stay in the browser until your email app opens.</span></div>
+          <div className="asta-careers-copy__note"><Mail aria-hidden="true" /><span>Apply through the form and we’ll send your details securely to our team.</span></div>
         </AstaReveal>
         <AstaReveal className="asta-careers-form-wrap" delay={90}>
-          <form ref={formRef} className="asta-careers-form" onSubmit={handleSubmit} noValidate>
+          <form ref={formRef} className="asta-careers-form" onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
+            <label className="sr-only" aria-hidden="true">Company website<input name="companyWebsite" type="text" tabIndex="-1" autoComplete="off" /></label>
             <div className="asta-careers-form__grid">
               <Field label="Full name" name="fullName" value={values.fullName} error={errors.fullName} onChange={updateField} autoComplete="name" />
               <Field label="Email address" name="email" type="email" value={values.email} error={errors.email} onChange={updateField} autoComplete="email" />
@@ -102,9 +131,12 @@ export default function AstaCareersSection() {
             <label className="asta-field asta-field--wide" htmlFor="asta-application-message"><span>Short message</span><textarea id="asta-application-message" name="message" rows="4" value={values.message} onChange={updateField} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "message-error" : undefined} />{errors.message ? <small id="message-error" className="asta-field__error">{errors.message}</small> : null}</label>
             <label className="asta-consent"><input name="consent" type="checkbox" checked={values.consent} onChange={updateField} aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "asta-application-consent-error" : undefined} /><span>I agree to share these details with ASTA for recruitment follow-up.</span></label>
             {errors.consent ? <small id="asta-application-consent-error" className="asta-field__error">{errors.consent}</small> : null}
+            <div className="mt-5 border border-[#dce4ec] bg-[#f2f6fa] px-4 pb-4 pt-px text-[#10243e] [&>p]:text-sm [&>p]:text-amber-800">
+              <TurnstileWidget key={turnstileResetKey} action="asta-careers" onTokenChange={setTurnstileToken} />
+            </div>
             <div className="asta-careers-form__actions">
-              <button type="submit" disabled={status === "preparing"}>{status === "preparing" ? "Preparing email…" : "Apply Now"}<ArrowRight aria-hidden="true" /></button>
-              <p role="status" aria-live="polite">{status === "invalid" ? "Review the highlighted fields and try again." : status === "ready" ? "Your application email is ready. If no email app opened, use the address shown beside the form." : status === "failed" ? `We could not open your email app. Email ${contact.email} directly.` : "No recruitment API is connected; this form prepares an email application."}</p>
+              <button type="submit" disabled={["sending", "sent", "delayed"].includes(status)}>{status === "sending" ? "Sending application…" : status === "sent" || status === "delayed" ? "Application received" : "Apply Now"}<ArrowRight aria-hidden="true" /></button>
+              <p role="status" aria-live="polite">{status === "unavailable" ? `The form is unavailable. Email ${contact.email} directly.` : statusMessages[status] || statusMessages.idle}</p>
             </div>
           </form>
         </AstaReveal>

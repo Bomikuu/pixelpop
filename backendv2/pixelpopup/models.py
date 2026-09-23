@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -155,6 +157,39 @@ class ClientRequest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class InquirySubmission(models.Model):
+    class Kind(models.TextChoices):
+        PORTFOLIO_CONTACT = "portfolio_contact", "Portfolio contact"
+        ASTA_PROJECT = "asta_project", "ASTA project"
+        ASTA_CAREERS = "asta_careers", "ASTA careers"
+
+    class DeliveryStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    kind = models.CharField(max_length=32, choices=Kind.choices)
+    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=254)
+    details = models.JSONField(default=dict)
+    payload_hash = models.CharField(max_length=64)
+    delivery_status = models.CharField(
+        max_length=10, choices=DeliveryStatus.choices, default=DeliveryStatus.PENDING
+    )
+    resend_message_id = models.CharField(max_length=100, blank=True, default="")
+    failure_category = models.CharField(max_length=40, blank=True, default="")
+    last_attempt_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.get_kind_display()}: {self.name} ({self.email})"
 
 class Payment(models.Model):
     STATUS = [

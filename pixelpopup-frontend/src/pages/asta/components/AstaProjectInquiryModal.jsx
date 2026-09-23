@@ -15,6 +15,8 @@ import {
   Zap,
 } from "lucide-react";
 import { contact } from "../astaData";
+import TurnstileWidget from "../../portfolio/components/TurnstileWidget";
+import { newSubmissionId, submitInquiry } from "../../../lib/inquiries";
 
 const initialValues = {
   fullName: "",
@@ -25,6 +27,18 @@ const initialValues = {
   budget: "",
   message: "",
   consent: false,
+};
+
+const statusMessages = {
+  idle: "Your details will be sent securely to ASTA.",
+  invalid: "Review the highlighted fields and try again.",
+  "verification-required": "Complete the bot verification before sending.",
+  "verification-failed": "Verification expired. Complete it again and retry.",
+  "rate-limited": "Too many attempts. Wait a few minutes and retry.",
+  sending: "Sending your inquiry…",
+  failed: "We could not confirm delivery. Verify again and retry.",
+  delayed: "Your inquiry was saved, but email notification is delayed. You do not need to send it again.",
+  sent: "Your inquiry was sent. We’ll be in touch.",
 };
 
 function validate(values) {
@@ -42,9 +56,12 @@ export default function AstaProjectInquiryModal({ onClose }) {
   const dialogRef = useRef(null);
   const formRef = useRef(null);
   const firstFieldRef = useRef(null);
+  const submissionIdRef = useRef(null);
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -59,6 +76,7 @@ export default function AstaProjectInquiryModal({ onClose }) {
     const { name, type, checked, value } = event.target;
     setValues((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
     setErrors((current) => ({ ...current, [name]: undefined }));
+    submissionIdRef.current = null;
   }
 
   function handleKeyDown(event) {
@@ -70,7 +88,7 @@ export default function AstaProjectInquiryModal({ onClose }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (status === "preparing") return;
+    if (["sending", "sent", "delayed"].includes(status)) return;
     const nextErrors = validate(values);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
@@ -79,21 +97,36 @@ export default function AstaProjectInquiryModal({ onClose }) {
       return;
     }
 
-    setStatus("preparing");
-    await new Promise((resolve) => window.setTimeout(resolve, 220));
-    const subject = encodeURIComponent(`Project inquiry: ${values.projectType}`);
-    const body = encodeURIComponent([
-      `Name: ${values.fullName}`,
-      `Email: ${values.email}`,
-      `Company: ${values.company || "Not provided"}`,
-      `Project type: ${values.projectType}`,
-      `Timeline: ${values.timeline || "Open to discuss"}`,
-      `Budget: ${values.budget || "Open to discuss"}`,
-      "",
-      values.message,
-    ].join("\n"));
-    setStatus("ready");
-    window.location.href = `mailto:${contact.email}?subject=${subject}&body=${body}`;
+    if (!turnstileToken) {
+      setStatus("verification-required");
+      return;
+    }
+
+    setStatus("sending");
+    try {
+      submissionIdRef.current ||= newSubmissionId();
+      const result = await submitInquiry({
+        kind: "asta_project", submissionId: submissionIdRef.current,
+        name: values.fullName.trim(), email: values.email.trim(),
+        company: values.company.trim(), projectType: values.projectType,
+        timeline: values.timeline, budget: values.budget,
+        message: values.message.trim(), consent: values.consent,
+        companyWebsite: String(new FormData(formRef.current).get("companyWebsite") || "").trim(),
+        turnstileToken,
+      });
+      if (result.deliveryStatus !== "sent") {
+        setStatus("delayed");
+      } else {
+        setValues(initialValues);
+        setStatus("sent");
+      }
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
+    } catch (error) {
+      setStatus(error.code === "BOT_VERIFICATION_FAILED" ? "verification-failed" : error.status === 429 ? "rate-limited" : error.status === 503 ? "unavailable" : "failed");
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
+    }
   }
 
   return (
@@ -107,7 +140,7 @@ export default function AstaProjectInquiryModal({ onClose }) {
           </div>
           <div className="asta-project-dialog__intro-copy">
             <h2>Hire ASTA to build around <span>your business.</span></h2>
-            <p>Share the problem, workflow, or product you want to improve. We’ll turn your answers into an email you can review before sending.</p>
+            <p>Share the problem, workflow, or product you want to improve. We’ll send your inquiry securely to our team.</p>
             <ul aria-label="What to expect from ASTA">
               <li><Zap aria-hidden="true" /><span>Strategic thinking</span></li>
               <li><UsersRound aria-hidden="true" /><span>Technical excellence</span></li>
@@ -120,10 +153,11 @@ export default function AstaProjectInquiryModal({ onClose }) {
           </a>
           <p className="asta-project-dialog__path"><span>Ideas</span><ArrowRight aria-hidden="true" /><span>Build</span><ArrowRight aria-hidden="true" /><span>Grow together</span></p>
         </aside>
-        <form ref={formRef} className="asta-project-dialog__form" onSubmit={handleSubmit} noValidate>
+        <form ref={formRef} className="asta-project-dialog__form" onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>
+          <label className="sr-only" aria-hidden="true">Company website<input name="companyWebsite" type="text" tabIndex="-1" autoComplete="off" /></label>
           <header className="asta-project-dialog__form-heading">
             <h2 id="asta-project-dialog-title">Project inquiry</h2>
-            <p>Tell us about your project and we’ll prepare an email to ASTA.</p>
+            <p>Tell us about your project and we’ll send your inquiry to ASTA.</p>
           </header>
           <div className="asta-project-dialog__grid">
             <ModalField icon={UserRound} inputRef={firstFieldRef} label="Full name" name="fullName" value={values.fullName} error={errors.fullName} onChange={updateField} autoComplete="name" placeholder="Your name" />
@@ -136,9 +170,12 @@ export default function AstaProjectInquiryModal({ onClose }) {
           <label className="asta-field asta-field--wide" htmlFor="asta-project-message"><span className="asta-field__label"><FileText aria-hidden="true" />What do you want to build?</span><textarea id="asta-project-message" name="message" rows="4" value={values.message} onChange={updateField} placeholder="Tell us about your goals, the problem you’re solving, key features, or anything else we should know." aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "asta-project-message-error" : undefined} />{errors.message ? <small id="asta-project-message-error" className="asta-field__error">{errors.message}</small> : null}</label>
           <label className="asta-consent"><input name="consent" type="checkbox" checked={values.consent} onChange={updateField} aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "asta-project-consent-error" : undefined} /><span>I agree that ASTA may contact me about this project inquiry.</span></label>
           {errors.consent ? <small id="asta-project-consent-error" className="asta-field__error">{errors.consent}</small> : null}
+          <div className="mt-5 border border-[#dce4ec] bg-[#f2f6fa] px-4 pb-4 pt-px text-[#10243e] [&>p]:text-sm [&>p]:text-amber-800">
+            <TurnstileWidget key={turnstileResetKey} action="asta-project" onTokenChange={setTurnstileToken} />
+          </div>
           <div className="asta-project-dialog__actions">
-            <button type="submit" disabled={status === "preparing"}>{status === "preparing" ? "Preparing email…" : "Prepare project email"}<ArrowRight aria-hidden="true" /></button>
-            <p role="status" aria-live="polite"><LockKeyhole aria-hidden="true" /><span>{status === "invalid" ? "Review the highlighted fields and try again." : status === "ready" ? "Your email draft is ready. Send it from your email app when you are satisfied." : `The form prepares an email to ${contact.email}.`}</span></p>
+            <button type="submit" disabled={["sending", "sent", "delayed"].includes(status)}>{status === "sending" ? "Sending inquiry…" : status === "sent" || status === "delayed" ? "Inquiry received" : "Send project inquiry"}<ArrowRight aria-hidden="true" /></button>
+            <p role="status" aria-live="polite"><LockKeyhole aria-hidden="true" /><span>{status === "unavailable" ? `The form is unavailable. Email ${contact.email} directly.` : statusMessages[status] || statusMessages.idle}</span></p>
           </div>
         </form>
       </div>

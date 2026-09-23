@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap");
-
 .asta-site {
+  --asta-font-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --asta-font-body: "Instrument Sans", Arial, sans-serif;
   --asta-blue: #1570ef;
   --asta-blue-dark: #0b55c7;
   --asta-navy: #071a33;
@@ -15,7 +15,7 @@
   overflow: clip;
   background: var(--asta-white);
   color: var(--asta-ink);
-  font-family: "Public Sans", Arial, sans-serif;
+  font-family: var(--asta-font-body);
   font-size: 16px;
   line-height: 1.6;
   text-align: left;
@@ -25,7 +25,11 @@
 .asta-site a { color: inherit; font-weight: inherit; }
 .asta-site img { display: block; max-width: 100%; }
 .asta-site h1, .asta-site h2, .asta-site h3, .asta-site p { margin: 0; }
-.asta-site h1, .asta-site h2, .asta-site h3 { color: inherit; font-weight: 600; }
+.asta-site h1, .asta-site h2, .asta-site h3 {
+  color: inherit;
+  font-family: var(--asta-font-display);
+  font-weight: 600;
+}
 .asta-site section[id] { scroll-margin-top: 88px; }
 .asta-container { width: min(100% - 48px, 1240px); margin-inline: auto; }
 

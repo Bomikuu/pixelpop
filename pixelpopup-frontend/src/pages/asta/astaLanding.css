@@ -470,8 +470,7 @@
   transition: transform 220ms ease-out, border-color 220ms ease-out, background-color 220ms ease-out, box-shadow 220ms ease-out;
 }
 
-.asta-service-card::after,
-.asta-technology-item::after {
+.asta-service-card::after {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -492,8 +491,7 @@
   transform: translateY(-4px);
 }
 
-.asta-service-card:hover::after,
-.asta-technology-item:hover::after {
+.asta-service-card:hover::after {
   transform: scaleX(1);
 }
 
@@ -531,91 +529,6 @@
   color: var(--asta-muted);
   font-size: 14px;
   line-height: 1.65;
-}
-
-.asta-home-technology {
-  background: var(--asta-navy);
-  color: #ffffff;
-}
-
-.asta-technology-groups {
-  display: grid;
-  grid-template-columns: 1fr;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-  border-left: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.asta-technology-group {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: 170px minmax(0, 1fr);
-  border-right: 1px solid rgba(255, 255, 255, 0.18);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.asta-technology-group h3 {
-  display: flex;
-  align-items: center;
-  border-right: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 20px 24px;
-  color: #dbe9f7;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.asta-technology-group ul {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.asta-technology-item {
-  position: relative;
-  display: grid;
-  min-height: 76px;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 14px 22px;
-  transition: background-color 200ms ease-out;
-}
-
-.asta-technology-item:last-child {
-  border-right: 0;
-}
-
-.asta-technology-item:hover {
-  background: rgba(21, 112, 239, 0.12);
-}
-
-.asta-technology-item img {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  transition: transform 200ms ease-out;
-}
-
-.asta-technology-item:hover img {
-  transform: translateY(-3px);
-}
-
-.asta-technology-item span {
-  display: grid;
-  gap: 2px;
-}
-
-.asta-technology-item strong {
-  color: #ffffff;
-  font-size: 14px;
-}
-
-.asta-technology-item small {
-  color: #8fa8c2;
-  font-size: 11px;
 }
 
 .asta-home-team {
@@ -1598,29 +1511,6 @@
 
   .asta-team-card__media {
     aspect-ratio: 4 / 4.6;
-  }
-
-  .asta-technology-group {
-    grid-template-columns: 1fr;
-  }
-
-  .asta-technology-group h3 {
-    min-height: 56px;
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-  }
-
-  .asta-technology-group ul {
-    grid-template-columns: 1fr;
-  }
-
-  .asta-technology-item {
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  }
-
-  .asta-technology-item:last-child {
-    border-bottom: 0;
   }
 
   .asta-team-card__socials {

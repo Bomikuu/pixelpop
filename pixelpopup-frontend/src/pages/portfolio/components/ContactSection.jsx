@@ -1,4 +1,4 @@
-import { createElement, useState } from "react";
+import { createElement, useRef, useState } from "react";
 import {
   ArrowUpRight,
   Github,
@@ -12,6 +12,7 @@ import {
 import { portfolioLinks } from "../portfolioData";
 import Reveal from "./Reveal";
 import TurnstileWidget from "./TurnstileWidget";
+import { newSubmissionId, submitInquiry } from "../../../lib/inquiries";
 
 const iconMap = { LinkedIn: Linkedin, GitHub: Github, Email: Mail };
 
@@ -62,10 +63,12 @@ export default function ContactSection({
   const [messageLength, setMessageLength] = useState(0);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [deliveryDelayed, setDeliveryDelayed] = useState(false);
+  const submissionIdRef = useRef(null);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting || deliveryDelayed) return;
 
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -81,6 +84,12 @@ export default function ContactSection({
     const projectType = String(data.get("projectType") || "").slice(0, 80);
     const message = String(data.get("message") || "").trim().slice(0, 2000);
 
+    if (!name || !/^\S+@\S+\.\S+$/.test(email) || !projectType || message.length < 10) {
+      setStatus("Complete your name, email, project type, and at least 10 characters of project details.");
+      form.querySelector(!name ? '[name="name"]' : !/^\S+@\S+\.\S+$/.test(email) ? '[name="email"]' : !projectType ? '[name="projectType"]' : '[name="message"]')?.focus();
+      return;
+    }
+
     if (!turnstileToken) {
       setStatus("Please complete the bot verification before sending.");
       return;
@@ -90,43 +99,40 @@ export default function ContactSection({
     setStatus("Sending your inquiry...");
 
     try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          projectType,
-          message,
-          companyWebsite: honeypot,
-          turnstileToken,
-        }),
+      submissionIdRef.current ||= newSubmissionId();
+      const result = await submitInquiry({
+        kind: "portfolio_contact", submissionId: submissionIdRef.current,
+        name, email, projectType, message, companyWebsite: honeypot, turnstileToken,
       });
-      const result = await response.json().catch(() => ({}));
 
-      if (!response.ok) {
-        if (result.error === "BOT_VERIFICATION_FAILED") {
-          setStatus("Bot verification expired. Please complete it again.");
-          setTurnstileToken("");
-          setTurnstileResetKey((current) => current + 1);
-          return;
-        }
-
-        if (result.error === "RATE_LIMITED") {
-          setStatus("Too many attempts. Please wait a few minutes and try again.");
-          return;
-        }
-
-        throw new Error("Contact request failed");
+      if (result.deliveryStatus !== "sent") {
+        setDeliveryDelayed(true);
+        setStatus("Your inquiry was saved, but the email notification is delayed. You do not need to send it again.");
+        setTurnstileToken("");
+        setTurnstileResetKey((current) => current + 1);
+        return;
       }
 
       form.reset();
+      submissionIdRef.current = null;
       setMessageLength(0);
       setTurnstileToken("");
       setTurnstileResetKey((current) => current + 1);
       setStatus("Thanks — your inquiry was sent successfully.");
-    } catch {
-      setStatus("Unable to send your inquiry. Please try again or email me directly.");
+    } catch (error) {
+      if (error.code === "BOT_VERIFICATION_FAILED") {
+        setStatus("Bot verification expired. Please complete it again.");
+      } else if (error.status === 429) {
+        setStatus("Too many attempts. Please wait a few minutes and try again.");
+      } else if (error.status === 503) {
+        setStatus("The contact form is unavailable right now. Please email me directly.");
+      } else if (error.code === "VALIDATION_ERROR") {
+        setStatus("Review your details and try again.");
+      } else {
+        setStatus("Unable to confirm your inquiry. Please verify again and retry, or email me directly.");
+      }
+      setTurnstileToken("");
+      setTurnstileResetKey((current) => current + 1);
     } finally {
       setIsSubmitting(false);
     }
@@ -134,6 +140,8 @@ export default function ContactSection({
 
   const statusTone = status.startsWith("Thanks")
     ? "text-emerald-700"
+    : deliveryDelayed
+      ? "text-amber-800"
     : status.startsWith("Sending")
       ? "text-[#2f5bff]"
       : "text-rose-700";
@@ -206,10 +214,12 @@ export default function ContactSection({
           <Reveal delay={1}>
             <form
               onSubmit={handleSubmit}
+              onChange={() => { if (!deliveryDelayed) submissionIdRef.current = null; }}
+              noValidate
               aria-busy={isSubmitting}
               className="rounded-3xl bg-white p-6 text-slate-950 shadow-[0_32px_90px_-52px_rgba(0,0,0,0.78)] sm:p-8 lg:p-10"
             >
-              <label className="absolute -left-[10000px] top-auto size-px overflow-hidden" aria-hidden="true">
+              <label className="sr-only" aria-hidden="true">
                 Company website
                 <input
                   name="companyWebsite"
@@ -293,10 +303,10 @@ export default function ContactSection({
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || deliveryDelayed}
                 className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#2f5bff] px-5 py-3.5 font-semibold text-white transition hover:bg-[#2149dc] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff] disabled:cursor-wait disabled:opacity-65"
               >
-                {isSubmitting ? "Sending..." : "Send inquiry"}
+                {isSubmitting ? "Sending..." : deliveryDelayed ? "Inquiry received" : "Send inquiry"}
                 <ArrowUpRight size={18} aria-hidden="true" />
               </button>
               <p className={`mt-3 min-h-6 text-sm ${statusTone}`} role="status" aria-live="polite">

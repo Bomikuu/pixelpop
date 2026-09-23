@@ -10,6 +10,7 @@ from .models import (
     ArticleTag,
     Asset,
     ClientRequest,
+    InquirySubmission,
     CoverLetter,
     CoverLetterTemplate,
     JobApplication,
@@ -19,6 +20,7 @@ from .models import (
     Scene,
 )
 from pixelpopup.api.preflight import run_page_preflight
+from pixelpopup.api.inquiry_service import inquiry_service_configured, retry_failed_inquiry
 
 
 JSON_WIDGET = JSONEditorWidget(
@@ -28,6 +30,33 @@ JSON_WIDGET = JSONEditorWidget(
         "search": True,
     },
 )
+
+
+@admin.action(description="Retry selected failed inquiry notifications")
+def retry_inquiry_notifications(modeladmin, request, queryset):
+    if not inquiry_service_configured():
+        messages.error(request, "Inquiry email delivery is not configured.")
+        return
+    retried = sum(retry_failed_inquiry(submission) for submission in queryset)
+    if retried:
+        messages.info(request, f"Retried {retried} inquiry notification(s). Check delivery status for the result.")
+    if retried < queryset.count():
+        messages.warning(request, "Some inquiries were skipped because they were not failed or need review after 24 hours.")
+
+
+@admin.register(InquirySubmission)
+class InquirySubmissionAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "kind", "name", "email", "delivery_status", "failure_category")
+    list_filter = ("kind", "delivery_status", "created_at")
+    search_fields = ("name", "email", "resend_message_id")
+    readonly_fields = (
+        "id", "kind", "name", "email", "details", "payload_hash", "delivery_status",
+        "resend_message_id", "failure_category", "last_attempt_at", "created_at", "updated_at",
+    )
+    actions = [retry_inquiry_notifications]
+
+    def has_add_permission(self, request):
+        return False
 
 
 # ---------- Inlines ----------

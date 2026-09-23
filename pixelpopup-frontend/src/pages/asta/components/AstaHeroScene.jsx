@@ -92,11 +92,11 @@ export default function AstaHeroScene() {
         root.add(outline);
       });
 
-      const coreGeometry = track(new THREE.IcosahedronGeometry(1.12, 1));
+      const coreGeometry = track(new THREE.IcosahedronGeometry(1.55, 2));
       const coreMaterial = track(new THREE.MeshBasicMaterial({
-        color: 0x8fc4ff,
+        color: 0x4097ee,
         transparent: true,
-        opacity: 0.3,
+        opacity: 0.42,
         wireframe: true,
       }));
       const core = new THREE.Mesh(coreGeometry, coreMaterial);

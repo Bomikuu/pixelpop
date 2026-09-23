@@ -8,7 +8,7 @@ function isConfigured(value) {
   return Boolean(value && !value.includes("<key here>"));
 }
 
-export default function TurnstileWidget({ onTokenChange }) {
+export default function TurnstileWidget({ onTokenChange, action = "portfolio-contact" }) {
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
@@ -24,7 +24,7 @@ export default function TurnstileWidget({ onTokenChange }) {
 
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
-        action: "portfolio-contact",
+        action,
         theme: "light",
         size: "flexible",
         callback: onTokenChange,
@@ -56,7 +56,7 @@ export default function TurnstileWidget({ onTokenChange }) {
       }
       onTokenChange("");
     };
-  }, [configured, onTokenChange, siteKey]);
+  }, [action, configured, onTokenChange, siteKey]);
 
   if (!configured) {
     return (
