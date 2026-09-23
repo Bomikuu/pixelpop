@@ -19,12 +19,14 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from pixelpopup.api.inquiry_views import InquirySubmissionView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
     path("api/v1/portfolio/", include("pixelpopup.api.portfolio_urls")),
+    path("api/v1/inquiries/", InquirySubmissionView.as_view(), name="inquiry-submissions"),
     path("api/", include("pixelpopup.api.urls")),
 ]
 

@@ -137,6 +137,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 database_url = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
+VERCEL = env_bool("VERCEL")
+INQUIRY_HAS_PERSISTENT_DATABASE = bool(database_url)
 
 if database_url:
     parsed_database_url = urlparse(database_url)
@@ -190,8 +192,13 @@ PASSWORD_HASHERS = [
 
 CORS_ALLOWED_ORIGINS = env_list(
     "DJANGO_CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,http://localhost:5174,http://localhost:3000",
+    "http://localhost:5173,http://localhost:5174,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:5174" if DEBUG else "",
 )
+
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "")
+INQUIRY_TO_EMAIL = os.getenv("INQUIRY_TO_EMAIL", "mico.dahang@gmail.com")
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
 
 PORTFOLIO_AUTHOR_PROFILE_SLUG = os.getenv("PORTFOLIO_AUTHOR_PROFILE_SLUG", "mico-ang")
 

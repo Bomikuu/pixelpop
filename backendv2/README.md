@@ -335,6 +335,14 @@ Content workflow:
 4. Create a versioned `CoverLetter`, then publish it when ready.
 5. Create article categories and tags before publishing articles.
 
+Inquiry delivery:
+
+- `POST /api/v1/inquiries/` accepts the portfolio contact, ASTA project, and ASTA careers forms. Submissions are visible to staff in Django Admin under Inquiry submissions.
+- Set `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (an address on a verified Resend domain), `INQUIRY_TO_EMAIL=mico.dahang@gmail.com`, and `TURNSTILE_SECRET_KEY` on the Django deployment. Set `VITE_API_BASE_URL` and `VITE_TURNSTILE_SITE_KEY` on the frontend deployment, and allow its origin with `DJANGO_CORS_ALLOWED_ORIGINS`.
+- Apply migrations before enabling the forms. Vercel deployments also require persistent PostgreSQL through `DATABASE_URL` or `POSTGRES_URL`; the endpoint refuses submissions when only ephemeral SQLite is configured.
+- If Resend does not accept a notification, the submission remains in Admin with `failed` status. Staff can retry within 24 hours; older uncertain failures require manual review to avoid duplicate email.
+- Use Cloudflare's [test keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/) and mocked Resend calls for development. Do not put the Resend or Turnstile secret in frontend environment variables.
+
 ✅ Backend architecture complete
 ✅ Admin workflow usable
 ✅ Validation + safety in place

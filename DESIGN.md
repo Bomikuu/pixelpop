@@ -23,24 +23,24 @@ colors:
   asta-border: "#dce4ec"
 typography:
   display:
-    fontFamily: "Public Sans, sans-serif"
+    fontFamily: "Saira Condensed, Arial Narrow, sans-serif"
     fontSize: "clamp(3rem, 7vw, 5.6rem)"
     fontWeight: 600
     lineHeight: 0.98
     letterSpacing: "-0.04em"
   headline:
-    fontFamily: "Public Sans, sans-serif"
+    fontFamily: "Saira Condensed, Arial Narrow, sans-serif"
     fontSize: "clamp(2.25rem, 5vw, 3.75rem)"
     fontWeight: 600
     lineHeight: 1.02
     letterSpacing: "-0.035em"
   body:
-    fontFamily: "Public Sans, sans-serif"
+    fontFamily: "Instrument Sans, Arial, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.75
   label:
-    fontFamily: "Public Sans, sans-serif"
+    fontFamily: "Instrument Sans, Arial, sans-serif"
     fontSize: "0.875rem"
     fontWeight: 600
     lineHeight: 1.5
@@ -243,9 +243,9 @@ Review cards use an editorial dark field, five amber stars, readable quote text,
 
 ### ASTA Company Surface
 
-The ASTA routes extend the product-engineering world into a sharp, structured software-agency expression. They use ASTA Action for conversion and process emphasis, ASTA Delivery Navy for hero messaging, technology, and conversion fields, and ASTA Soft Field for company evidence. Public Sans remains the common type voice; display tracking never exceeds -0.04em.
+The ASTA routes extend the product-engineering world into a sharp, structured software-agency expression. They use ASTA Action for conversion and process emphasis, ASTA Delivery Navy for hero messaging, technology, and conversion fields, and ASTA Soft Field for company evidence. ASTA shares the portfolio's typography system: Saira Condensed for display headings and Instrument Sans for body copy, controls, labels, and supporting text. Display tracking never exceeds -0.04em.
 
-The landing page uses a compact 64px header and a full-viewport team-photography hero. A bottom-left navy panel occupies roughly half of the image and ends in a clean diagonal edge. Both “Start a project” actions open one focused client-inquiry dialog that prepares a reviewable email to ASTA. Below the hero, four delivery steps form one connected white workflow, followed by a structured services grid, a categorized navy technology matrix, JSON-driven team profiles, an editorial company-activities carousel with a near-viewport accessible lightbox, honest testimonial-reservation states, and a careers application form that prepares an email until a recruitment API is connected. At 860px and below, the hero panel becomes full-width and each grid or matrix reflows into progressively simpler columns without page-level overflow.
+The landing page uses a compact 64px header and a full-viewport team-photography hero. A bottom-left navy panel occupies roughly half of the image and ends in a clean diagonal edge. Both “Start a project” actions open one focused client-inquiry dialog that records the inquiry in Django and sends a Resend notification. Below the hero, four delivery steps form one connected white workflow, followed by a structured services grid, a categorized navy technology matrix, JSON-driven team profiles, an editorial company-activities carousel with a near-viewport accessible lightbox, honest testimonial-reservation states, and a careers application form using the same delivery flow. At 860px and below, the hero panel becomes full-width and each grid or matrix reflows into progressively simpler columns without page-level overflow.
 
 ASTA is flat by default. One-pixel dividers, tonal fields, and photographic overlays create hierarchy without card shadows. Primary buttons use a sharp three-pixel radius; process cells, technology cells, founder profiles, reviews, and photographs remain square. The route-specific sharpness does not replace the portfolio's existing radius hierarchy.
 
