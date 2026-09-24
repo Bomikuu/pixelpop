@@ -1,12 +1,13 @@
 {
   "rewrites": [
+    { "source": "/", "destination": "/index.html" },
     { "source": "/portfolio", "destination": "/portfolio/index.html" },
     { "source": "/portfolio/:path*", "destination": "/portfolio/:path*/index.html" },
     { "source": "/asta", "destination": "/asta/index.html" },
     { "source": "/asta/:path*", "destination": "/asta/:path*/index.html" },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/_fallback/index.html"
     }
   ]
 }

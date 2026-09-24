@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect } from "react";
+import { useLocation } from "react-router-dom";
 import AboutSection from "./components/AboutSection";
 import ActivitySection from "./components/ActivitySection";
 import ArticlesCarouselSection from "./components/ArticlesCarouselSection";
@@ -17,6 +18,9 @@ import TimelineSection from "./components/TimelineSection";
 import "./portfolioModern.css";
 
 function usePortfolioDocument() {
+  const { pathname } = useLocation();
+  const pagePath = pathname === "/" ? "/" : "/portfolio";
+
   useLayoutEffect(() => {
     document.body.classList.add("portfolio-motion-ready");
     return () => document.body.classList.remove("portfolio-motion-ready");
@@ -30,7 +34,7 @@ function usePortfolioDocument() {
       ["property", "og:type", "website"],
       ["property", "og:title", title],
       ["property", "og:description", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products."],
-      ["property", "og:url", new URL("/portfolio", window.location.origin).href],
+      ["property", "og:url", new URL(pagePath, window.location.origin).href],
       ["property", "og:image", new URL("/portfolio/assets/mico-ang-portrait.jpg", window.location.origin).href],
       ["name", "twitter:card", "summary_large_image"],
       ["name", "twitter:title", title],
@@ -54,14 +58,14 @@ function usePortfolioDocument() {
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = new URL("/portfolio", window.location.origin).href;
+    canonical.href = new URL(pagePath, window.location.origin).href;
 
     return () => {
       document.title = "PixelPopup";
       elements.forEach((element) => element.remove());
       canonical.remove();
     };
-  }, []);
+  }, [pagePath]);
 }
 
 export default function PortfolioModern() {

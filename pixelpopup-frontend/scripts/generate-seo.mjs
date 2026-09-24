@@ -16,6 +16,7 @@ function add(pathname, title, description, keywords, image = portfolioImage) {
   routes.push({ pathname, title, description, keywords, image });
 }
 
+add("/", "Mico Ang | Senior Frontend & Full-Stack Developer", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products.", "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead");
 add("/portfolio", "Mico Ang | Senior Frontend & Full-Stack Developer", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products.", "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead");
 add("/portfolio/work-with-me", "Work with Mico Ang | Frontend & Full-Stack Development", "Work with Mico Ang directly or engage ASTA Softwares for frontend leadership, full-stack product delivery, and coordinated software development.", "hire frontend developer, full-stack development, technical leadership, Mico Ang");
 add("/portfolio/services", "Web Product Services | Mico Ang", "Explore Mico Ang's services in web development, 3D, AI automation, content systems, performance, technical SEO, and product support.", "web development services, Three.js development, AI automation, technical SEO, Mico Ang");
@@ -80,6 +81,9 @@ function escapeHtml(value) {
 }
 
 const template = await readFile(path.join(dist, "index.html"), "utf8");
+const fallbackDirectory = path.join(dist, "_fallback");
+await mkdir(fallbackDirectory, { recursive: true });
+await writeFile(path.join(fallbackDirectory, "index.html"), template);
 const fallbackStyles = `<style>
       .seo-fallback{box-sizing:border-box;min-height:100vh;background:#f8fafc;color:#0f172a;font-family:"Instrument Sans",Arial,sans-serif}
       .seo-fallback *{box-sizing:border-box}.seo-fallback header{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1280px;margin:auto;padding:0 24px;border-bottom:1px solid #e2e8f0}
@@ -98,7 +102,7 @@ for (const route of routes) {
     ? { "@context": "https://schema.org", "@type": "Article", headline: route.title.replace(/ \| Mico Ang$/, ""), description: route.description, image: route.image, url, author: { "@type": "Person", name: "Mico Ang" } }
     : isAsta
       ? { "@context": "https://schema.org", "@type": "Organization", name: "ASTA Softwares", url: `${origin}/asta`, image: astaImage, description: route.description }
-      : { "@context": "https://schema.org", "@type": "Person", name: "Mico Ang", url: `${origin}/portfolio`, image: portfolioImage, description: route.description };
+      : { "@context": "https://schema.org", "@type": "Person", name: "Mico Ang", url: `${origin}${route.pathname === "/" ? "/" : "/portfolio"}`, image: portfolioImage, description: route.description };
   const meta = [
     `<meta name="description" content="${escapeHtml(route.description)}" />`,
     `<meta name="keywords" content="${escapeHtml(route.keywords)}" />`,
@@ -116,7 +120,7 @@ for (const route of routes) {
     `<meta name="twitter:image" content="${escapeHtml(route.image)}" />`,
     `<script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g, "\\u003c")}</script>`,
   ].join("\n    ");
-  const home = route.pathname === "/portfolio";
+  const home = route.pathname === "/" || route.pathname === "/portfolio";
   const astaHome = route.pathname === "/asta";
   const fallbackHeading = home ? "Meet <span>Mico Ang.</span>" : astaHome ? "<span>ASTA</span> Softwares" : escapeHtml(route.title.replace(/ \| (Mico Ang|ASTA Softwares)$/, ""));
   const fallbackDescription = home
@@ -124,7 +128,7 @@ for (const route of routes) {
     : astaHome
       ? "We build custom software around real business workflows — helping your team work smarter, move faster, and achieve more."
       : route.description;
-  const fallback = `<div class="seo-fallback${isAsta ? " seo-fallback--asta" : ""}"><header><a href="${isAsta ? "/asta" : "/portfolio"}">${isAsta ? "ASTA Softwares" : "Mico Ang"}</a><nav aria-label="Primary"><a href="/portfolio">Portfolio</a><a href="/asta">ASTA</a></nav></header><main><h1>${fallbackHeading}</h1><p>${escapeHtml(fallbackDescription)}</p><a class="seo-fallback-cta" href="${isAsta ? "/asta/services" : "/portfolio/work-with-me"}">${isAsta ? "Explore services" : "Work with me"}</a></main></div>`;
+  const fallback = `<div class="seo-fallback${isAsta ? " seo-fallback--asta" : ""}"><header><a href="${isAsta ? "/asta" : route.pathname === "/" ? "/" : "/portfolio"}">${isAsta ? "ASTA Softwares" : "Mico Ang"}</a><nav aria-label="Primary"><a href="/portfolio">Portfolio</a><a href="/asta">ASTA</a></nav></header><main><h1>${fallbackHeading}</h1><p>${escapeHtml(fallbackDescription)}</p><a class="seo-fallback-cta" href="${isAsta ? "/asta/services" : "/portfolio/work-with-me"}">${isAsta ? "Explore services" : "Work with me"}</a></main></div>`;
   const html = template
     .replace('<meta name="robots" content="noindex,follow" />', '<meta name="robots" content="index,follow" />')
     .replace(/<title>.*?<\/title>/, `<title>${escapeHtml(route.title)}</title>`)
