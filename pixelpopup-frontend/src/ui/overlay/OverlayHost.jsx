@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { subscribeOverlay } from "./overlayBus";
-import { RetroModal, ToastHost, RetroLoading, useToastController  } from "../retro";
+import RetroModal from "../retro/Modal";
+import ToastHost, { useToastController } from "../retro/Toast";
+import RetroLoading from "../retro/Loading";
 import EffectsHost, { dispatchEffect } from "./EffectsHost";
 
 const cx = (...c) => c.filter(Boolean).join(" ");

@@ -66,6 +66,8 @@ export default function ArticleDetailPage() {
       title={article?.seo_title || article?.title || "Article"}
       description={article?.seo_description || article?.excerpt || "Article by Mico Ang."}
       canonicalPath={`/portfolio/articles/${articleSlug}`}
+      image={article?.cover_image_url}
+      type="article"
     >
       {loading ? <ArticleDetailSkeleton /> : null}
 

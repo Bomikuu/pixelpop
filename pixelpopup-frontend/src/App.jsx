@@ -1,40 +1,40 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import UiKitPage from "./pages/UiKitPage";
-import OverlayPlayground from "./pages/OverlayPlayground";
-import ComponentsPage from "./pages/ComponentsPage";
-import SkillsPage from "./pages/SkillsPage";
-import McpPage from "./pages/McpPage";
-import ExamplesPlaygroundPage from "./pages/ExamplesPlaygroundPage";
 import { OverlayHost } from "./ui/overlay";
 import RoamingCatMascot from "./ui/mascot/RoamingCatMascot";
 import PortfolioModern from "./pages/portfolio/PortfolioModern";
-import PortfolioProjectPage from "./pages/portfolio/PortfolioProjectPage";
-import IntroductionLetterPage from "./pages/portfolio/application/IntroductionLetterPage";
-import IntroVideoPage from "./pages/portfolio/application/IntroVideoPage";
-import WorkSetupPage from "./pages/portfolio/application/WorkSetupPage";
-import ArticleIndexPage from "./pages/portfolio/articles/ArticleIndexPage";
-import ArticleDetailPage from "./pages/portfolio/articles/ArticleDetailPage";
-import InterviewReviewPage from "./pages/portfolio/interview/InterviewReviewPage";
-import InterviewReferencePage from "./pages/portfolio/interview/InterviewReferencePage";
-import AiPromptGuidePage from "./pages/portfolio/guide/AiPromptGuidePage";
-import WorkWithMePage from "./pages/portfolio/work-with-me/WorkWithMePage";
-import PortfolioServicesPage from "./pages/portfolio/services/PortfolioServicesPage";
-import PortfolioServiceDetailPage from "./pages/portfolio/services/PortfolioServiceDetailPage";
-import AstaLandingPage from "./pages/asta/AstaLandingPage";
-import AstaTeamPage from "./pages/asta/AstaTeamPage";
-import AstaServicesPage from "./pages/asta/AstaServicesPage";
-import AstaServiceDetailPage from "./pages/asta/AstaServiceDetailPage";
-import SceneEngineDemo from "./pages/SceningDemo";
-// import FlowAuthoring from "./pages/FlowAuthoring";
-import FlowEditorPage from "./pages/FlowEditorPage";
-import DatePlannerPage from "./pages/DatePlannerPage";
-import VisualNovelPage from "./features/visual-novel/VisualNovelPage";
-import WeddingInvitationPage from "./features/wedding-invitation/WeddingInvitationPage";
-import WeddingPassportPage from "./features/wedding-passport/WeddingPassportPage";
-import RsvpVisualNovelPage from "./features/rsvp-visual-novel/RsvpVisualNovelPage";
-import ScoreboardPage from "./features/scoreboard/ScoreboardPage";
-import ScoreboardOverlayPage from "./features/scoreboard/ScoreboardOverlayPage";
+const UiKitPage = lazy(() => import("./pages/UiKitPage"));
+const OverlayPlayground = lazy(() => import("./pages/OverlayPlayground"));
+const ComponentsPage = lazy(() => import("./pages/ComponentsPage"));
+const SkillsPage = lazy(() => import("./pages/SkillsPage"));
+const McpPage = lazy(() => import("./pages/McpPage"));
+const ExamplesPlaygroundPage = lazy(() => import("./pages/ExamplesPlaygroundPage"));
+const PortfolioProjectPage = lazy(() => import("./pages/portfolio/PortfolioProjectPage"));
+const IntroductionLetterPage = lazy(() => import("./pages/portfolio/application/IntroductionLetterPage"));
+const IntroVideoPage = lazy(() => import("./pages/portfolio/application/IntroVideoPage"));
+const WorkSetupPage = lazy(() => import("./pages/portfolio/application/WorkSetupPage"));
+const ArticleIndexPage = lazy(() => import("./pages/portfolio/articles/ArticleIndexPage"));
+const ArticleDetailPage = lazy(() => import("./pages/portfolio/articles/ArticleDetailPage"));
+const InterviewReviewPage = lazy(() => import("./pages/portfolio/interview/InterviewReviewPage"));
+const InterviewReferencePage = lazy(() => import("./pages/portfolio/interview/InterviewReferencePage"));
+const AiPromptGuidePage = lazy(() => import("./pages/portfolio/guide/AiPromptGuidePage"));
+const WorkWithMePage = lazy(() => import("./pages/portfolio/work-with-me/WorkWithMePage"));
+const PortfolioServicesPage = lazy(() => import("./pages/portfolio/services/PortfolioServicesPage"));
+const PortfolioServiceDetailPage = lazy(() => import("./pages/portfolio/services/PortfolioServiceDetailPage"));
+const AstaLandingPage = lazy(() => import("./pages/asta/AstaLandingPage"));
+const AstaTeamPage = lazy(() => import("./pages/asta/AstaTeamPage"));
+const AstaServicesPage = lazy(() => import("./pages/asta/AstaServicesPage"));
+const AstaServiceDetailPage = lazy(() => import("./pages/asta/AstaServiceDetailPage"));
+const SceneEngineDemo = lazy(() => import("./pages/SceningDemo"));
+const FlowEditorPage = lazy(() => import("./pages/FlowEditorPage"));
+const DatePlannerPage = lazy(() => import("./pages/DatePlannerPage"));
+const VisualNovelPage = lazy(() => import("./features/visual-novel/VisualNovelPage"));
+const WeddingInvitationPage = lazy(() => import("./features/wedding-invitation/WeddingInvitationPage"));
+const WeddingPassportPage = lazy(() => import("./features/wedding-passport/WeddingPassportPage"));
+const RsvpVisualNovelPage = lazy(() => import("./features/rsvp-visual-novel/RsvpVisualNovelPage"));
+const ScoreboardPage = lazy(() => import("./features/scoreboard/ScoreboardPage"));
+const ScoreboardOverlayPage = lazy(() => import("./features/scoreboard/ScoreboardOverlayPage"));
 export default function App() {
   return (
     <BrowserRouter>
@@ -42,6 +42,7 @@ export default function App() {
       <RoamingCatMascot />
 
       <div className="w-full">
+        <Suspense fallback={<main className="min-h-screen bg-[#f8fafc]" aria-busy="true" />}>
         <Routes>
           <Route path="/ui" element={<UiKitPage />} />
           <Route path="/overlay-playground" element={<OverlayPlayground />} />
@@ -80,11 +81,11 @@ export default function App() {
           <Route path="/scoreboard-overlay" element={<ScoreboardOverlayPage />} />
           {/* <Route path="/flow-author" element={<FlowAuthoring />} /> */}
 
-          {/* default */}
           <Route path="/" element={<Navigate to="/portfolio" replace />} />
           {/* fallback */}
-          <Route path="*" element={<Navigate to="/porfolio" replace />} />
+          <Route path="*" element={<Navigate to="/portfolio" replace />} />
         </Routes>
+        </Suspense>
       </div>
 
     </BrowserRouter>

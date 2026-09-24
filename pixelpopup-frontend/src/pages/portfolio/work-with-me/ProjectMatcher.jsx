@@ -91,7 +91,7 @@ export default function ProjectMatcher({ onChoose }) {
         title: "Your scope points to working with Mico.",
         description: "The work appears to benefit most from direct senior frontend judgment, hands-on delivery, and technical leadership.",
         projectType: "Hire Mico - embedded leadership",
-        image: "/portfolio/assets/mico-ang-pixel-portrait.png",
+        image: "/portfolio/assets/mico-ang-pixel-portrait.webp",
         imageAlt: "Pixel portrait of Mico Ang",
         visualLabel: "Direct senior ownership",
       };

@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "frontend-architecture-that-keeps-teams-moving",
+    "title": "Frontend Architecture That Keeps Product Teams Moving",
+    "excerpt": "A practical approach to frontend architecture that protects product quality without slowing down the people building it.",
+    "category": "Frontend Engineering"
+  },
+  {
+    "slug": "technical-seo-is-product-engineering",
+    "title": "Technical SEO Is Product Engineering, Not a Marketing Checklist",
+    "excerpt": "Search visibility improves when discoverability, performance, content structure, and measurement are treated as product requirements.",
+    "category": "Performance and SEO"
+  },
+  {
+    "slug": "ai-assisted-development-with-engineering-judgment",
+    "title": "AI-Assisted Development Without Giving Up Engineering Judgment",
+    "excerpt": "How I use AI to accelerate research, implementation, and review while keeping architecture, security, and product decisions accountable.",
+    "category": "AI and Delivery"
+  }
+]

@@ -107,7 +107,7 @@ export default function AboutSection() {
                   aria-pressed={showRealPortrait}
                   onClick={() => setShowRealPortrait((visible) => !visible)}
                 >
-                  <img src="/portfolio/assets/mico-ang-pixel-portrait.png" width="1536" height="1024" loading="lazy" decoding="async" alt="" className="portfolio-portrait-reveal__image portfolio-portrait-reveal__image--real" />
+                  <img src="/portfolio/assets/mico-ang-pixel-portrait.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="" className="portfolio-portrait-reveal__image portfolio-portrait-reveal__image--real" />
                   <img src="/portfolio/assets/mico-ang-portrait.jpg" width="900" height="900" loading="lazy" decoding="async" alt="" className="portfolio-portrait-reveal__image portfolio-portrait-reveal__image--illustrated" />
                   <span className="portfolio-portrait-reveal__hint" aria-hidden="true">Hover to reveal</span>
                 </button>

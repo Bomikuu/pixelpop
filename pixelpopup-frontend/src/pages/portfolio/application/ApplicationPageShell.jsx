@@ -3,7 +3,7 @@ import PortfolioFooter from "../components/PortfolioFooter";
 import PortfolioNav from "../components/PortfolioNav";
 import "../portfolioModern.css";
 
-export default function ApplicationPageShell({ title, description, canonicalPath, children }) {
+export default function ApplicationPageShell({ title, description, canonicalPath, image, type = "website", children }) {
   useLayoutEffect(() => {
     document.body.classList.add("portfolio-motion-ready");
     return () => document.body.classList.remove("portfolio-motion-ready");
@@ -12,13 +12,19 @@ export default function ApplicationPageShell({ title, description, canonicalPath
   useEffect(() => {
     const documentTitle = `${title} | Mico Ang`;
     const previousTitle = document.title;
+    const socialImage = new URL(image || "/portfolio/assets/mico-ang-portrait.jpg", window.location.origin).href;
     const metadata = [
       ["name", "description", description],
-      ["property", "og:type", "website"],
+      ["name", "keywords", `${title}, Mico Ang, frontend engineering, full-stack development`],
+      ["property", "og:type", type],
       ["property", "og:title", documentTitle],
       ["property", "og:description", description],
-      ["property", "og:url", canonicalPath],
-      ["property", "og:image", "/portfolio/assets/mico-ang-portrait.jpg"],
+      ["property", "og:url", new URL(canonicalPath, window.location.origin).href],
+      ["property", "og:image", socialImage],
+      ["name", "twitter:card", "summary_large_image"],
+      ["name", "twitter:title", documentTitle],
+      ["name", "twitter:description", description],
+      ["name", "twitter:image", socialImage],
     ];
     const managedElements = metadata.map(([attribute, key, content]) => {
       const existing = document.head.querySelector(`meta[${attribute}="${key}"]`);
@@ -38,7 +44,7 @@ export default function ApplicationPageShell({ title, description, canonicalPath
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = canonicalPath;
+    canonical.href = new URL(canonicalPath, window.location.origin).href;
     document.title = documentTitle;
 
     return () => {
@@ -50,7 +56,7 @@ export default function ApplicationPageShell({ title, description, canonicalPath
       if (existingCanonical) canonical.href = previousCanonical;
       else canonical.remove();
     };
-  }, [canonicalPath, description, title]);
+  }, [canonicalPath, description, image, title, type]);
 
   return (
     <div className="modern-portfolio min-h-screen bg-[#f8fafc] text-slate-950">

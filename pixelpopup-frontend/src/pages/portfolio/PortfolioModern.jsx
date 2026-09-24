@@ -24,16 +24,17 @@ function usePortfolioDocument() {
   useEffect(() => {
     const title = "Mico Ang | Senior Frontend & Full-Stack Developer";
     const metadata = [
-      ["name", "description", "Portfolio of Mico Ang, a senior frontend-focused full-stack developer and Co-founder & Technical Lead at ASTA Softwares."],
+      ["name", "description", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products."],
+      ["name", "keywords", "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead"],
       ["property", "og:type", "website"],
       ["property", "og:title", title],
-      ["property", "og:description", "Frontend architecture, full-stack delivery, SEO, performance, and technical leadership backed by real project evidence."],
-      ["property", "og:url", "/portfolio"],
-      ["property", "og:image", "/portfolio/assets/mico-ang-portrait.jpg"],
+      ["property", "og:description", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products."],
+      ["property", "og:url", new URL("/portfolio", window.location.origin).href],
+      ["property", "og:image", new URL("/portfolio/assets/mico-ang-portrait.jpg", window.location.origin).href],
       ["name", "twitter:card", "summary_large_image"],
       ["name", "twitter:title", title],
-      ["name", "twitter:description", "Frontend architecture, full-stack delivery, SEO, performance, and technical leadership backed by real project evidence."],
-      ["name", "twitter:image", "/portfolio/assets/mico-ang-portrait.jpg"],
+      ["name", "twitter:description", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products."],
+      ["name", "twitter:image", new URL("/portfolio/assets/mico-ang-portrait.jpg", window.location.origin).href],
     ];
     document.title = title;
     const elements = metadata.map(([attribute, key, content]) => {
@@ -52,7 +53,7 @@ function usePortfolioDocument() {
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = "/portfolio";
+    canonical.href = new URL("/portfolio", window.location.origin).href;
 
     return () => {
       document.title = "PixelPopup";

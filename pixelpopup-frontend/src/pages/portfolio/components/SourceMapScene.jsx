@@ -159,8 +159,24 @@ export default function SourceMapScene() {
       };
     };
 
+    // The decorative WebGL scene can wait on narrow screens while the page
+    // content and its first paint take priority.
+    const deferOnMobile = window.matchMedia("(max-width: 767px)").matches;
+    let delayTimer = 0;
     const loadObserver = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
+      if (!entry.isIntersecting) {
+        window.clearTimeout(delayTimer);
+        delayTimer = 0;
+        return;
+      }
+      if (deferOnMobile) {
+        if (!delayTimer) {
+          delayTimer = window.setTimeout(() => {
+            loadObserver.disconnect();
+            window.requestAnimationFrame(initialize);
+          }, 12000);
+        }
+      } else {
         loadObserver.disconnect();
         window.requestAnimationFrame(initialize);
       }
@@ -169,6 +185,7 @@ export default function SourceMapScene() {
 
     return () => {
       disposed = true;
+      window.clearTimeout(delayTimer);
       loadObserver.disconnect();
       cleanupScene();
     };

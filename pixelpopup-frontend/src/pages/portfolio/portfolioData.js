@@ -50,31 +50,31 @@ export const projects = [
     ],
     slides: [
       {
-        src: "/portfolio/walkspan/walkspan-neighborhood-entry.png",
+        src: "/portfolio/walkspan/walkspan-neighborhood-entry.webp",
         title: "Explore a neighborhood",
         caption: "Start from an address and move directly into its dashboard, must-haves, comparisons, essentials, and neighborhood character.",
         alt: "Walkspan neighborhood map centered on 845 United Nations Plaza with discovery navigation",
       },
       {
-        src: "/portfolio/walkspan/walkspan-neighborhood-dashboard.png",
+        src: "/portfolio/walkspan/walkspan-neighborhood-dashboard.webp",
         title: "Walkability at three distances",
         caption: "Compare what is available within 0.25, 0.5, and 1 mile, including establishment totals and neighborhood character ratings.",
         alt: "Walkspan dashboard showing walking distances, establishment categories, and neighborhood ratings",
       },
       {
-        src: "/portfolio/walkspan/walkspan-establishments-map.png",
+        src: "/portfolio/walkspan/walkspan-establishments-map.webp",
         title: "Establishments within reach",
         caption: "Inspect food, services, shops, transit, and leisure destinations across the selected walking radius.",
         alt: "Walkspan satellite map showing establishment markers and walking radius boundaries",
       },
       {
-        src: "/portfolio/walkspan/walkspan-address-comparison.png",
+        src: "/portfolio/walkspan/walkspan-address-comparison.webp",
         title: "Compare neighborhoods",
         caption: "Review multiple addresses together across nature, architecture, energy, comfort, and quiet character scores.",
         alt: "Walkspan address comparison view with three neighborhood maps and a nature score chart",
       },
       {
-        src: "/portfolio/walkspan/walkspan-establishment-details.png",
+        src: "/portfolio/walkspan/walkspan-establishment-details.webp",
         title: "Inspect nearby places",
         caption: "Open an establishment to review its location, ratings, photos, walking distance, duration, steps, and other trip details.",
         alt: "Walkspan map with a selected establishment detail panel and walking metrics",
@@ -184,12 +184,12 @@ export const services = [
 ];
 
 export const processSteps = [
-  { id: "discovery", title: "Discovery", shortTitle: "Understand the problem", description: "Clarify the users, business outcome, constraints, and evidence that should guide the build.", outcome: "A shared definition of success", points: ["User and stakeholder context", "Existing-system review", "Outcome and risk definition"], image: "/portfolio/assets/process/01-discovery.png", imageAlt: "Mico facilitating a collaborative product discovery workshop" },
-  { id: "planning", title: "Planning", shortTitle: "Shape the right system", description: "Turn discovery into a practical scope, architecture, sequence, and technology approach.", outcome: "A focused execution plan", points: ["Scope and priority mapping", "Architecture decisions", "Milestones and dependencies"], image: "/portfolio/assets/process/02-planning.png", imageAlt: "Mico organizing a product plan and system workflow" },
-  { id: "experience", title: "Experience design", shortTitle: "Make the workflow clear", description: "Structure information, states, and interactions so the product is understandable before it is decorated.", outcome: "A usable interaction model", points: ["Information hierarchy", "Responsive behavior", "Accessibility and edge states"], image: "/portfolio/assets/process/03-experience-design.png", imageAlt: "Mico designing responsive interface wireframes" },
-  { id: "development", title: "Development", shortTitle: "Build for change", description: "Implement the interface as maintainable components connected to real data and product behavior.", outcome: "Production-ready frontend work", points: ["Component implementation", "API and data integration", "Performance-aware delivery"], image: "/portfolio/assets/process/04-development.png", imageAlt: "Mico developing a product interface at his workstation" },
-  { id: "validation", title: "Validation", shortTitle: "Test the real experience", description: "Review the rendered product across viewports, input methods, content lengths, and failure states.", outcome: "Confident release quality", points: ["Visual and responsive review", "Accessibility checks", "Browser and behavior validation"], image: "/portfolio/assets/process/05-validation.png", imageAlt: "Mico reviewing validation results with a teammate" },
-  { id: "launch", title: "Launch and improve", shortTitle: "Measure what ships", description: "Support release, observe product signals, and turn what we learn into the next useful improvement.", outcome: "A product that keeps getting better", points: ["Release coordination", "Analytics and SEO signals", "Iteration planning"], image: "/portfolio/assets/process/06-launch.png", imageAlt: "Mico and his team celebrating a successful product launch" },
+  { id: "discovery", title: "Discovery", shortTitle: "Understand the problem", description: "Clarify the users, business outcome, constraints, and evidence that should guide the build.", outcome: "A shared definition of success", points: ["User and stakeholder context", "Existing-system review", "Outcome and risk definition"], image: "/portfolio/assets/process/01-discovery.webp", imageAlt: "Mico facilitating a collaborative product discovery workshop" },
+  { id: "planning", title: "Planning", shortTitle: "Shape the right system", description: "Turn discovery into a practical scope, architecture, sequence, and technology approach.", outcome: "A focused execution plan", points: ["Scope and priority mapping", "Architecture decisions", "Milestones and dependencies"], image: "/portfolio/assets/process/02-planning.webp", imageAlt: "Mico organizing a product plan and system workflow" },
+  { id: "experience", title: "Experience design", shortTitle: "Make the workflow clear", description: "Structure information, states, and interactions so the product is understandable before it is decorated.", outcome: "A usable interaction model", points: ["Information hierarchy", "Responsive behavior", "Accessibility and edge states"], image: "/portfolio/assets/process/03-experience-design.webp", imageAlt: "Mico designing responsive interface wireframes" },
+  { id: "development", title: "Development", shortTitle: "Build for change", description: "Implement the interface as maintainable components connected to real data and product behavior.", outcome: "Production-ready frontend work", points: ["Component implementation", "API and data integration", "Performance-aware delivery"], image: "/portfolio/assets/process/04-development.webp", imageAlt: "Mico developing a product interface at his workstation" },
+  { id: "validation", title: "Validation", shortTitle: "Test the real experience", description: "Review the rendered product across viewports, input methods, content lengths, and failure states.", outcome: "Confident release quality", points: ["Visual and responsive review", "Accessibility checks", "Browser and behavior validation"], image: "/portfolio/assets/process/05-validation.webp", imageAlt: "Mico reviewing validation results with a teammate" },
+  { id: "launch", title: "Launch and improve", shortTitle: "Measure what ships", description: "Support release, observe product signals, and turn what we learn into the next useful improvement.", outcome: "A product that keeps getting better", points: ["Release coordination", "Analytics and SEO signals", "Iteration planning"], image: "/portfolio/assets/process/06-launch.webp", imageAlt: "Mico and his team celebrating a successful product launch" },
 ];
 
 export const experience = [

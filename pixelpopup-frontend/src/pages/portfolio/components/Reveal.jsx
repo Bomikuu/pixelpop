@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function Reveal({ children, className = "", delay = 0, stagger = false }) {
+export default function Reveal({ children, className = "", delay = 0, stagger = false, immediate = false }) {
   const elementRef = useRef(null);
-  const [visible, setVisible] = useState(() => (
+  const [visible, setVisible] = useState(() => immediate || (
     typeof window !== "undefined"
     && (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !window.IntersectionObserver)
   ));
@@ -12,7 +12,7 @@ export default function Reveal({ children, className = "", delay = 0, stagger = 
     if (!element) return undefined;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion || !window.IntersectionObserver) return undefined;
+    if (immediate || reducedMotion || !window.IntersectionObserver) return undefined;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -26,7 +26,7 @@ export default function Reveal({ children, className = "", delay = 0, stagger = 
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [immediate]);
 
   return (
     <div

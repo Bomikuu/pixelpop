@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Window, RetroPanel } from "../retro";
+import Window from "./Window";
+import RetroPanel from "./Panel";
 
 /**
  * LoadingRetro (enhanced)

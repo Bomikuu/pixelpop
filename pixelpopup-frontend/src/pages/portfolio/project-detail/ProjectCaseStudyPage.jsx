@@ -51,14 +51,49 @@ function useProjectDocument(project) {
 
   useEffect(() => {
     const previousTitle = document.title;
+    const url = new URL(`/portfolio/${project.slug}`, window.location.origin).href;
+    const image = new URL("/portfolio/assets/mico-ang-portrait.jpg", window.location.origin).href;
+    const metadata = [
+      ["name", "description", project.seo.description],
+      ["name", "keywords", `${project.name}, product case study, Mico Ang`],
+      ["property", "og:type", "website"],
+      ["property", "og:title", project.seo.title],
+      ["property", "og:description", project.seo.description],
+      ["property", "og:url", url],
+      ["property", "og:image", image],
+      ["name", "twitter:card", "summary_large_image"],
+      ["name", "twitter:title", project.seo.title],
+      ["name", "twitter:description", project.seo.description],
+      ["name", "twitter:image", image],
+    ];
+    const managed = metadata.map(([attribute, key, content]) => {
+      const existing = document.head.querySelector(`meta[${attribute}="${key}"]`);
+      const element = existing || document.createElement("meta");
+      const previous = existing?.content;
+      if (!existing) {
+        element.setAttribute(attribute, key);
+        document.head.appendChild(element);
+      }
+      element.content = content;
+      return { element, existing, previous };
+    });
+    const existingCanonical = document.head.querySelector('link[rel="canonical"]');
+    const canonical = existingCanonical || document.createElement("link");
+    const previousCanonical = existingCanonical?.getAttribute("href");
+    if (!existingCanonical) {
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = url;
     document.title = project.seo.title;
-    const descriptionTag = document.createElement("meta");
-    descriptionTag.name = "description";
-    descriptionTag.content = project.seo.description;
-    document.head.appendChild(descriptionTag);
     return () => {
       document.title = previousTitle;
-      descriptionTag.remove();
+      managed.forEach(({ element, existing, previous }) => {
+        if (existing) element.content = previous || "";
+        else element.remove();
+      });
+      if (existingCanonical) canonical.setAttribute("href", previousCanonical || "");
+      else canonical.remove();
     };
   }, [project]);
 }

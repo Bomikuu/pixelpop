@@ -18,6 +18,8 @@ export default function TurnstileWidget({ onTokenChange, action = "portfolio-con
     if (!configured) return undefined;
 
     let cancelled = false;
+    let scriptElement = null;
+    let observer = null;
 
     const renderWidget = () => {
       if (cancelled || !containerRef.current || !window.turnstile) return;
@@ -33,24 +35,38 @@ export default function TurnstileWidget({ onTokenChange, action = "portfolio-con
       });
     };
 
-    const existingScript = document.getElementById(TURNSTILE_SCRIPT_ID);
-    if (window.turnstile) {
-      renderWidget();
-    } else if (existingScript) {
-      existingScript.addEventListener("load", renderWidget, { once: true });
+    const loadWidget = () => {
+      if (window.turnstile) {
+        renderWidget();
+        return;
+      }
+      scriptElement = document.getElementById(TURNSTILE_SCRIPT_ID);
+      if (!scriptElement) {
+        scriptElement = document.createElement("script");
+        scriptElement.id = TURNSTILE_SCRIPT_ID;
+        scriptElement.src = TURNSTILE_SCRIPT_URL;
+        scriptElement.async = true;
+        scriptElement.defer = true;
+        document.head.appendChild(scriptElement);
+      }
+      scriptElement.addEventListener("load", renderWidget, { once: true });
+    };
+
+    if (window.IntersectionObserver && containerRef.current) {
+      observer = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        loadWidget();
+      }, { rootMargin: "600px" });
+      observer.observe(containerRef.current);
     } else {
-      const script = document.createElement("script");
-      script.id = TURNSTILE_SCRIPT_ID;
-      script.src = TURNSTILE_SCRIPT_URL;
-      script.async = true;
-      script.defer = true;
-      script.addEventListener("load", renderWidget, { once: true });
-      document.head.appendChild(script);
+      loadWidget();
     }
 
     return () => {
       cancelled = true;
-      existingScript?.removeEventListener("load", renderWidget);
+      observer?.disconnect();
+      scriptElement?.removeEventListener("load", renderWidget);
       if (widgetIdRef.current !== null && window.turnstile?.remove) {
         window.turnstile.remove(widgetIdRef.current);
       }
@@ -68,7 +84,7 @@ export default function TurnstileWidget({ onTokenChange, action = "portfolio-con
 
   return (
     <div className="mt-5" aria-label="Bot protection verification">
-      <div ref={containerRef} />
+      <div ref={containerRef} className="min-h-[65px]" />
     </div>
   );
 }

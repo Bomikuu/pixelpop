@@ -1,7 +1,7 @@
 export const dineEaseSlides = [
   { id: "restaurant-workspace", src: "/portfolio/dineease/01-restaurant-workspace.png", title: "Restaurant operations workspace", caption: "Restaurant identity, service readiness, operating schedule, and live order and reservation controls.", alt: "DineEase restaurant operations workspace showing restaurant setup and service controls" },
   { id: "menu-intelligence", src: "/portfolio/dineease/02-menu-intelligence.png", title: "Menu intelligence", caption: "A menu catalog with pricing, availability, nutrition readiness, and calorie context.", alt: "DineEase menu catalog showing menu items, calories, prices, and readiness" },
-  { id: "restaurant-finder", src: "/portfolio/dineease/03-restaurant-finder.png", title: "Restaurant discovery", caption: "Mapbox-powered restaurant browsing with a connected results sidebar and filters.", alt: "DineEase restaurant finder with a three-dimensional map and restaurant listing" },
+  { id: "restaurant-finder", src: "/portfolio/dineease/03-restaurant-finder.webp", title: "Restaurant discovery", caption: "Mapbox-powered restaurant browsing with a connected results sidebar and filters.", alt: "DineEase restaurant finder with a three-dimensional map and restaurant listing" },
   { id: "checkout", src: "/portfolio/dineease/04-checkout.png", title: "Checkout and fulfillment", caption: "Pickup or delivery, payment choices, a clear cost breakdown, and visible order calories.", alt: "DineEase checkout screen with delivery, payment, and calorie information" },
   { id: "promotions", src: "/portfolio/dineease/05-promotions.png", title: "Promotion studio", caption: "Restaurant-owned offers with status, schedules, codes, and minimum-order conditions.", alt: "DineEase promotion management screen with active restaurant offers" },
   { id: "calorie-cart", src: "/portfolio/dineease/06-calorie-cart.png", title: "Calorie-aware cart", caption: "A persistent cart keeps quantities, totals, and aggregated calories visible while guests browse.", alt: "DineEase public menu with a calorie-aware shopping cart drawer" },
@@ -41,7 +41,7 @@ export const dineEasePillars = [
     icon: "map",
     title: "Connect discovery to checkout",
     summary: "Guests can find a restaurant, understand its food, apply offers, and complete an order without losing context.",
-    image: "/portfolio/dineease/03-restaurant-finder.png",
+    image: "/portfolio/dineease/03-restaurant-finder.webp",
     imageAlt: "DineEase Mapbox-powered restaurant finder",
     features: ["Mapbox discovery by category, service, open state, and proximity", "Public restaurant pages with menus, media, reviews, hours, and offers", "Calorie-aware cart totals and item-level nutrition context", "Pickup or delivery with card, pay-in-store, and GCash choices"],
   },
