@@ -60,6 +60,7 @@ const alertStyles = {
 export default function ContactSection({
   id = "contact",
   heading = "Let’s build something useful.",
+  compactHeading = false,
   description = "Tell me what you’re building, where the interface is getting difficult, and what success should look like. Your inquiry is sent directly to my inbox.",
   formTitle = "Start a conversation",
   formSubtitle = "I usually reply with the next useful question.",
@@ -176,7 +177,7 @@ export default function ContactSection({
         <div className="grid items-start gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 xl:gap-28">
           <Reveal>
             <div className="lg:pt-8">
-              <h2 className="portfolio-display max-w-2xl text-5xl font-semibold leading-[1.02] tracking-[-0.04em] text-balance sm:text-6xl lg:text-7xl">
+              <h2 className={`portfolio-display max-w-2xl font-semibold leading-[1.02] tracking-[-0.04em] text-balance ${compactHeading ? "text-4xl sm:text-5xl lg:text-6xl" : "text-5xl sm:text-6xl lg:text-7xl"}`}>
                 {heading}
               </h2>
               <p className="mt-7 max-w-xl text-lg leading-8 text-blue-100/80">{description}</p>

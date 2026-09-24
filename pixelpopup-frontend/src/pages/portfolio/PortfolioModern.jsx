@@ -80,7 +80,7 @@ export default function PortfolioModern() {
         <TimelineSection />
         <SignalsSection />
         <ArticlesCarouselSection />
-        <ContactSection />
+        <ContactSection compactHeading heading={<>Let’s build something <span className="text-[#2f5bff]">useful.</span></>} />
       </main>
       <PortfolioFooter />
     </div>
