@@ -17,10 +17,15 @@ async function requestJson(url, options = {}) {
   return response.json();
 }
 
-export function getArticles({ page = 1, search = "" } = {}, signal) {
+export function getArticles({ page = 1, search = "", category = "" } = {}, signal) {
   const params = new URLSearchParams({ page: String(page) });
   if (search.trim()) params.set("search", search.trim());
+  if (category) params.set("category__slug", category);
   return requestJson(`${portfolioApiBase}/articles/?${params}`, { signal });
+}
+
+export function getArticleCategories(signal) {
+  return requestJson(`${portfolioApiBase}/articles/categories/`, { signal });
 }
 
 export function getArticle(slug, signal) {
@@ -33,4 +38,8 @@ export function getCoverLetter(slug, signal) {
 
 export function getCoverLetterDownloadUrl(slug) {
   return `${portfolioApiBase}/cover-letters/${encodeURIComponent(slug)}/download/`;
+}
+
+export function getGithubActivity(year, signal) {
+  return requestJson(`${portfolioApiBase}/activity/github/?year=${encodeURIComponent(year)}`, { signal });
 }

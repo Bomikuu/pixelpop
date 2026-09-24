@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.response import Response
 
 from pixelpopup.models import (
     Article,
@@ -18,6 +19,7 @@ from pixelpopup.models import (
 from .portfolio_serializers import (
     ArticleAdminSerializer,
     ArticleCategoryAdminSerializer,
+    ArticleCategorySerializer,
     ArticleDetailSerializer,
     ArticleListSerializer,
     ArticleTagAdminSerializer,
@@ -107,6 +109,11 @@ class PublicArticleViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == "retrieve":
             return ArticleDetailSerializer
         return ArticleListSerializer
+
+    @action(detail=False, methods=["get"])
+    def categories(self, request):
+        categories = ArticleCategory.objects.order_by("order", "name")
+        return Response(ArticleCategorySerializer(categories, many=True).data)
 
 
 class ProfessionalProfileAdminViewSet(viewsets.ModelViewSet):

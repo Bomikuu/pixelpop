@@ -1,9 +1,10 @@
-import { ArrowLeft, ArrowRight, BookOpen, BrainCircuit, Gauge, Layers3, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, BookOpen, BrainCircuit, FileText, Gauge, Layers3, Linkedin, RefreshCw } from "lucide-react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import ApplicationPageShell from "../application/ApplicationPageShell";
 import { applicationProfile } from "../application/applicationData";
-import { getArticles } from "../api/portfolioApi";
+import { getArticleCategories, getArticles } from "../api/portfolioApi";
+import { portfolioLinks } from "../portfolioData";
 import ArticleHeroScene from "./ArticleHeroScene";
 import { formatArticleDate, getArticleAuthor } from "./articleUtils";
 
@@ -12,6 +13,12 @@ const categoryIcons = {
   "Frontend Engineering": Layers3,
   "Performance and SEO": Gauge,
 };
+
+const defaultCategories = [
+  { name: "Frontend Engineering", slug: "frontend-engineering", order: 10 },
+  { name: "Performance and SEO", slug: "performance-and-seo", order: 20 },
+  { name: "AI and Delivery", slug: "ai-and-delivery", order: 30 },
+];
 
 function getCategoryIcon(article) {
   return categoryIcons[article.category?.name] || BookOpen;
@@ -108,13 +115,34 @@ function ArticleEntry({ article, featured = false }) {
 export default function ArticleIndexPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const category = searchParams.get("category") || "";
+  const [categories, setCategories] = useState(defaultCategories);
   const [state, setState] = useState({ articles: [], count: 0, next: null, previous: null, loading: true, error: "" });
   const [retryKey, setRetryKey] = useState(0);
+  const linkedInLink = portfolioLinks.find((link) => link.label === "LinkedIn");
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getArticleCategories(controller.signal)
+      .then((data) => {
+        const bySlug = new Map(defaultCategories.map((item) => [item.slug, item]));
+        for (const item of data) bySlug.set(item.slug, item);
+        setCategories([...bySlug.values()].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)));
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") setCategories(defaultCategories);
+      });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     setState((current) => ({ ...current, loading: true, error: "" }));
-    getArticles({ page }, controller.signal)
+    getArticles({ page, category }, controller.signal)
       .then((data) => {
         setState({
           articles: data.results || [],
@@ -131,13 +159,17 @@ export default function ArticleIndexPage() {
         }
       });
     return () => controller.abort();
-  }, [page, retryKey]);
+  }, [page, category, retryKey]);
 
+  const selectedCategory = categories.find((item) => item.slug === category);
   const featuredArticle = state.articles.find((article) => article.is_featured) || state.articles[0];
   const remainingArticles = state.articles.filter((article) => article.slug !== featuredArticle?.slug);
 
   function goToPage(nextPage) {
-    setSearchParams(nextPage > 1 ? { page: String(nextPage) } : {});
+    const nextParams = new URLSearchParams();
+    if (category) nextParams.set("category", category);
+    if (nextPage > 1) nextParams.set("page", String(nextPage));
+    setSearchParams(nextParams);
     document.getElementById("article-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -147,22 +179,47 @@ export default function ArticleIndexPage() {
       description="Articles by Mico Ang on frontend engineering, product systems, performance, and technical leadership."
       canonicalPath="/portfolio/articles"
     >
-      <section className="relative isolate min-h-[calc(100dvh-4.5rem)] overflow-hidden border-b border-slate-200 px-5 sm:px-8">
+      <section className="relative isolate min-h-[calc(100dvh-4.5rem)] overflow-hidden border-b border-slate-200 bg-[#fbfdff] px-5 sm:px-8">
         <ArticleHeroScene />
-        <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-4.5rem)] max-w-7xl items-start py-24 sm:py-28 lg:items-center lg:py-20">
-          <div className="max-w-3xl">
-            <h1 className="portfolio-display max-w-[11ch] text-balance text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-6xl lg:text-7xl">
-              Notes from the build.
+        <div className="pointer-events-none absolute left-[42%] top-12 hidden h-28 w-36 opacity-60 lg:block" style={{ backgroundImage: "radial-gradient(#8eb8ff 1px, transparent 1px)", backgroundSize: "23px 23px" }} aria-hidden="true" />
+        <div className="pointer-events-none absolute bottom-10 right-[4%] hidden h-28 w-36 opacity-60 lg:block" style={{ backgroundImage: "radial-gradient(#8eb8ff 1px, transparent 1px)", backgroundSize: "23px 23px" }} aria-hidden="true" />
+        <div className="relative z-10 mx-auto flex min-h-[calc(100dvh-4.5rem)] max-w-screen-xl items-start py-24 sm:py-28 lg:w-[84%] lg:items-center lg:py-20">
+          <div className="w-full max-w-[44rem] lg:max-w-[46%]">
+            <p className="flex items-center gap-4 text-xs font-semibold tracking-[0.32em] text-[#2f5bff] uppercase sm:text-sm">
+              Articles <span className="h-px w-14 bg-[#2f5bff]" aria-hidden="true" />
+            </p>
+            <h1 className="portfolio-display mt-8 text-[clamp(4rem,6vw,5.6rem)] font-semibold leading-[0.96] tracking-[-0.04em] text-slate-950">
+              Notes from<br />the build<span className="text-[#2f5bff]">.</span>
             </h1>
-            <p className="mt-7 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl">
+            <p className="mt-7 max-w-[38rem] text-xl leading-8 text-slate-600 sm:text-2xl sm:leading-9">
               Practical writing on frontend systems, performance, AI, and technical leadership.
             </p>
-            <div className="mt-9 flex w-fit items-center gap-4 rounded-2xl bg-white/90 p-3 pr-5 shadow-[0_20px_55px_-40px_rgba(15,23,42,0.6)] ring-1 ring-slate-200 backdrop-blur-sm">
-              <img className="size-14 rounded-xl object-cover object-top" src={applicationProfile.portrait} alt="Mico Ang" />
-              <div>
-                <strong className="text-sm font-semibold text-slate-950">Mico Ang</strong>
-                <p className="mt-0.5 text-sm leading-6 text-slate-500">Author and technical lead</p>
+            <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-5 sm:mt-10">
+              <div className="flex items-center gap-4">
+                <img className="size-16 shrink-0 rounded-full border border-slate-200 object-cover object-top" src={applicationProfile.portrait} alt="" />
+                <div>
+                  <strong className="text-base font-semibold text-slate-950">Mico Ang</strong>
+                  <p className="mt-0.5 text-sm leading-6 text-slate-500">Author and technical lead</p>
+                </div>
               </div>
+              <div className="flex items-center gap-4 2xl:border-l 2xl:border-slate-200 2xl:pl-7">
+                <span className="grid size-14 shrink-0 place-items-center rounded-full border border-[#dbe5f4] text-[#0b1733]"><FileText size={24} strokeWidth={1.7} aria-hidden="true" /></span>
+                <div>
+                  <strong className="text-base font-semibold text-slate-950">Latest notes</strong>
+                  <p className="mt-0.5 text-sm leading-6 text-slate-500">Thoughts, lessons, and ideas</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <a href="#article-list" className="inline-flex min-h-14 items-center justify-between gap-8 bg-[#2f5bff] px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#2149dc] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">
+                Browse articles <ArrowRight size={20} aria-hidden="true" />
+              </a>
+              {linkedInLink ? (
+                <a href={linkedInLink.href} target="_blank" rel="noopener noreferrer" aria-label="Follow Mico Ang on LinkedIn" className="inline-flex min-h-14 items-center gap-3 text-sm font-semibold text-slate-950 transition-colors hover:text-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">
+                  <span className="grid size-14 place-items-center rounded-full border border-[#dbe5f4]"><Linkedin size={20} aria-hidden="true" /></span>
+                  Follow
+                </a>
+              ) : null}
             </div>
           </div>
         </div>
@@ -170,14 +227,26 @@ export default function ArticleIndexPage() {
 
       <section id="article-list" className="scroll-mt-28 px-5 py-16 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 max-w-2xl sm:mb-12">
+          <div className="mb-7 max-w-2xl">
             <h2 className="portfolio-display text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">Latest articles</h2>
             {!state.loading && !state.error ? (
               <p className="mt-3 text-base leading-7 text-slate-600">
-                {state.count} published {state.count === 1 ? "article" : "articles"} on building clear, durable products.
+                {state.count} published {state.count === 1 ? "article" : "articles"}{category ? ` in ${selectedCategory?.name || "this category"}.` : " on building clear, durable products."}
               </p>
             ) : null}
           </div>
+          <nav className="mb-8 flex flex-wrap gap-x-8 gap-y-2 border-b border-slate-200 sm:mb-10" aria-label="Article categories">
+            {[{ name: "All", slug: "" }, ...categories].map((item) => (
+              <Link
+                key={item.slug || "all"}
+                to={item.slug ? `/portfolio/articles?category=${encodeURIComponent(item.slug)}` : "/portfolio/articles"}
+                aria-current={category === item.slug ? "page" : undefined}
+                className={`inline-flex min-h-12 items-center whitespace-nowrap border-b-2 px-1 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff] ${category === item.slug ? "border-[#2f5bff] text-[#2f5bff]" : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-950"}`}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
           {state.loading ? <ArticleIndexSkeleton /> : null}
 
           {!state.loading && state.error ? (
@@ -194,8 +263,9 @@ export default function ArticleIndexPage() {
           {!state.loading && !state.error && state.articles.length === 0 ? (
             <div className="border-y border-slate-300 py-14">
               <BookOpen size={30} className="text-[#2f5bff]" aria-hidden="true" />
-              <h2 className="portfolio-display mt-5 text-3xl font-semibold tracking-[-0.03em] text-slate-950">The first article is being prepared.</h2>
-              <p className="mt-3 max-w-xl leading-7 text-slate-600">Published writing will appear here as soon as it is released from the portfolio admin.</p>
+              <h2 className="portfolio-display mt-5 text-3xl font-semibold tracking-[-0.03em] text-slate-950">No articles found</h2>
+              <p className="mt-3 max-w-xl leading-7 text-slate-600">{category ? `There are no published articles in ${selectedCategory?.name || "this category"} yet.` : "Published writing will appear here as soon as it is released from the portfolio admin."}</p>
+              {category ? <Link to="/portfolio/articles" className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#2f5bff] hover:underline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff]">View all articles <ArrowRight size={16} aria-hidden="true" /></Link> : null}
             </div>
           ) : null}
 

@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowUpRight, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Link, useParams } from "react-router-dom";
 import remarkGfm from "remark-gfm";
@@ -38,6 +38,10 @@ export default function ArticleDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [articleSlug]);
 
   useEffect(() => {
     const controller = new AbortController();
