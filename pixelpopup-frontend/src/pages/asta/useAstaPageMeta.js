@@ -3,6 +3,9 @@ import { useEffect } from "react";
 export default function useAstaPageMeta({ title, description, canonical }) {
   useEffect(() => {
     const previousTitle = document.title;
+    const favicon = document.head.querySelector('link[rel="icon"]');
+    const previousFavicon = favicon?.getAttribute("href");
+    const previousFaviconType = favicon?.getAttribute("type");
     const root = document.documentElement;
     const url = new URL(canonical, window.location.origin).href;
     const image = new URL("/portfolio/assets/asta-team-01.jpg", window.location.origin).href;
@@ -39,11 +42,20 @@ export default function useAstaPageMeta({ title, description, canonical }) {
     }
 
     document.title = title;
+    if (favicon) {
+      favicon.type = "image/png";
+      favicon.href = "/portfolio/assets/asta-logo.png";
+    }
     canonicalLink.href = url;
     root.classList.add("asta-motion-ready");
 
     return () => {
       document.title = previousTitle;
+      if (favicon) {
+        if (previousFaviconType) favicon.type = previousFaviconType;
+        else favicon.removeAttribute("type");
+        favicon.setAttribute("href", previousFavicon || "/portfolio/assets/mico-favicon.svg");
+      }
       managed.forEach(({ element, existing, previous }) => {
         if (existing) element.content = previous || "";
         else element.remove();
