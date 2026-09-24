@@ -1,12 +1,16 @@
 import { createElement, useRef, useState } from "react";
 import {
   ArrowUpRight,
+  CircleAlert,
+  CircleCheck,
   Github,
+  Info,
   Lightbulb,
   Linkedin,
   Mail,
   MessageCircle,
   Send,
+  TriangleAlert,
   Waypoints,
 } from "lucide-react";
 import { portfolioLinks } from "../portfolioData";
@@ -46,6 +50,13 @@ const defaultProjectTypeOptions = [
 const fieldClassName =
   "mt-2 w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-base text-slate-950 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-[#2f5bff] focus:bg-white focus:ring-4 focus:ring-blue-100";
 
+const alertStyles = {
+  success: { icon: CircleCheck, className: "border-emerald-200 bg-emerald-50 text-emerald-900" },
+  warning: { icon: TriangleAlert, className: "border-amber-200 bg-amber-50 text-amber-950" },
+  error: { icon: CircleAlert, className: "border-rose-200 bg-rose-50 text-rose-900" },
+  pending: { icon: Info, className: "border-blue-200 bg-blue-50 text-blue-950" },
+};
+
 export default function ContactSection({
   id = "contact",
   heading = "Let’s build something useful.",
@@ -58,13 +69,14 @@ export default function ContactSection({
   messageLabel = "Project details",
   messagePlaceholder = "What needs to ship, improve, or become easier to use?",
 }) {
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageLength, setMessageLength] = useState(0);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [deliveryDelayed, setDeliveryDelayed] = useState(false);
   const submissionIdRef = useRef(null);
+  const showStatus = (message, variant = "error") => setStatus({ message, variant });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -75,7 +87,7 @@ export default function ContactSection({
     const honeypot = String(data.get("companyWebsite") || "").trim();
 
     if (honeypot) {
-      setStatus("Thanks — your message was sent.");
+      showStatus("Thanks — your message was sent.", "success");
       return;
     }
 
@@ -85,18 +97,18 @@ export default function ContactSection({
     const message = String(data.get("message") || "").trim().slice(0, 2000);
 
     if (!name || !/^\S+@\S+\.\S+$/.test(email) || !projectType || message.length < 10) {
-      setStatus("Complete your name, email, project type, and at least 10 characters of project details.");
+      showStatus("Complete your name, email, project type, and at least 10 characters of project details.");
       form.querySelector(!name ? '[name="name"]' : !/^\S+@\S+\.\S+$/.test(email) ? '[name="email"]' : !projectType ? '[name="projectType"]' : '[name="message"]')?.focus();
       return;
     }
 
     if (!turnstileToken) {
-      setStatus("Please complete the bot verification before sending.");
+      showStatus("Please complete the bot verification before sending.");
       return;
     }
 
     setIsSubmitting(true);
-    setStatus("Sending your inquiry...");
+    showStatus("Sending your inquiry...", "pending");
 
     try {
       submissionIdRef.current ||= newSubmissionId();
@@ -107,7 +119,7 @@ export default function ContactSection({
 
       if (result.deliveryStatus !== "sent") {
         setDeliveryDelayed(true);
-        setStatus("Your inquiry was saved, but the email notification is delayed. You do not need to send it again.");
+        showStatus("Your inquiry was saved, but the email notification is delayed. You do not need to send it again.", "warning");
         setTurnstileToken("");
         setTurnstileResetKey((current) => current + 1);
         return;
@@ -118,18 +130,18 @@ export default function ContactSection({
       setMessageLength(0);
       setTurnstileToken("");
       setTurnstileResetKey((current) => current + 1);
-      setStatus("Thanks — your inquiry was sent successfully.");
+      showStatus("Your inquiry was sent. Thanks for reaching out.", "success");
     } catch (error) {
       if (error.code === "BOT_VERIFICATION_FAILED") {
-        setStatus("Bot verification expired. Please complete it again.");
+        showStatus("Bot verification expired. Please complete it again.");
       } else if (error.status === 429) {
-        setStatus("Too many attempts. Please wait a few minutes and try again.");
+        showStatus("Too many attempts. Please wait a few minutes and try again.");
       } else if (error.status === 503) {
-        setStatus("The contact form is unavailable right now. Please email me directly.");
+        showStatus("The contact form is unavailable right now. Please email me directly.");
       } else if (error.code === "VALIDATION_ERROR") {
-        setStatus("Review your details and try again.");
+        showStatus("Review your details and try again.");
       } else {
-        setStatus("Unable to confirm your inquiry. Please verify again and retry, or email me directly.");
+        showStatus("Unable to confirm your inquiry. Please verify again and retry, or email me directly.");
       }
       setTurnstileToken("");
       setTurnstileResetKey((current) => current + 1);
@@ -138,13 +150,8 @@ export default function ContactSection({
     }
   };
 
-  const statusTone = status.startsWith("Thanks")
-    ? "text-emerald-700"
-    : deliveryDelayed
-      ? "text-amber-800"
-    : status.startsWith("Sending")
-      ? "text-[#2f5bff]"
-      : "text-rose-700";
+  const alertStyle = status ? alertStyles[status.variant] : null;
+  const StatusIcon = alertStyle?.icon;
 
   return (
     <section id={id} className="relative isolate scroll-mt-24 overflow-hidden bg-[#071a33] py-24 text-white sm:py-32">
@@ -309,9 +316,14 @@ export default function ContactSection({
                 {isSubmitting ? "Sending..." : deliveryDelayed ? "Inquiry received" : "Send inquiry"}
                 <ArrowUpRight size={18} aria-hidden="true" />
               </button>
-              <p className={`mt-3 min-h-6 text-sm ${statusTone}`} role="status" aria-live="polite">
-                {status}
-              </p>
+              <div className="mt-3 min-h-6" role={status?.variant === "error" || status?.variant === "warning" ? "alert" : "status"}>
+                {status && (
+                  <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm leading-6 ${alertStyle.className}`}>
+                    <StatusIcon className="mt-0.5 size-5 shrink-0" strokeWidth={1.8} aria-hidden="true" />
+                    <p>{status.message}</p>
+                  </div>
+                )}
+              </div>
             </form>
           </Reveal>
         </div>

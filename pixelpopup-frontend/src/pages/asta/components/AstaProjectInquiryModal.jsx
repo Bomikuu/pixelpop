@@ -4,11 +4,16 @@ import {
   BarChart3,
   Building2,
   CalendarDays,
+  CircleAlert,
+  CircleCheck,
   CircleDollarSign,
   FileText,
+  Info,
   LayoutGrid,
+  LoaderCircle,
   LockKeyhole,
   Mail,
+  TriangleAlert,
   UserRound,
   UsersRound,
   X,
@@ -39,6 +44,25 @@ const statusMessages = {
   failed: "We could not confirm delivery. Verify again and retry.",
   delayed: "Your inquiry was saved, but email notification is delayed. You do not need to send it again.",
   sent: "Your inquiry was sent. We’ll be in touch.",
+};
+
+const statusVariants = {
+  invalid: "error",
+  "verification-required": "error",
+  "verification-failed": "error",
+  "rate-limited": "error",
+  failed: "error",
+  unavailable: "error",
+  sending: "pending",
+  delayed: "warning",
+  sent: "success",
+};
+
+const alertStyles = {
+  success: { icon: CircleCheck, className: "border-emerald-200 bg-emerald-50 text-emerald-900" },
+  warning: { icon: TriangleAlert, className: "border-amber-200 bg-amber-50 text-amber-950" },
+  error: { icon: CircleAlert, className: "border-rose-200 bg-rose-50 text-rose-900" },
+  pending: { icon: Info, className: "border-blue-200 bg-blue-50 text-blue-950" },
 };
 
 function validate(values) {
@@ -129,6 +153,10 @@ export default function AstaProjectInquiryModal({ onClose }) {
     }
   }
 
+  const alertVariant = statusVariants[status];
+  const alertStyle = alertVariant ? alertStyles[alertVariant] : null;
+  const StatusIcon = alertStyle?.icon;
+
   return (
     <dialog ref={dialogRef} className="asta-project-dialog asta-project-dialog--refined fixed inset-0 m-auto overscroll-contain" aria-labelledby="asta-project-dialog-title" onCancel={(event) => { event.preventDefault(); onClose(); }} onClick={(event) => { if (event.target === event.currentTarget) onClose(); }} onKeyDown={handleKeyDown}>
       <div className="asta-project-dialog__shell">
@@ -174,8 +202,19 @@ export default function AstaProjectInquiryModal({ onClose }) {
             <TurnstileWidget key={turnstileResetKey} action="asta-project" onTokenChange={setTurnstileToken} />
           </div>
           <div className="asta-project-dialog__actions">
-            <button type="submit" disabled={["sending", "sent", "delayed"].includes(status)}>{status === "sending" ? "Sending inquiry…" : status === "sent" || status === "delayed" ? "Inquiry received" : "Send project inquiry"}<ArrowRight aria-hidden="true" /></button>
-            <p role="status" aria-live="polite"><LockKeyhole aria-hidden="true" /><span>{status === "unavailable" ? `The form is unavailable. Email ${contact.email} directly.` : statusMessages[status] || statusMessages.idle}</span></p>
+            <button type="submit" disabled={["sending", "sent", "delayed"].includes(status)} aria-busy={status === "sending"}>
+              {status === "sending" ? <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : null}
+              {status === "sending" ? "Sending inquiry…" : status === "sent" || status === "delayed" ? "Inquiry received" : "Send project inquiry"}
+              {status !== "sending" ? <ArrowRight aria-hidden="true" /> : null}
+            </button>
+            {status === "idle" ? (
+              <p><LockKeyhole aria-hidden="true" /><span>{statusMessages.idle}</span></p>
+            ) : (
+              <div role={alertVariant === "error" || alertVariant === "warning" ? "alert" : "status"} className={`flex items-start gap-3 border px-4 py-3 text-sm leading-6 ${alertStyle.className}`}>
+                <StatusIcon className="mt-0.5 size-5 shrink-0" strokeWidth={1.8} aria-hidden="true" />
+                <span>{status === "unavailable" ? <>The form is unavailable. Email <a className="font-semibold underline underline-offset-2" href={`mailto:${contact.email}`}>{contact.email}</a> directly.</> : statusMessages[status]}</span>
+              </div>
+            )}
           </div>
         </form>
       </div>
@@ -458,14 +497,24 @@ export default function AstaProjectInquiryModal({ onClose }) {
         }
 
         .asta-project-dialog--refined .asta-project-dialog__actions {
-          grid-template-columns: minmax(220px, 0.92fr) minmax(0, 1.08fr);
+          grid-template-columns: minmax(0, 1fr);
           margin-top: 22px;
           padding-top: 22px;
         }
 
         .asta-project-dialog--refined .asta-project-dialog__actions button {
           min-height: 52px;
+          width: 100%;
           font-size: 14px;
+        }
+
+        .asta-project-dialog--refined .asta-project-dialog__actions button:disabled {
+          cursor: default;
+          opacity: 1;
+        }
+
+        .asta-project-dialog--refined .asta-project-dialog__actions button[aria-busy="true"] {
+          cursor: progress;
         }
 
         .asta-project-dialog--refined .asta-project-dialog__actions p {
