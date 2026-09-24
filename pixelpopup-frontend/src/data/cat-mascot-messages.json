@@ -2,7 +2,7 @@
   {
     "id": "portfolio-welcome",
     "message": "Meow! Want to see the work?",
-    "routes": ["/portfolio"],
+    "routes": ["/", "/portfolio"],
     "weight": 3,
     "actionLabel": "View selected work",
     "actionUrl": "/portfolio#work"
@@ -10,7 +10,7 @@
   {
     "id": "portfolio-stack",
     "message": "Curious about Mico's technology stack?",
-    "routes": ["/portfolio"],
+    "routes": ["/", "/portfolio"],
     "weight": 2,
     "actionLabel": "Explore the stack",
     "actionUrl": "/portfolio#stack"
@@ -18,7 +18,7 @@
   {
     "id": "portfolio-contact",
     "message": "Have a product problem worth solving?",
-    "routes": ["/portfolio"],
+    "routes": ["/", "/portfolio"],
     "weight": 2,
     "actionLabel": "Start a conversation",
     "actionUrl": "/portfolio#contact"

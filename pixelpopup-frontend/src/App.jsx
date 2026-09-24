@@ -44,6 +44,7 @@ export default function App() {
       <div className="w-full">
         <Suspense fallback={<main className="min-h-screen bg-[#f8fafc]" aria-busy="true" />}>
         <Routes>
+          <Route path="/" element={<PortfolioModern />} />
           <Route path="/ui" element={<UiKitPage />} />
           <Route path="/overlay-playground" element={<OverlayPlayground />} />
           <Route path="/components" element={<ComponentsPage />} />
@@ -81,7 +82,6 @@ export default function App() {
           <Route path="/scoreboard-overlay" element={<ScoreboardOverlayPage />} />
           {/* <Route path="/flow-author" element={<FlowAuthoring />} /> */}
 
-          <Route path="/" element={<Navigate to="/portfolio" replace />} />
           {/* fallback */}
           <Route path="*" element={<Navigate to="/portfolio" replace />} />
         </Routes>

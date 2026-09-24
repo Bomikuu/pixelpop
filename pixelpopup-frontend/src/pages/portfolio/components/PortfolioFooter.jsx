@@ -31,7 +31,7 @@ const resourceLinks = [
 
 const applicationLinks = [
   ["Articles", "/portfolio/articles"],
-  ["Interview review", "/portfolio/interview-review"],
+  ["Interview reference", "/portfolio/interview-reference"],
   ["Introduction letter", "/portfolio/introduction-letter"],
   ["Intro video", "/portfolio/intro-video"],
   ["Work setup", "/portfolio/work-setup"],

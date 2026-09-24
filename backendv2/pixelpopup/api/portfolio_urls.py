@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from .portfolio_activity import github_activity
 from .portfolio_views import (
     ArticleAdminViewSet,
     ArticleCategoryAdminViewSet,
@@ -27,4 +28,7 @@ router.register(r"admin/article-categories", ArticleCategoryAdminViewSet, basena
 router.register(r"admin/article-tags", ArticleTagAdminViewSet, basename="portfolio-admin-article-tags")
 router.register(r"admin/articles", ArticleAdminViewSet, basename="portfolio-admin-articles")
 
-urlpatterns = [path("", include(router.urls))]
+urlpatterns = [
+    path("activity/github/", github_activity, name="portfolio-github-activity"),
+    path("", include(router.urls)),
+]

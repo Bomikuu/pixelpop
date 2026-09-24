@@ -1,6 +1,6 @@
 export const catMascotConfig = Object.freeze({
   enabled: true,
-  supportedRoutes: ["/portfolio", "/asta"],
+  supportedRoutes: ["/", "/portfolio", "/asta"],
   spriteUrl: "/mascot/office-cat-sprite.webp",
   sprite: {
     sheetWidth: 1536,

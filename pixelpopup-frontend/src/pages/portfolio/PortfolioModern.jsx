@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect } from "react";
 import AboutSection from "./components/AboutSection";
+import ActivitySection from "./components/ActivitySection";
 import ArticlesCarouselSection from "./components/ArticlesCarouselSection";
 import AstaSection from "./components/AstaSection";
 import ContactSection from "./components/ContactSection";
@@ -79,7 +80,8 @@ export default function PortfolioModern() {
         <AstaSection />
         <TechnologySection />
         <TimelineSection />
-        <SignalsSection />
+        {/* <ActivitySection /> */}
+        {/* <SignalsSection /> */}
         <ArticlesCarouselSection />
         <ContactSection compactHeading heading={<>Let’s build something <span className="text-[#2f5bff]">useful.</span></>} />
       </main>
