@@ -23,7 +23,7 @@ export default function ProcessSection() {
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
           <header className="mx-auto max-w-4xl text-center">
-            <h2 id="process-title" className="portfolio-display text-5xl font-semibold tracking-[-0.035em] text-[#081a30] sm:text-6xl lg:text-7xl">How I work<span className="text-[#1570ef]">.</span></h2>
+            <h2 id="process-title" className="portfolio-display text-4xl font-semibold tracking-[-0.035em] text-[#081a30] sm:text-5xl lg:text-6xl">How I <span className="text-[#2f5bff]">work.</span></h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#52677d]">A structured workflow that connects product thinking, frontend craft, validation, and measurable improvement.</p>
           </header>
         </Reveal>

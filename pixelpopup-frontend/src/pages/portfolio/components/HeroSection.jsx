@@ -17,7 +17,7 @@ export default function HeroSection() {
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4.75rem)] max-w-7xl items-center px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
         <Reveal className="flex w-full max-w-[47rem] flex-col justify-center">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 sm:text-sm">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] uppercase tracking-[0.18em] text-slate-500 sm:text-sm">
             <span className="inline-flex items-center gap-2">
               <MapPin size={17} className="text-[#2f5bff]" aria-hidden="true" />
               Davao City, Philippines

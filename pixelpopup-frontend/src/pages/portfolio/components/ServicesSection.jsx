@@ -15,7 +15,7 @@ export default function ServicesSection() {
     <section id="services" className="scroll-mt-24 border-b border-slate-200 bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHeading
-          title="What I offer."
+          title={<>What I <span className="text-[#2f5bff]">offer.</span></>}
           description="The same delivery capabilities I help lead at ASTA, offered here through my direct architecture, design, implementation, and technical ownership."
         />
         <div className="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-2 xl:grid-cols-4">

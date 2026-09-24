@@ -181,7 +181,7 @@ export default function ProjectsSection() {
 
         <Reveal>
           <header className="portfolio-work-content max-w-3xl py-20 lg:py-12">
-            <h2 className="portfolio-display text-4xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">Selected product work.</h2>
+            <h2 className="portfolio-display text-4xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">Selected product <span className="text-[#2f5bff]">work.</span></h2>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">A closer look at the systems, interfaces, and measurable outcomes I’ve helped deliver.</p>
           </header>
         </Reveal>
