@@ -4,15 +4,20 @@ import {
   ArrowRight,
   ArrowUpFromLine,
   Boxes,
+  Camera,
   Code2,
   Cpu,
   Download,
   ExternalLink,
   Gauge,
   HardDrive,
+  Headphones,
+  Keyboard,
   Laptop,
   MemoryStick,
+  Mic,
   Monitor,
+  Mouse,
   Router,
   ShieldCheck,
   UploadCloud,
@@ -114,6 +119,57 @@ const workstationSpecs = [
     icon: Monitor,
     wide: true,
   },
+  {
+    label: "Additional laptop",
+    value: "MacBook Air M3",
+    detail: "16 GB memory",
+    icon: Laptop,
+  },
+];
+
+const peripheralSpecs = [
+  {
+    label: "Microphone",
+    value: "MAONO DM40 ProS",
+    detail: "Wireless gaming microphone",
+    icon: Mic,
+  },
+  {
+    label: "Camera",
+    value: "Insta360 Link",
+    detail: "PTZ 4K webcam",
+    icon: Camera,
+  },
+  {
+    label: "Mouse",
+    value: "Razer DeathAdder V3 HyperSpeed",
+    detail: "Mouse",
+    icon: Mouse,
+  },
+  {
+    label: "Mouse",
+    value: "Logitech G903",
+    detail: "Mouse",
+    icon: Mouse,
+  },
+  {
+    label: "Headset",
+    value: "Corsair HS80",
+    detail: "Headset",
+    icon: Headphones,
+  },
+  {
+    label: "Keyboard",
+    value: "Yunzii AL80",
+    detail: "Keyboard",
+    icon: Keyboard,
+  },
+  {
+    label: "Keyboard",
+    value: "Wooting 60HE+",
+    detail: "Keyboard",
+    icon: Keyboard,
+  },
 ];
 
 const readinessItems = [
@@ -181,7 +237,7 @@ export default function WorkSetupPage() {
   return (
     <ApplicationPageShell
       title="Work Setup"
-      description="Internet connection and workstation specifications for Mico Ang's remote software development setup."
+      description="Internet connection, workstation, and peripherals for Mico Ang's remote software development setup."
       canonicalPath="/portfolio/work-setup"
     >
       <section className="relative overflow-hidden border-b border-[#dbe7f3] bg-white px-5 pb-14 pt-32 sm:px-8 sm:pb-20 sm:pt-40">
@@ -190,7 +246,7 @@ export default function WorkSetupPage() {
         <div className="relative mx-auto grid max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
           <div className="max-w-4xl">
             <h1 className="portfolio-display text-balance text-5xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-6xl lg:text-7xl">Remote work setup</h1>
-            <p className="mt-5 max-w-3xl text-xl leading-8 text-[#536b86] sm:text-2xl sm:leading-9">The hardware and connectivity behind dependable product delivery.</p>
+            <p className="mt-5 max-w-3xl text-xl leading-8 text-[#536b86] sm:text-2xl sm:leading-9">The workstation, desk gear, and connectivity behind dependable product delivery.</p>
           </div>
           <div className="border-t border-[#ccdaea] pt-6 lg:border-l lg:border-t-0 lg:pl-9 lg:pt-0">
             <div className="flex items-start gap-4">
@@ -212,8 +268,9 @@ export default function WorkSetupPage() {
           <div className="max-w-3xl">
             <h2 className="portfolio-display text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">Internet connection</h2>
             <p className="mt-4 text-base leading-7 text-[#536b86]">Values transcribed from the supplied Speedtest result. Actual performance can vary with routing, congestion, and network conditions.</p>
-            <a href="https://www.speedtest.net/" target="_blank" rel="noreferrer" className="group mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#2448d8] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">
-              Run a new Speedtest <ExternalLink size={15} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" aria-hidden="true" />
+            <a href="https://www.speedtest.net/" target="_blank" rel="noopener noreferrer" className="group mt-6 inline-flex min-h-[52px] w-full items-center justify-between gap-4 bg-[#2f5bff] px-6 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_-18px_rgba(47,91,255,0.75)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#2448d8] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff] motion-reduce:transform-none motion-reduce:transition-none sm:w-auto">
+              <span className="flex items-center gap-3"><Gauge size={19} aria-hidden="true" />Run Speedtest</span>
+              <ExternalLink size={17} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none" aria-hidden="true" />
             </a>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -226,10 +283,22 @@ export default function WorkSetupPage() {
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
             <h2 className="portfolio-display text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">Workstation specifications</h2>
-            <p className="mt-4 text-base leading-7 text-[#536b86]">Core hardware and display details reported by the supplied Windows DxDiag file.</p>
+            <p className="mt-4 text-base leading-7 text-[#536b86]">Windows hardware and display details from the supplied DxDiag file, plus an additional laptop.</p>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {workstationSpecs.map((spec) => <SpecTile key={spec.label} {...spec} />)}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[#f8fbff] px-5 py-14 sm:px-8 sm:py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <h2 className="portfolio-display text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">Desk peripherals</h2>
+            <p className="mt-4 text-base leading-7 text-[#536b86]">The microphone, camera, input devices, and headset used day to day.</p>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {peripheralSpecs.map((spec) => <SpecTile key={`${spec.label}-${spec.value}`} {...spec} />)}
           </div>
         </div>
       </section>
@@ -262,7 +331,7 @@ export default function WorkSetupPage() {
             Read introduction letter <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </a>
         </div>
-        <p className="mx-auto mt-6 flex max-w-7xl items-start gap-3 text-xs leading-5 text-[#647990]"><Wifi size={15} className="mt-0.5 shrink-0" aria-hidden="true" />Network values come from the supplied speed-test screenshot. Hardware values come from the supplied DxDiag report. Public IP and sensitive device identifiers are intentionally omitted.</p>
+        <p className="mx-auto mt-6 flex max-w-7xl items-start gap-3 text-xs leading-5 text-[#647990]"><Wifi size={15} className="mt-0.5 shrink-0" aria-hidden="true" />Network values come from the supplied Speedtest screenshot. Windows specifications come from the DxDiag report; the additional laptop and peripherals were provided separately. Public IP and sensitive device identifiers are intentionally omitted.</p>
       </section>
     </ApplicationPageShell>
   );
