@@ -7,7 +7,7 @@ import { pixelCoreProject } from "../src/pages/portfolio/pixelcore/pixelcoreData
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dist = path.join(root, "dist");
-const origin = (process.env.SITE_URL || "https://pixelpopup-frontend.vercel.app").replace(/\/$/, "");
+const origin = (process.env.SITE_URL || "https://pixelsbymiku.dev").replace(/\/$/, "");
 const portfolioImage = `${origin}/portfolio/assets/mico-ang-portrait.jpg`;
 const astaImage = `${origin}/portfolio/assets/asta-team-01.jpg`;
 const routes = [];
