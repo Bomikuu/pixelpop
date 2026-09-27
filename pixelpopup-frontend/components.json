@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": false,
+  "tailwind": {
+    "config": "",
+    "css": "src/features/personal-dashboard/styles/theme.css",
+    "baseColor": "slate",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/features/personal-dashboard/components",
+    "ui": "@/features/personal-dashboard/ui",
+    "utils": "@/features/personal-dashboard/lib/utils",
+    "lib": "@/features/personal-dashboard/lib",
+    "hooks": "@/features/personal-dashboard/hooks"
+  }
+}
