@@ -1,7 +1,7 @@
 # Funds, giving, and dashboard refinements
 
 Date: 2026-09-27
-Status: Chat design approved; written specification awaiting user review.
+Status: Written design approved; user requested immediate implementation. Source implementation complete; migrations and runtime verification remain user-run.
 
 ## Intent and scope
 

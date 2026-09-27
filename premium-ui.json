@@ -1,0 +1,13 @@
+{
+  "profile": "product-admin",
+  "sourceRoots": ["pixelpopup-frontend/src/features/personal-dashboard", "pixelpopup-frontend/src/pages/PersonalDashboardPage.jsx"],
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": ["Select/Listbox", "Date", "Form", "Scrollbar", "Toast", "CRUD"],
+  "ownership": { "Date": "native", "Select/Listbox": "authored" },
+  "commands": {
+    "lint": "cd pixelpopup-frontend && npx eslint src/features/personal-dashboard src/pages/PersonalDashboardPage.jsx src/App.jsx",
+    "build": "cd pixelpopup-frontend && npm run build",
+    "test": "cd backendv2 && python manage.py test finance --settings=finance.tests.settings --noinput"
+  },
+  "requiredCommands": ["lint", "build", "test"]
+}

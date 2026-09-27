@@ -1,6 +1,6 @@
 # Personal Finance Dashboard — Implementation Plan
 
-Status: awaiting plan approval and execution-method confirmation.
+Status: approved and implemented as the first iteration on 2026-09-27. Local verification is recorded in [the verification report](../specs/2026-09-27-personal-finance-dashboard-verification.md). Production migration and deployment remain user-run steps.
 
 Approved specification: [Personal Expense & Deadline Dashboard](../specs/2026-09-27-personal-finance-dashboard-design.md).
 
