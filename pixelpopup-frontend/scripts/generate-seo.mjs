@@ -81,6 +81,11 @@ function escapeHtml(value) {
 }
 
 const template = await readFile(path.join(dist, "index.html"), "utf8");
+const dashboardDirectory = path.join(dist, "dashboard");
+await mkdir(dashboardDirectory, { recursive: true });
+await writeFile(path.join(dashboardDirectory, "index.html"), template
+  .replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex,nofollow" />')
+  .replace(/<title>.*?<\/title>/, "<title>Personal workspace</title>"));
 const fallbackDirectory = path.join(dist, "_fallback");
 await mkdir(fallbackDirectory, { recursive: true });
 await writeFile(path.join(fallbackDirectory, "index.html"), template);
