@@ -35,8 +35,8 @@ export const catMascotConfig = Object.freeze({
   ],
 });
 
-export function isMascotRoute(pathname) {
-  return catMascotConfig.supportedRoutes.some((route) => (
-    pathname === route || pathname.startsWith(`${route}/`)
-  ));
+export function isMascotRoute(pathname, config = catMascotConfig) {
+  return config.supportedRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 }

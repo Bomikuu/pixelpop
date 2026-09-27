@@ -6,16 +6,23 @@ import { catMascotConfig, isMascotRoute } from "./catMascotConfig";
 import useRoamingCat from "./useRoamingCat";
 import "./catMascot.css";
 
-function MascotBody({ config, pathname }) {
+function MascotBody({ config, pathname, messageList, reaction }) {
   const mascotRef = useRef(null);
-  const cat = useRoamingCat({ config, messages, pathname, mascotRef });
+  const cat = useRoamingCat({
+    config,
+    messages: messageList,
+    pathname,
+    mascotRef,
+    reaction,
+  });
 
   if (cat.hiddenForSession) return null;
 
   const astaRoute = pathname.startsWith("/asta");
-  const bubblePosition = cat.bubbleAlign === "right"
-    ? "right-0 origin-bottom-right"
-    : "left-0 origin-bottom-left";
+  const bubblePosition =
+    cat.bubbleAlign === "right"
+      ? "right-0 origin-bottom-right"
+      : "left-0 origin-bottom-left";
 
   return (
     <aside
@@ -24,13 +31,15 @@ function MascotBody({ config, pathname }) {
       data-state={cat.state}
       data-facing={cat.facing}
       data-suppressed={cat.suppressed}
+      aria-hidden={cat.suppressed || undefined}
+      inert={cat.suppressed || undefined}
       style={{ "--cat-sprite-url": `url(${config.spriteUrl})` }}
       aria-label="Smokey Sr., website cat companion"
     >
       {cat.bubble ? (
         <div
           id="cat-mascot-message"
-          className={`pointer-events-auto absolute bottom-[calc(100%-0.5rem)] w-48 sm:w-60 ${bubblePosition} ${astaRoute ? "rounded-sm border-[#1570ef]" : "rounded-xl border-[#2f5bff]"} border bg-white p-4 text-left font-sans text-slate-950 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.55)]`}
+          className={`pointer-events-auto absolute ${cat.bubbleSide === "below" ? "top-[calc(100%-0.5rem)]" : "bottom-[calc(100%-0.5rem)]"} w-48 sm:w-60 ${bubblePosition} ${astaRoute ? "rounded-sm border-[#1570ef]" : "rounded-xl border-[#2f5bff]"} border bg-white p-4 text-left font-sans text-slate-950 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.55)]`}
         >
           <button
             type="button"
@@ -40,19 +49,37 @@ function MascotBody({ config, pathname }) {
           >
             <X size={15} aria-hidden="true" />
           </button>
-          <span className={`mb-2 block text-[0.68rem] font-bold uppercase tracking-[0.12em] ${astaRoute ? "text-[#1570ef]" : "text-[#2f5bff]"}`}>Smokey Sr.</span>
-          <p className="pr-7 text-sm font-semibold leading-5">{cat.bubble.message}</p>
+          <span
+            className={`mb-2 block text-[0.68rem] font-bold uppercase tracking-[0.12em] ${astaRoute ? "text-[#1570ef]" : "text-[#2f5bff]"}`}
+          >
+            Smokey Sr.
+          </span>
+          <p className="pr-7 text-sm font-semibold leading-5">
+            {cat.bubble.message}
+          </p>
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
             {cat.bubble.actionLabel && cat.bubble.actionUrl ? (
-              <a className={`text-xs font-semibold ${astaRoute ? "text-[#1570ef]" : "text-[#2f5bff]"} hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current`} href={cat.bubble.actionUrl}>
+              <a
+                className={`text-xs font-semibold ${astaRoute ? "text-[#1570ef]" : "text-[#2f5bff]"} hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current`}
+                href={cat.bubble.actionUrl}
+              >
                 {cat.bubble.actionLabel}
               </a>
-            ) : <span />}
-            <button type="button" className="bg-transparent p-0 text-xs font-medium text-slate-500 hover:text-slate-950 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff]" onClick={cat.hideForSession}>
+            ) : (
+              <span />
+            )}
+            <button
+              type="button"
+              className="bg-transparent p-0 text-xs font-medium text-slate-500 hover:text-slate-950 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff]"
+              onClick={cat.hideForSession}
+            >
               Hide for now
             </button>
           </div>
-          <span className={`absolute -bottom-1.5 size-3 rotate-45 border-b border-r bg-white ${cat.bubbleAlign === "right" ? "right-8" : "left-8"} ${astaRoute ? "border-[#1570ef]" : "border-[#2f5bff]"}`} aria-hidden="true" />
+          <span
+            className={`absolute ${cat.bubbleSide === "below" ? "-top-1.5 border-l border-t" : "-bottom-1.5 border-b border-r"} size-3 rotate-45 bg-white ${cat.bubbleAlign === "right" ? "right-8" : "left-8"} ${astaRoute ? "border-[#1570ef]" : "border-[#2f5bff]"}`}
+            aria-hidden="true"
+          />
         </div>
       ) : null}
 
@@ -80,8 +107,19 @@ function MascotBody({ config, pathname }) {
   );
 }
 
-export default function RoamingCatMascot({ config = catMascotConfig }) {
+export default function RoamingCatMascot({
+  config = catMascotConfig,
+  messageList = messages,
+  reaction,
+}) {
   const { pathname } = useLocation();
-  if (!config.enabled || !isMascotRoute(pathname)) return null;
-  return <MascotBody config={config} pathname={pathname} />;
+  if (!config.enabled || !isMascotRoute(pathname, config)) return null;
+  return (
+    <MascotBody
+      config={config}
+      pathname={pathname}
+      messageList={messageList}
+      reaction={reaction}
+    />
+  );
 }

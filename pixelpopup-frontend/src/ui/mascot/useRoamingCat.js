@@ -1,22 +1,44 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
-const randomBetween = (minimum, maximum) => minimum + Math.random() * (maximum - minimum);
-const easeOutCubic = (value) => 1 - ((1 - value) ** 3);
+const clamp = (value, minimum, maximum) =>
+  Math.min(Math.max(value, minimum), maximum);
+const randomBetween = (minimum, maximum) =>
+  minimum + Math.random() * (maximum - minimum);
+const easeOutCubic = (value) => 1 - (1 - value) ** 3;
 
 function matchesRoute(pattern, pathname) {
-  return pattern === "*" || (pattern.endsWith("*") ? pathname.startsWith(pattern.slice(0, -1)) : pathname === pattern);
+  return (
+    pattern === "*" ||
+    (pattern.endsWith("*")
+      ? pathname.startsWith(pattern.slice(0, -1))
+      : pathname === pattern)
+  );
 }
 
 function pickWeightedMessage(messages, pathname, previousId) {
-  const eligible = messages.filter((item) => item.id !== previousId && item.routes.some((route) => matchesRoute(route, pathname)));
-  const pool = eligible.length ? eligible : messages.filter((item) => item.routes.some((route) => matchesRoute(route, pathname)));
-  const total = pool.reduce((sum, item) => sum + Math.max(item.weight || 1, 1), 0);
+  const eligible = messages.filter(
+    (item) =>
+      item.id !== previousId &&
+      item.routes.some((route) => matchesRoute(route, pathname)),
+  );
+  const pool = eligible.length
+    ? eligible
+    : messages.filter((item) =>
+        item.routes.some((route) => matchesRoute(route, pathname)),
+      );
+  const total = pool.reduce(
+    (sum, item) => sum + Math.max(item.weight || 1, 1),
+    0,
+  );
   let choice = Math.random() * total;
-  return pool.find((item) => {
-    choice -= Math.max(item.weight || 1, 1);
-    return choice <= 0;
-  }) || pool[0] || null;
+  return (
+    pool.find((item) => {
+      choice -= Math.max(item.weight || 1, 1);
+      return choice <= 0;
+    }) ||
+    pool[0] ||
+    null
+  );
 }
 
 function getSpriteSize(config) {
@@ -26,7 +48,14 @@ function getSpriteSize(config) {
 }
 
 function isVisible(rect) {
-  return rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth;
+  return (
+    rect.width > 0 &&
+    rect.height > 0 &&
+    rect.bottom > 0 &&
+    rect.right > 0 &&
+    rect.top < window.innerHeight &&
+    rect.left < window.innerWidth
+  );
 }
 
 function getExclusionRects(config) {
@@ -43,20 +72,33 @@ function getExclusionRects(config) {
 }
 
 function overlaps(candidate, exclusions) {
-  return exclusions.some((rect) => !(
-    candidate.right <= rect.left || candidate.left >= rect.right || candidate.bottom <= rect.top || candidate.top >= rect.bottom
-  ));
+  return exclusions.some(
+    (rect) =>
+      !(
+        candidate.right <= rect.left ||
+        candidate.left >= rect.right ||
+        candidate.bottom <= rect.top ||
+        candidate.top >= rect.bottom
+      ),
+  );
 }
 
 function findSafePosition(config, size, preferredCorner = null) {
   const minimumX = config.edgePadding;
-  const maximumX = Math.max(minimumX, window.innerWidth - size.width - config.edgePadding);
+  const maximumX = Math.max(
+    minimumX,
+    window.innerWidth - size.width - config.edgePadding,
+  );
   const minimumY = Math.max(config.edgePadding + 72, window.innerHeight * 0.52);
-  const maximumY = Math.max(minimumY, window.innerHeight - size.height - config.edgePadding);
+  const maximumY = Math.max(
+    minimumY,
+    window.innerHeight - size.height - config.edgePadding,
+  );
   const exclusions = getExclusionRects(config);
   const candidates = [];
 
-  if (preferredCorner === "bottom-right") candidates.push({ x: maximumX, y: maximumY });
+  if (preferredCorner === "bottom-right")
+    candidates.push({ x: maximumX, y: maximumY });
   candidates.push(
     { x: minimumX, y: maximumY },
     { x: maximumX, y: maximumY },
@@ -64,20 +106,39 @@ function findSafePosition(config, size, preferredCorner = null) {
     { x: maximumX, y: minimumY },
   );
   for (let index = 0; index < 18; index += 1) {
-    candidates.push({ x: randomBetween(minimumX, maximumX), y: randomBetween(minimumY, maximumY) });
+    candidates.push({
+      x: randomBetween(minimumX, maximumX),
+      y: randomBetween(minimumY, maximumY),
+    });
   }
 
-  return candidates.find(({ x, y }) => !overlaps({ left: x, right: x + size.width, top: y, bottom: y + size.height }, exclusions))
-    || { x: maximumX, y: maximumY };
+  return (
+    candidates.find(
+      ({ x, y }) =>
+        !overlaps(
+          { left: x, right: x + size.width, top: y, bottom: y + size.height },
+          exclusions,
+        ),
+    ) || { x: maximumX, y: maximumY }
+  );
 }
 
 function findSafeSpeechPosition(config, size, current) {
   const bubbleWidth = window.innerWidth <= 640 ? 192 : 240;
   const bubbleHeight = window.innerWidth <= 640 ? 124 : 116;
   const minimumX = config.edgePadding;
-  const maximumX = Math.max(minimumX, window.innerWidth - size.width - config.edgePadding);
-  const minimumY = Math.max(config.edgePadding + bubbleHeight + 72, window.innerHeight * 0.46);
-  const maximumY = Math.max(minimumY, window.innerHeight - size.height - config.edgePadding);
+  const maximumX = Math.max(
+    minimumX,
+    window.innerWidth - size.width - config.edgePadding,
+  );
+  const minimumY = Math.max(
+    config.edgePadding + bubbleHeight + 72,
+    window.innerHeight * 0.46,
+  );
+  const maximumY = Math.max(
+    minimumY,
+    window.innerHeight - size.height - config.edgePadding,
+  );
   const exclusions = getExclusionRects(config);
   const middleY = clamp(window.innerHeight * 0.66, minimumY, maximumY);
   const candidates = [
@@ -90,33 +151,52 @@ function findSafeSpeechPosition(config, size, current) {
     { x: maximumX, y: minimumY },
   ];
   for (let index = 0; index < 18; index += 1) {
-    candidates.push({ x: randomBetween(minimumX, maximumX), y: randomBetween(minimumY, maximumY) });
+    candidates.push({
+      x: randomBetween(minimumX, maximumX),
+      y: randomBetween(minimumY, maximumY),
+    });
   }
 
-  return candidates.find(({ x, y }) => {
-    const alignRight = x > window.innerWidth / 2;
-    const bubbleLeft = alignRight ? x + size.width - bubbleWidth : x;
-    const bubbleBottom = y + 8;
-    const spriteRect = { left: x, right: x + size.width, top: y, bottom: y + size.height };
-    const bubbleRect = {
-      left: bubbleLeft,
-      right: bubbleLeft + bubbleWidth,
-      top: bubbleBottom - bubbleHeight,
-      bottom: bubbleBottom,
-    };
-    return bubbleRect.left >= config.edgePadding
-      && bubbleRect.right <= window.innerWidth - config.edgePadding
-      && bubbleRect.top >= config.edgePadding
-      && !overlaps(spriteRect, exclusions)
-      && !overlaps(bubbleRect, exclusions);
-  }) || findSafePosition(config, size, "bottom-right");
+  return (
+    candidates.find(({ x, y }) => {
+      const alignRight = x > window.innerWidth / 2;
+      const bubbleLeft = alignRight ? x + size.width - bubbleWidth : x;
+      const bubbleBottom = y + 8;
+      const spriteRect = {
+        left: x,
+        right: x + size.width,
+        top: y,
+        bottom: y + size.height,
+      };
+      const bubbleRect = {
+        left: bubbleLeft,
+        right: bubbleLeft + bubbleWidth,
+        top: bubbleBottom - bubbleHeight,
+        bottom: bubbleBottom,
+      };
+      return (
+        bubbleRect.left >= config.edgePadding &&
+        bubbleRect.right <= window.innerWidth - config.edgePadding &&
+        bubbleRect.top >= config.edgePadding &&
+        !overlaps(spriteRect, exclusions) &&
+        !overlaps(bubbleRect, exclusions)
+      );
+    }) || findSafePosition(config, size, "bottom-right")
+  );
 }
 
-export default function useRoamingCat({ config, messages, pathname, mascotRef }) {
+export default function useRoamingCat({
+  config,
+  messages,
+  pathname,
+  mascotRef,
+  reaction,
+}) {
   const [state, setState] = useState("idle");
   const [facing, setFacing] = useState("left");
   const [bubble, setBubble] = useState(null);
   const [bubbleAlign, setBubbleAlign] = useState("right");
+  const [bubbleSide, setBubbleSide] = useState("above");
   const [suppressed, setSuppressed] = useState(false);
   const [hiddenForSession, setHiddenForSession] = useState(false);
   const [activityCycle, setActivityCycle] = useState(0);
@@ -136,8 +216,19 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
   });
   const lastMessageIdRef = useRef(null);
   const lastSpeechAtRef = useRef(0);
-  const reducedMotion = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
-  const routeMessages = useMemo(() => messages.filter((item) => item.routes.some((route) => matchesRoute(route, pathname))), [messages, pathname]);
+  const lastReactionIdRef = useRef(reaction?.id);
+  const lastScrollAtRef = useRef(0);
+  const reducedMotion = useMemo(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+  const routeMessages = useMemo(
+    () =>
+      messages.filter((item) =>
+        item.routes.some((route) => matchesRoute(route, pathname)),
+      ),
+    [messages, pathname],
+  );
 
   const clearActivity = useCallback(() => {
     window.clearTimeout(timerRef.current);
@@ -145,51 +236,97 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
     window.cancelAnimationFrame(frameRef.current);
   }, []);
 
-  const applyPosition = useCallback((position) => {
-    positionRef.current = position;
-    if (mascotRef.current) mascotRef.current.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
-  }, [mascotRef]);
+  const applyPosition = useCallback(
+    (position) => {
+      positionRef.current = position;
+      if (mascotRef.current)
+        mascotRef.current.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
+    },
+    [mascotRef],
+  );
 
-  const showSpeech = useCallback(() => {
-    if (!routeMessages.length || suppressed || hiddenForSession) return;
-    const message = pickWeightedMessage(routeMessages, pathname, lastMessageIdRef.current);
-    if (!message) return;
-    const speechPosition = findSafeSpeechPosition(config, getSpriteSize(config), positionRef.current);
-    applyPosition(speechPosition);
-    lastMessageIdRef.current = message.id;
-    lastSpeechAtRef.current = Date.now();
-    setBubbleAlign(speechPosition.x > window.innerWidth / 2 ? "right" : "left");
-    setBubble(message);
-    setState("speaking");
-    window.clearTimeout(speechTimerRef.current);
-    speechTimerRef.current = window.setTimeout(() => {
+  const showSpeech = useCallback(
+    (requestedMessage) => {
+      if (!routeMessages.length || suppressed || hiddenForSession) return;
+      const message =
+        requestedMessage ||
+        pickWeightedMessage(routeMessages, pathname, lastMessageIdRef.current);
+      if (!message) return;
+      const speechPosition =
+        config.repositionOnSpeech === false
+          ? positionRef.current
+          : findSafeSpeechPosition(
+              config,
+              getSpriteSize(config),
+              positionRef.current,
+            );
+      if (config.repositionOnSpeech === false)
+        window.cancelAnimationFrame(frameRef.current);
+      if (config.repositionOnSpeech !== false) applyPosition(speechPosition);
+      const spaceBelow =
+        window.innerHeight - speechPosition.y - getSpriteSize(config).height;
+      setBubbleSide(
+        config.repositionOnSpeech === false &&
+          speechPosition.y < 250 &&
+          spaceBelow > speechPosition.y
+          ? "below"
+          : "above",
+      );
+      lastMessageIdRef.current = message.id;
+      lastSpeechAtRef.current = Date.now();
+      setBubbleAlign(
+        speechPosition.x > window.innerWidth / 2 ? "right" : "left",
+      );
+      setBubble(message);
+      setState("speaking");
+      window.clearTimeout(speechTimerRef.current);
+      speechTimerRef.current = window.setTimeout(() => {
+        setBubble(null);
+        setState("idle");
+      }, config.speechDuration);
+    },
+    [
+      applyPosition,
+      config,
+      hiddenForSession,
+      pathname,
+      routeMessages,
+      suppressed,
+    ],
+  );
+
+  const moveTo = useCallback(
+    (destination) => {
+      if (reducedMotion || suppressed || hiddenForSession) {
+        applyPosition(destination);
+        return;
+      }
+      const start = { ...positionRef.current };
+      const distance = Math.hypot(
+        destination.x - start.x,
+        destination.y - start.y,
+      );
+      const duration = clamp(distance * 7, 1500, 4000);
+      const startedAt = performance.now();
+      setFacing(destination.x < start.x ? "left" : "right");
       setBubble(null);
-      setState("idle");
-    }, config.speechDuration);
-  }, [applyPosition, config, hiddenForSession, pathname, routeMessages, suppressed]);
+      setState("walking");
 
-  const moveTo = useCallback((destination) => {
-    if (reducedMotion || suppressed || hiddenForSession) {
-      applyPosition(destination);
-      return;
-    }
-    const start = { ...positionRef.current };
-    const distance = Math.hypot(destination.x - start.x, destination.y - start.y);
-    const duration = clamp(distance * 7, 1500, 4000);
-    const startedAt = performance.now();
-    setFacing(destination.x < start.x ? "left" : "right");
-    setBubble(null);
-    setState("walking");
-
-    const animate = (timestamp) => {
-      const progress = clamp((timestamp - startedAt) / duration, 0, 1);
-      const eased = easeOutCubic(progress);
-      applyPosition({ x: start.x + ((destination.x - start.x) * eased), y: start.y + ((destination.y - start.y) * eased) });
-      if (progress < 1) frameRef.current = window.requestAnimationFrame(animate);
-      else setState(Math.random() > 0.55 ? "idle-alt" : "idle");
-    };
-    frameRef.current = window.requestAnimationFrame(animate);
-  }, [applyPosition, hiddenForSession, reducedMotion, suppressed]);
+      const animate = (timestamp) => {
+        const progress = clamp((timestamp - startedAt) / duration, 0, 1);
+        const eased = easeOutCubic(progress);
+        applyPosition({
+          x: start.x + (destination.x - start.x) * eased,
+          y: start.y + (destination.y - start.y) * eased,
+        });
+        if (progress < 1)
+          frameRef.current = window.requestAnimationFrame(animate);
+        else setState(Math.random() > 0.55 ? "idle-alt" : "idle");
+      };
+      frameRef.current = window.requestAnimationFrame(animate);
+    },
+    [applyPosition, hiddenForSession, reducedMotion, suppressed],
+  );
 
   useEffect(() => {
     if (hiddenForSession || suppressed) return undefined;
@@ -199,21 +336,61 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
       initializedRef.current = true;
     }
     const schedule = () => {
-      const idleDuration = randomBetween(config.minimumIdleDuration, config.maximumIdleDuration);
+      const idleDuration = randomBetween(
+        config.minimumIdleDuration,
+        config.maximumIdleDuration,
+      );
       timerRef.current = window.setTimeout(() => {
+        if (
+          config.repositionOnScroll === false &&
+          Date.now() - lastScrollAtRef.current < 900
+        ) {
+          schedule();
+          return;
+        }
         const mobile = window.innerWidth <= 640;
-        const speechReady = Date.now() - lastSpeechAtRef.current >= randomBetween(config.minimumSpeechInterval, config.maximumSpeechInterval);
+        const speechReady =
+          Date.now() - lastSpeechAtRef.current >=
+          randomBetween(
+            config.minimumSpeechInterval,
+            config.maximumSpeechInterval,
+          );
         const roll = Math.random();
         if (!mobile && speechReady && roll < 0.2) showSpeech();
-        else if (config.enableSleepingState && roll > 0.92) setState("sleeping");
-        else if (!mobile || config.movementEnabledOnMobile) moveTo(findSafePosition(config, getSpriteSize(config)));
+        else if (config.enableSleepingState && roll > 0.92)
+          setState("sleeping");
+        else if (!mobile || config.movementEnabledOnMobile)
+          moveTo(findSafePosition(config, getSpriteSize(config)));
         else setState(Math.random() > 0.5 ? "idle-alt" : "idle");
         schedule();
       }, idleDuration);
     };
     schedule();
     return clearActivity;
-  }, [activityCycle, applyPosition, clearActivity, config, hiddenForSession, moveTo, showSpeech, suppressed]);
+  }, [
+    activityCycle,
+    applyPosition,
+    clearActivity,
+    config,
+    hiddenForSession,
+    moveTo,
+    showSpeech,
+    suppressed,
+    reaction?.id,
+  ]);
+
+  useEffect(() => {
+    if (
+      !reaction ||
+      reaction.id === lastReactionIdRef.current ||
+      suppressed ||
+      hiddenForSession
+    )
+      return;
+    lastReactionIdRef.current = reaction.id;
+    window.cancelAnimationFrame(frameRef.current);
+    showSpeech(reaction);
+  }, [reaction, suppressed, hiddenForSession, showSpeech]);
 
   useEffect(() => {
     let resizeFrame = 0;
@@ -224,25 +401,46 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
         const size = getSpriteSize(config);
         const safe = findSafePosition(config, size, "bottom-right");
         const current = positionRef.current;
-        const outOfBounds = current.x < config.edgePadding || current.y < config.edgePadding
-          || current.x + size.width > window.innerWidth - config.edgePadding
-          || current.y + size.height > window.innerHeight - config.edgePadding;
-        const currentRect = { left: current.x, right: current.x + size.width, top: current.y, bottom: current.y + size.height };
-        if (outOfBounds || overlaps(currentRect, getExclusionRects(config))) applyPosition(safe);
+        const outOfBounds =
+          current.x < config.edgePadding ||
+          current.y < config.edgePadding ||
+          current.x + size.width > window.innerWidth - config.edgePadding ||
+          current.y + size.height > window.innerHeight - config.edgePadding;
+        const currentRect = {
+          left: current.x,
+          right: current.x + size.width,
+          top: current.y,
+          bottom: current.y + size.height,
+        };
+        if (outOfBounds || overlaps(currentRect, getExclusionRects(config)))
+          applyPosition(safe);
       });
     };
+    const onScroll = () => {
+      if (config.repositionOnScroll !== false) {
+        keepSafe();
+        return;
+      }
+      lastScrollAtRef.current = Date.now();
+      window.cancelAnimationFrame(frameRef.current);
+      setState((current) => (current === "walking" ? "idle" : current));
+    };
     window.addEventListener("resize", keepSafe);
-    window.addEventListener("scroll", keepSafe, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.cancelAnimationFrame(resizeFrame);
       window.removeEventListener("resize", keepSafe);
-      window.removeEventListener("scroll", keepSafe);
+      window.removeEventListener("scroll", onScroll);
     };
   }, [applyPosition, config]);
 
   useEffect(() => {
     const updateSuppression = () => {
-      const overlayOpen = Boolean(document.querySelector("dialog[open], [role='dialog'][aria-modal='true']"));
+      const overlayOpen = Boolean(
+        document.querySelector(
+          "dialog[open], [role='dialog'][aria-modal='true'], [role='alertdialog'][aria-modal='true'], [data-slot='dialog-content'][data-state='open'], [data-slot='alert-dialog-content'][data-state='open']",
+        ),
+      );
       const documentHidden = config.pauseWhenDocumentHidden && document.hidden;
       setSuppressed(overlayOpen || documentHidden);
     };
@@ -251,7 +449,7 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ["open", "aria-modal"],
+      attributeFilter: ["open", "aria-modal", "data-state"],
     });
     document.addEventListener("visibilitychange", updateSuppression);
     updateSuppression();
@@ -272,43 +470,55 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
     setHiddenForSession(true);
   }, [clearActivity]);
 
-  const beginDrag = useCallback((event) => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
+  const beginDrag = useCallback(
+    (event) => {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
 
-    clearActivity();
-    window.clearTimeout(clickResetRef.current);
-    event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = {
-      active: true,
-      moved: false,
-      pointerId: event.pointerId,
-      startPointer: { x: event.clientX, y: event.clientY },
-      startPosition: { ...positionRef.current },
-      suppressClick: false,
-    };
-    setBubble(null);
-    setState("dragging");
-  }, [clearActivity]);
+      clearActivity();
+      window.clearTimeout(clickResetRef.current);
+      event.currentTarget.setPointerCapture(event.pointerId);
+      dragRef.current = {
+        active: true,
+        moved: false,
+        pointerId: event.pointerId,
+        startPointer: { x: event.clientX, y: event.clientY },
+        startPosition: { ...positionRef.current },
+        suppressClick: false,
+      };
+      setBubble(null);
+      setState("dragging");
+    },
+    [clearActivity],
+  );
 
-  const updateDrag = useCallback((event) => {
-    const drag = dragRef.current;
-    if (!drag.active || drag.pointerId !== event.pointerId) return;
+  const updateDrag = useCallback(
+    (event) => {
+      const drag = dragRef.current;
+      if (!drag.active || drag.pointerId !== event.pointerId) return;
 
-    event.preventDefault();
-    const deltaX = event.clientX - drag.startPointer.x;
-    const deltaY = event.clientY - drag.startPointer.y;
-    if (Math.hypot(deltaX, deltaY) >= 6) drag.moved = true;
-    if (Math.abs(deltaX) > 1) setFacing(deltaX < 0 ? "left" : "right");
+      event.preventDefault();
+      const deltaX = event.clientX - drag.startPointer.x;
+      const deltaY = event.clientY - drag.startPointer.y;
+      if (Math.hypot(deltaX, deltaY) >= 6) drag.moved = true;
+      if (Math.abs(deltaX) > 1) setFacing(deltaX < 0 ? "left" : "right");
 
-    const size = getSpriteSize(config);
-    const maximumX = Math.max(config.edgePadding, window.innerWidth - size.width - config.edgePadding);
-    const maximumY = Math.max(config.edgePadding, window.innerHeight - size.height - config.edgePadding);
-    const minimumY = Math.min(config.edgePadding + 72, maximumY);
-    applyPosition({
-      x: clamp(drag.startPosition.x + deltaX, config.edgePadding, maximumX),
-      y: clamp(drag.startPosition.y + deltaY, minimumY, maximumY),
-    });
-  }, [applyPosition, config]);
+      const size = getSpriteSize(config);
+      const maximumX = Math.max(
+        config.edgePadding,
+        window.innerWidth - size.width - config.edgePadding,
+      );
+      const maximumY = Math.max(
+        config.edgePadding,
+        window.innerHeight - size.height - config.edgePadding,
+      );
+      const minimumY = Math.min(config.edgePadding + 72, maximumY);
+      applyPosition({
+        x: clamp(drag.startPosition.x + deltaX, config.edgePadding, maximumX),
+        y: clamp(drag.startPosition.y + deltaY, minimumY, maximumY),
+      });
+    },
+    [applyPosition, config],
+  );
 
   const endDrag = useCallback((event) => {
     const drag = dragRef.current;
@@ -326,14 +536,17 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
     }, 0);
   }, []);
 
-  const activate = useCallback((event) => {
-    if (dragRef.current.suppressClick) {
-      event.preventDefault();
-      dragRef.current.suppressClick = false;
-      return;
-    }
-    showSpeech();
-  }, [showSpeech]);
+  const activate = useCallback(
+    (event) => {
+      if (dragRef.current.suppressClick) {
+        event.preventDefault();
+        dragRef.current.suppressClick = false;
+        return;
+      }
+      showSpeech();
+    },
+    [showSpeech],
+  );
 
   useEffect(() => () => window.clearTimeout(clickResetRef.current), []);
 
@@ -342,6 +555,7 @@ export default function useRoamingCat({ config, messages, pathname, mascotRef })
     facing,
     bubble,
     bubbleAlign,
+    bubbleSide,
     suppressed,
     hiddenForSession,
     activate,
