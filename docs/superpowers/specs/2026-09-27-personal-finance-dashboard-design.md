@@ -94,6 +94,34 @@ Use compact navigation matching the brief: Dashboard; Transactions, Income, Expe
 
 The dashboard includes Today at a Glance counts/next deadline, today's open and completed items, upcoming groups (today/tomorrow/this week/later), monthly calendar with date drill-down, recent transactions, category spending, budget usage, bills summary, subscriptions, month history, and calculated insights. Financial income dates are visible on the calendar with received/expected labels. Overdue items remain in a distinct attention group instead of disappearing from upcoming views.
 
+### Complete overview and monthly planning
+
+Dashboard is the summary of the entire workspace, not just an expense analytics page. Alongside the financial tiles and charts, show concise summaries of income, expenses, budgets, tasks, deadlines, bills, subscriptions, and recent activity, with links into their detailed tabs. Keep today's responsibilities prominent rather than requiring the user to scan every panel.
+
+Provide a month selector defaulting to the current month. For the selected month, show a combined deadlines-and-bills overview: total items, pending/completed tasks, total priced bills, paid amount, unpaid amount, overdue count, unpriced bills, and the next outstanding due item. List bills and deadlines grouped by month when showing multiple months, with a compact summary for each group. Recurring occurrences must appear in the appropriate month automatically.
+
+Include a monthly bills chart comparing paid and unpaid amounts, alongside deadline completion counts. Monetary bill summaries group by due month, not payment month; spending charts continue to group by the actual expense date. Explicitly label unknown variable amounts instead of placing them in a zero-value chart segment. Avoid duplicating a bill as an extra task in combined item counts.
+
+Current balance, today's spending, and today's responsibilities remain anchored to today and clearly labeled when another month is selected. The overdue attention strip continues to show all outstanding overdue items, even outside the selected month. Month-based panels and drill-downs use the selected month consistently.
+
+### Summary in every tab
+
+Every tab starts with a compact contextual summary before its detailed list, chart, or controls. Reuse the dashboard's Lucide icon tiles, typography, and calculation services. Use these summaries:
+
+| Tab | Summary |
+| --- | --- |
+| Transactions | Received income, expenses, net movement, and matching transaction count |
+| Income | Received, expected, total income, and next expected receipt |
+| Expenses | Total spent, today's spending, largest category, and expense count |
+| Tasks & Deadlines | Due today, pending, completed, overdue, and next deadline |
+| Bills | Monthly priced total, paid, unpaid, overdue, unpriced count, and next bill |
+| Calendar | Items in the displayed month, due today, completed/paid, and upcoming bill amount |
+| Spending | Period spending, daily average, highest-spending category, and budget usage when applicable |
+| Monthly Reports | Month income, expenses, net remaining, bills paid/unpaid, and task completion |
+| Settings | Current balance, configured monthly budget, category-budget count, and active recurring schedules |
+
+Financial period summaries must follow the tab's active month, date range, search, and category filters, and summarize the entire matching dataset rather than the current pagination page. Explicitly label today-only or workspace-wide metrics so they are not mistaken for filtered totals. Settings summarizes configuration and current state rather than implying that its values belong to a historical month. Mutations refresh affected summaries and charts together; empty results show truthful zero counts or unset states.
+
 ## Forms and interactions
 
 - **Expense dialog:** amount, name, category, date defaulting to today, payment method, optional notes. Provide edit/delete, confirmation before delete, fast repeat entry, inline validation, and preserved values on failure.
@@ -110,6 +138,8 @@ Receipt/document attachments are explicitly deferred; they are optional in the s
 ## API boundaries
 
 Use a versioned `/api/v1/finance/` namespace with session bootstrap, dashboard summaries/chart series, transactions CRUD, categories CRUD, deadlines CRUD/payment/completion actions, recurring schedules CRUD, settings/budget updates, balance adjustments, calendar, and bounded search. Dates and enum fields are validated server-side. Mutation requests carry Django's CSRF token and same-origin credentials.
+
+Summary responses include selected-period aggregates for each tab and monthly grouped bill/deadline aggregates for the overview. List filters and summary filters share the same validated rules; pagination must not alter totals. Returning the next deadline uses the same pending-item definition as the detailed lists.
 
 Validate amounts, dates, recurrence intervals, category references, and linked-expense ownership within this shared workspace. Use transactions and unique constraints for payment and occurrence generation. Paginate record lists. Expose actionable validation errors without SQL traces or session details.
 
@@ -129,6 +159,8 @@ Mark `/dashboard` and its subroutes `noindex, nofollow` with route-specific meta
 ## Validation and acceptance
 
 Run targeted finance tests covering unauthenticated denial, authenticated shared-workspace access, CSRF enforcement, decimal arithmetic, expected-income exclusion, balance adjustments, summary formulas, budget boundaries, unknown bill amounts, payment idempotency, linking an existing expense, recurrence anchor/clamping, and concurrent occurrence generation.
+
+Also cover month-grouped bill/deadline summaries, due-month versus payment-month accounting, filtered totals across pagination, and summary refresh after create/edit/delete/pay/complete actions. Check that every tab has its contextual summary and that historical-month selection does not relabel today's live metrics.
 
 Run migration consistency checks, a frontend production build, and targeted lint for touched frontend files. Check dashboard and public-route build separation. Do not run or repair unrelated broad suites.
 
