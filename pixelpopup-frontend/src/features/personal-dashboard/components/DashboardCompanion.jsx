@@ -22,6 +22,12 @@ const config = {
 };
 
 function messagesFor(tab, overdue, activity) {
+  if (tab === "nutrition")
+    return [
+      "Log a whole meal when you eat it, Miku. Past days are fine; future meals can wait.",
+      "Your daily calorie target stays fixed. A next-day balance note is optional, not a rule.",
+      "Food items stay together in each meal. You can paste the JSON too, including when you ate it.",
+    ];
   if (tab === "funds")
     return [
       "Contribute whenever you choose, Miku. Moving cash into a fund is a transfer, not an expense.",
@@ -77,6 +83,18 @@ function messagesFor(tab, overdue, activity) {
 }
 
 function reactionMessage({ action, entity }) {
+  if (entity === "meal")
+    return action === "deleted"
+      ? "Meal removed, Miku. I’ve updated that day’s totals and insights."
+      : action === "edited"
+        ? "Meal updated, Miku. The food totals and time eaten are saved."
+        : "Meal logged, Miku. The day’s calories and macros are up to date.";
+  if (entity === "weight")
+    return action === "deleted"
+      ? "Weight reading removed, Miku. Your trend has been updated."
+      : "Weight reading saved, Miku. It’s there for your trend, whenever you choose to log one.";
+  if (entity === "nutrition_baseline")
+    return "Starting point saved, Miku. Your daily target is yours to set and change.";
   if (entity === "shared_bill")
     return action === "added"
       ? "Breakdown ready, Miku. Your contribution is separate from the group total; nothing has been paid yet."
