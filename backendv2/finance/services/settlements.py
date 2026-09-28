@@ -113,6 +113,8 @@ def move_money(data, user, deadline=None, shared_bill=False):
 @db_transaction.atomic
 def settle_deadline(pk, data, user):
     item = Deadline.objects.select_for_update().get(pk=pk)
+    if item.asset_financing_id:
+        raise ValidationError({"deadline": "Record this installment from its asset page so principal and interest stay separate."})
     if item.status != "pending":
         return item
     if item.kind in ("task", "reminder") and item.settlement_kind == "expense" and item.amount is None:

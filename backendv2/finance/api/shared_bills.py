@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from finance import models
 from finance.services.queries import filtered
-from finance.services.shared_bills import breakdown, create_bill, pay_bill, share_bill, strict, generate_pin, verify_pin, add_participant, decide_payment
+from finance.services.shared_bills import breakdown, create_bill, pay_bill, share_bill, strict, generate_pin, verify_pin, add_participant, decide_payment, edit_bill, accept_ledger_allocation, management_token, verify_management, mark_all_paid
 from .views import FinancePagination, PrivateMixin, json_money
 
 
@@ -36,12 +36,28 @@ class SharedBillView(PrivateMixin, APIView):
     def get(self, request, pk):
         return Response(json_money(breakdown(get_object_or_404(models.SharedBill, pk=pk))))
 
+    def patch(self, request, pk):
+        get_object_or_404(models.SharedBill, pk=pk)
+        return Response(json_money(breakdown(edit_bill(pk, request.data))))
+
+
+class SharedBillLedgerAllocationView(PrivateMixin, APIView):
+    def post(self, request, pk):
+        get_object_or_404(models.SharedBill, pk=pk)
+        return Response(json_money(breakdown(accept_ledger_allocation(pk, request.data, request.user))))
+
 
 class SharedBillPayView(PrivateMixin, APIView):
     def post(self, request, pk):
         get_object_or_404(models.SharedBill, pk=pk)
         bill = pay_bill(pk, request.data, request.user)
         return Response(json_money(breakdown(bill)))
+
+
+class SharedBillCloseView(PrivateMixin, APIView):
+    def post(self, request, pk):
+        get_object_or_404(models.SharedBill, pk=pk)
+        return Response(json_money(breakdown(mark_all_paid(pk, request.data, request.user))))
 
 
 class SharedBillShareView(PrivateMixin, APIView):
@@ -138,16 +154,34 @@ class PublicSharedBillMutationView(PublicSharedBillView):
     @transaction.atomic
     def post(self, request, token):
         fields = {"unlock": ("pin",), "participants": ("pin", "name", "amount", "request_id"),
-                  "pay": ("pin", "payer_id", "paid_to_id", "amount", "date", "request_id")}
-        strict(request.data, fields[self.action])
+                  "pay": ("pin", "payer_id", "paid_to_id", "kind", "amount", "date", "request_id"),
+                  "approve": ("pin", "payment_id"), "reject": ("pin", "payment_id"),
+                  "close": ("pin", "request_id")}
+        strict(request.data, (*fields[self.action], "management_token"))
         # Match all private settlement lock ordering and recheck link + PIN under lock.
         models.WorkspaceSettings.objects.get_or_create(pk=1)
         models.WorkspaceSettings.objects.select_for_update().get(pk=1)
         bill = self.get_bill(token, locked=True)
-        verify_pin(bill, request.data.get("pin"), SharedMutationThrottle().get_ident(request))
+        payment_kind = request.data.get("kind", "contribution" if bill.receiver_id else "payment")
+        reimbursement = self.action == "pay" and (payment_kind == "refund" or (payment_kind == "payment" and request.data.get("paid_to_id") not in (None, "")))
+        if self.action != "pay" or reimbursement:
+            if self.action != "unlock" and request.data.get("management_token"):
+                verify_management(bill, request.data["management_token"])
+            else:
+                verify_pin(bill, request.data.get("pin"), SharedMutationThrottle().get_ident(request))
         if self.action == "unlock":
-            return Response({"unlocked": True})
-        payload = {key: value for key, value in request.data.items() if key != "pin"}
+            return Response({"unlocked": True, "management_token": management_token(bill)})
+        payload = {key: value for key, value in request.data.items() if key not in ("pin", "management_token")}
+        if self.action == "close":
+            return Response(json_money(breakdown(mark_all_paid(bill.pk, payload), public=True)))
+        if self.action in ("approve", "reject"):
+            from uuid import UUID
+            try:
+                payment_id = UUID(str(payload.get("payment_id", "")))
+            except (ValueError, TypeError):
+                raise ValidationError({"payment_id": "Choose a report from this event."})
+            bill = decide_payment(bill.pk, payment_id, {}, None, self.action == "approve", public=True)
+            return Response(json_money(breakdown(bill, public=True)))
         if not payload.get("request_id"):
             raise ValidationError({"request_id": "Provide a unique request identifier."})
         if self.action == "participants":
@@ -166,6 +200,11 @@ class PublicSharedBillMutationView(PublicSharedBillView):
                     raise ValidationError({field: "Choose a participant in this bill."})
             payload["payer_id"] = private_id(payload.get("payer_id"), "payer_id")
             payload["paid_to_id"] = private_id(payload.get("paid_to_id"), "paid_to_id", optional=True)
+            if payment_kind == "contribution":
+                payload["paid_to_id"] = bill.receiver_id
+            if bill.receiver_id and payment_kind == "payment":
+                raise ValidationError({"kind": "Report a contribution to the event receiver, or unlock management for a refund."})
+            payload["kind"] = payment_kind
             bill = pay_bill(bill.pk, payload, None, pending=True)
         return Response(json_money(breakdown(bill, public=True)))
 

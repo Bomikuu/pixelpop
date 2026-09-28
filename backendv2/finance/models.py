@@ -2,7 +2,7 @@ import uuid
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 
 
@@ -34,6 +34,8 @@ class Account(Record):
     name = models.CharField(max_length=100)
     kind = models.CharField(max_length=20, choices=KINDS, default="bank")
     institution = models.CharField(max_length=100, blank=True)
+    last_four = models.CharField(max_length=4, blank=True, default="", validators=[RegexValidator(r"\A[0-9]{4}\Z", "Enter exactly four digits.")])
+    card_expiry = models.CharField(max_length=5, blank=True, default="", validators=[RegexValidator(r"\A(?:0[1-9]|1[0-2])/[0-9]{2}\Z", "Use MM/YY, for example 10/28.")])
     fund_type = models.CharField(max_length=20, choices=FUND_TYPES, blank=True)
     credit_limit = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=NONNEGATIVE)
     active = models.BooleanField(default=True)
@@ -67,6 +69,44 @@ class Asset(Record):
     valuation_date = models.DateField()
     notes = models.TextField(blank=True, max_length=4000)
     active = models.BooleanField(default=True)
+
+
+class AssetFinancing(Record):
+    asset = models.OneToOneField(Asset, on_delete=models.PROTECT, related_name="financing")
+    lender = models.CharField(max_length=120)
+    opening_principal = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    balance_as_of = models.DateField()
+    next_due_date = models.DateField()
+    monthly_due = models.DecimalField(max_digits=14, decimal_places=2, validators=POSITIVE)
+    annual_rate = models.DecimalField(max_digits=7, decimal_places=4, validators=NONNEGATIVE)
+    remaining_months = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(360)])
+
+
+class AssetFinancingTerms(Record):
+    financing = models.ForeignKey(AssetFinancing, on_delete=models.PROTECT, related_name="term_changes")
+    effective_date = models.DateField()
+    annual_rate = models.DecimalField(max_digits=7, decimal_places=4, validators=NONNEGATIVE)
+    monthly_due = models.DecimalField(max_digits=14, decimal_places=2, validators=POSITIVE)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["financing", "effective_date"], name="finance_financing_terms_date")]
+
+
+class AssetFinancingPayment(Record):
+    financing = models.ForeignKey(AssetFinancing, on_delete=models.PROTECT, related_name="payments")
+    account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="asset_financing_payments")
+    deadline = models.ForeignKey("Deadline", null=True, blank=True, on_delete=models.PROTECT, related_name="financing_payments")
+    date = models.DateField(db_index=True)
+    cash_amount = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    advance_applied = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    principal = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    extra_principal = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    interest = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    fees = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    advance_reserved = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    historical = models.BooleanField(default=False)
+    notes = models.CharField(max_length=500, blank=True)
+    request_id = models.UUIDField(default=uuid.uuid4, unique=True)
 
 
 class LoanReceivable(Record):
@@ -114,11 +154,16 @@ class Deadline(Record):
     schedule = models.ForeignKey(RecurringSchedule, null=True, blank=True, on_delete=models.PROTECT, related_name="deadlines")
     credit_card = models.ForeignKey(Account, null=True, blank=True, on_delete=models.PROTECT)
     loan = models.ForeignKey(LoanReceivable, null=True, blank=True, on_delete=models.PROTECT, related_name="deadlines")
+    asset_financing = models.ForeignKey(AssetFinancing, null=True, blank=True, on_delete=models.PROTECT, related_name="installments")
+    installment_index = models.PositiveSmallIntegerField(null=True, blank=True)
     settlement_kind = models.CharField(max_length=25, choices=[("expense", "Expense"), ("credit_card_payment", "Card payment"), ("loan_collection", "Loan collection")], default="expense")
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["schedule", "due_date"], name="finance_deadline_occurrence")]
+        constraints = [
+            models.UniqueConstraint(fields=["schedule", "due_date"], name="finance_deadline_occurrence"),
+            models.UniqueConstraint(fields=["asset_financing", "installment_index"], name="finance_asset_installment_index"),
+        ]
 
 
 class Transaction(Record):
@@ -133,6 +178,7 @@ class Transaction(Record):
     receipt_state = models.CharField(max_length=10, choices=[("received", "Received"), ("expected", "Expected")], default="received")
     notes = models.TextField(blank=True, max_length=4000)
     deadline = models.OneToOneField(Deadline, null=True, blank=True, on_delete=models.PROTECT, related_name="expense")
+    asset_financing_payment = models.OneToOneField(AssetFinancingPayment, null=True, blank=True, on_delete=models.PROTECT, related_name="expense")
     schedule = models.ForeignKey(RecurringSchedule, null=True, blank=True, on_delete=models.PROTECT)
     scheduled_date = models.DateField(null=True, blank=True)
     request_id = models.UUIDField(default=uuid.uuid4, unique=True)
@@ -171,6 +217,9 @@ class SharedBill(Record):
     share_expires_at = models.DateTimeField(null=True, blank=True)
     edit_pin_hash = models.CharField(max_length=128, blank=True)
     allocation_confirmed = models.BooleanField(default=True)
+    ledger_allocation_pending = models.BooleanField(default=False)
+    receiver = models.ForeignKey("SharedBillParticipant", null=True, blank=True, on_delete=models.PROTECT, related_name="received_events")
+    all_paid = models.BooleanField(default=False)
 
 
 class SharedBillParticipant(models.Model):
@@ -179,6 +228,7 @@ class SharedBillParticipant(models.Model):
     is_me = models.BooleanField(default=False)
     share = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
     share_is_fixed = models.BooleanField(default=False)
+    ledger_share = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=NONNEGATIVE)
     membership_request_id = models.UUIDField(null=True, blank=True, unique=True)
     advance = models.OneToOneField(LoanReceivable, null=True, blank=True, on_delete=models.PROTECT, related_name="shared_participant")
 
@@ -196,12 +246,15 @@ class SharedBillPayment(Record):
     amount = models.DecimalField(max_digits=14, decimal_places=2, validators=POSITIVE)
     date = models.DateField()
     record_ledger = models.BooleanField(default=False)
+    ledger_reviewed = models.BooleanField(default=True)
+    public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     account = models.ForeignKey(Account, null=True, blank=True, on_delete=models.PROTECT)
     payment_method = models.CharField(max_length=20, default="bank")
     expense = models.OneToOneField(Transaction, null=True, blank=True, on_delete=models.PROTECT, related_name="shared_payment")
     repayment = models.OneToOneField(MoneyMovement, null=True, blank=True, on_delete=models.PROTECT, related_name="shared_payment")
     request_id = models.UUIDField(default=uuid.uuid4, unique=True)
     status = models.CharField(max_length=10, choices=[("confirmed", "Confirmed"), ("pending", "Pending"), ("rejected", "Rejected")], default="confirmed")
+    kind = models.CharField(max_length=16, choices=[("payment", "Provider payment / advance settlement"), ("contribution", "Contribution to receiver"), ("refund", "Overpayment refund")], default="payment")
 
     class Meta:
         constraints = [models.CheckConstraint(condition=models.Q(amount__gt=0), name="finance_shared_payment_positive")]
@@ -214,3 +267,58 @@ class SharedBillDebtAdjustment(Record):
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     date = models.DateField(db_index=True)
     reason = models.CharField(max_length=160)
+
+
+class SharedBillClosure(Record):
+    """Non-cash agreement: volunteer coverage and waived excess stay in history."""
+    bill = models.ForeignKey(SharedBill, on_delete=models.PROTECT, related_name="closures")
+    snapshot = models.JSONField(default=list)
+    request_id = models.UUIDField(default=uuid.uuid4, unique=True)
+
+
+class NutritionProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="nutrition_profile")
+    height_cm = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, validators=POSITIVE)
+    daily_target_kcal = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=POSITIVE)
+    daily_target_protein_g = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=POSITIVE)
+    daily_target_carbs_g = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=POSITIVE)
+    daily_target_fat_g = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=POSITIVE)
+
+
+class WeightEntry(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="nutrition_weights")
+    date = models.DateField(db_index=True)
+    weight_kg = models.DecimalField(max_digits=6, decimal_places=2, validators=POSITIVE)
+    note = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+        constraints = [models.UniqueConstraint(fields=["user", "date"], name="finance_nutrition_weight_user_date")]
+
+
+class Meal(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="nutrition_meals")
+    date = models.DateField(db_index=True)
+    eaten_at = models.DateTimeField(null=True, blank=True)
+    meal_name = models.CharField(max_length=160)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at", "-id"]
+
+
+class MealItem(models.Model):
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name="items")
+    position = models.PositiveSmallIntegerField()
+    name = models.CharField(max_length=160)
+    amount = models.DecimalField(max_digits=12, decimal_places=3, validators=[MinValueValidator(Decimal("0.001"))])
+    unit = models.CharField(max_length=24)
+    calories = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+    protein = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+    carbs = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+    fat = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+
+    class Meta:
+        ordering = ["position", "id"]
+        constraints = [models.UniqueConstraint(fields=["meal", "position"], name="finance_nutrition_item_position")]

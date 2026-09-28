@@ -36,7 +36,17 @@ Restore manually into a **new, separate database first**: open a SQLite snapshot
 
 ## Ledger rules
 
+Non-cash accounts can store optional `last_four` (exactly four digits, including leading zeros) and `card_expiry` (`MM/YY`, such as `10/28`). These appear on account cards and account selectors, including bank/debit, e-wallet, credit-card and fund accounts. Cash accounts do not accept these details. No full card number or CVV is collected; existing records remain blank until edited. Apply the additive `0010_account_card_details` migration using `python manage.py migrate`, then restart the backend. This metadata does not change balances, account types or payment eligibility.
+
 Opening balances/corrections, transfers, card payments and loans are separate from income/expenses. Asset valuations and outstanding loans do not increase spendable cash. Card purchases add expenses and debt; repayments reduce bank cash and debt without adding a second expense. Existing loans assume the cash movement is already reflected in the opening balance. Recurring income starts as expected, never automatically received. Ordinary bill settlement either records a linked expense atomically or links an existing one.
+
+## Financed assets
+
+Apply the additive `0011_asset_financing` migration with `python manage.py migrate` before opening financed asset pages. An asset can have one linked financing record, initialized from the lender-confirmed outstanding principal and its as-of date. This does not recreate old payments or deduct the opening principal from cash. The asset detail page at `/dashboard/assets/:id` shows its separate value, principal liability, estimated equity, terms, payments and up to five years of installment deadlines in Bills and Calendar. Stop any existing manual recurring bill for the same loan before adding financing, or both due items will appear.
+
+Record each actual payment from an active cash, bank or e-wallet account. Cash is deducted once in full; only the lender-posted interest and fees become expense transactions. Regular and extra principal reduce the tracked liability, while an advance for future installments is a separate credit until applied. The payment split must equal cash plus any previously recorded advance credit used. Overpayments are therefore explicit extra principal or advance credit, never an automatic reduction of contractual monthly dues. Changing lender-confirmed rate/due terms takes effect from the chosen future date without rewriting paid installments; forecasts are estimates, not a lender statement. Earlier payment history can be entered before the confirmed balance date without affecting today's principal or account balance.
+
+Financing installments must be paid from the asset page, not through ordinary bill settlement. Linked payments and interest expenses are read-only through ordinary record forms, and an asset with remaining financing principal cannot be archived. The migration adds tables and links only; existing asset valuations, bills and account balances are not reclassified.
 
 ## Benefits, investments, and giving
 
@@ -82,15 +92,20 @@ collections require cash, bank, or e-wallet accounts. Payment and bill creation 
 safe retries. Archive rather than delete. `POST shared-bills/{id}/participants/`
 adds a person before or after payments: explicit contributions stay fixed, while
 blank contributions split the remainder in cents. Existing payments are never
-rewritten. After an owner's expense has been recorded, that contribution is fixed
-to prevent reallocating historical spending. An overpaid participant can receive
+rewritten. Contributions, including fixed contributions and the owner's share,
+remain editable through private `PATCH shared-bills/{id}/`. An overpaid participant can receive
 reimbursement through another participant's `paid_to_id` payment.
 
 Existing bills created before contribution rules were stored require the owner's
 explicit `confirm_resplit_legacy: true` consent, either when adding a person or
 generating a PIN. Consent fixes the owner's current contribution and treats the
 others as an equal remainder split; no historical allocation rules are guessed.
-An already-recorded full advance is redistributed through signed, dated
+Event edits and late joins preserve a snapshot of ledger shares when a payment
+has already been recorded in the owner's ledger. They do not automatically
+reassign private receivables or rewrite expenses. Owner-only
+`POST shared-bills/{id}/ledger-allocation/` with `{}` accepts the new allocation.
+Publicly confirmed but unreviewed payments are excluded from ledger calculations.
+An already-recorded full advance is redistributed on this explicit acceptance through signed, dated
 `SharedBillDebtAdjustment` records, not changes to original loan principals,
 cash movements, or expenses. Actual repayments remain the only repayment totals.
 New people may have zero-original-principal, read-only shared advances whose
@@ -110,16 +125,36 @@ response contains its plaintext; the database stores a password hash, and normal
 private/public responses only expose `has_edit_pin`. Rotation/revocation of the
 share link and archiving clear the PIN. The owner must distribute it separately.
 
-Public `POST shared-bills/share/{token}/unlock/` accepts `{pin}`. Public
-`participants/` accepts `{pin, name, amount, request_id}`; public `pay/` accepts
-`{pin, payer_id, paid_to_id, amount, date, request_id}`. IDs are local participant
-ordinals from the public breakdown, never private database IDs. Every mutation
-rechecks the active link and PIN; unlocking does not bypass subsequent checks.
+Public `POST shared-bills/share/{token}/unlock/` accepts `{pin}` and returns a
+signed `management_token`. The shared page retains this credential in the current
+tab's session storage, never the plaintext PIN. Protected actions accept that token
+or a PIN and revalidate the current link and PIN fingerprint under lock. PIN/link
+rotation, revocation, archive and link expiry invalidate authorization. Lock management
+removes this tab's credential; closing the tab removes session storage.
+Public `participants/` accepts `{management_token, name, amount, request_id}`;
+public `pay/` accepts `{payer_id, paid_to_id, kind, amount, date, request_id}`.
+Provider payments without a receiver and contributions to the configured receiver
+need no PIN. Refunds and legacy participant-to-participant reimbursements require
+management authorization. The shared page exposes Reimburse only
+after management unlock; the ordinary Report payment form has no reimbursement
+selector. Participant IDs are local
+ordinals from the public breakdown, never private database IDs. Payment IDs are
+stable public UUIDs so a newly inserted report cannot shift a review target.
+Every mutation rechecks the active link; protected mutations also check the PIN
+or signed management credential. Unlocking does not bypass subsequent checks.
 There is no public people directory or account picker. Reports are pending and
 reserve payment capacity but do not count as paid or touch the owner's ledger.
+Public `approve/` and `reject/` accept `{management_token, payment_id}` (or `pin`) for a report from that
+link's event. PIN approval confirms only event totals; it never changes private
+accounts, expenses, loans or repayments. These confirmed reports remain in the
+owner's dashboard until a separate ledger review is completed.
 Owner `POST shared-bills/{id}/payments/{payment_id}/approve/` accepts optional
-`record_ledger`, `account`, and `payment_method`, revalidates the current split,
-and confirms the original report once. `reject/` accepts an empty object and
+`record_ledger`, `account`, `payment_method`, and `ledger_date`, revalidates pending
+reports and confirms the original report once. Already publicly confirmed reports
+can be reviewed here without counting the event payment twice. A separate ledger
+recording date can be chosen on or after the reported date, while the original
+event payment date stays unchanged. Repeated completed approvals are no-ops.
+`reject/` accepts an empty object and
 rejects pending reports without deleting history. Confirmed payments cannot be
 rejected. Private `pay/` remains available for immediate owner-confirmed payments.
 
@@ -129,5 +164,43 @@ must use a shared Django cache (for example Redis), and configure trusted proxy
 IP handling correctly, so rate limits and lockout are shared across workers.
 PINs belong in POST bodies, never links, logs, browser storage, or analytics.
 
-Apply additive migration `0007_shared_bill_editing` before using these endpoints. This
+### Receiver, overpayments and voluntary settlement
+
+Private Edit event accepts `receiver_id`, a participant in this event. The header
+names this receiver with initials. A receiver stays fixed after non-rejected
+receiver contributions/refunds exist. Existing unsettled provider advances retain
+their old reimbursement workflow rather than being silently converted into collected funds.
+New `kind: contribution` payments credit only the payer, not the receiver's personal
+contribution. They can exceed the payer's share and the event total. Confirmed
+legacy provider payments remain in history and continue to count toward coverage.
+Pending reports never count as paid. The payment dialog displays net paid, remaining
+share, excess owed and the selected participant's history.
+
+`kind: refund` returns excess from the designated receiver to `paid_to_id` and
+reduces that contributor's net paid amount and the event's confirmed funds.
+Refunds must not exceed unwaived confirmed excess or reduce event funds below
+the total; pending refunds reserve this capacity. Public refunds require management
+authorization and report confirmation. Received contributions are not owner income.
+Owner expense recording remains explicit and limited to their unrecorded agreed
+contribution; overpayment/refund private cash adjustments are reviewed separately.
+
+Private `POST shared-bills/{id}/close/` and authorized public `close/` accept a
+UUID `request_id`. Confirmed funds must cover the total and pending reports must
+be reviewed first. Management explicitly agrees that volunteers cover unpaid
+individual shares and overpayers waive their remaining excess. `SharedBillClosure`
+keeps a dated snapshot; no historical payment, expense, account or receivable is
+rewritten. UI rows distinguish personal payments from volunteer coverage and show
+waived excess. New confirmed payments, contribution changes or new participants
+reopen the event while preserving earlier agreements. The action uses an explicit
+confirmation and a celebratory toast. Apply additive migration `0009_shared_bill_receiver`
+after `0008_shared_bill_ledger_review` before using these features.
+
+Private event editing accepts title, total, date, category and existing participants'
+fixed/automatic contribution amounts. Total is kept after non-rejected payments
+exist; the event date cannot follow an existing payment. Previous payment and
+expense records stay intact. Ledger-allocation acceptance changes only receivable
+allocation, not historical expenses or cash. Any separate spending correction
+remains an owner task.
+
+Apply additive migration `0008_shared_bill_ledger_review` before using these endpoints. This
 implementation does not execute migrations or alter the local database itself.

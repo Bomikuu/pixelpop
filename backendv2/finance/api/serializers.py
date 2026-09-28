@@ -3,6 +3,7 @@ from rest_framework import serializers
 from finance import models
 from finance.services.balances import account_balance, outstanding, today
 from finance.services.summaries import urgency
+from finance.services.asset_financing import financing_balance, installment_paid
 
 
 class StrictSerializer(serializers.ModelSerializer):
@@ -26,7 +27,7 @@ class AccountSerializer(StrictSerializer):
 
     class Meta:
         model = models.Account
-        fields = ("id", "name", "kind", "institution", "fund_type", "credit_limit", "active", "balance", "opening_balance", "opening_date")
+        fields = ("id", "name", "kind", "institution", "last_four", "card_expiry", "fund_type", "credit_limit", "active", "balance", "opening_balance", "opening_date")
 
     def get_balance(self, obj):
         return str(account_balance(obj))
@@ -39,6 +40,10 @@ class AccountSerializer(StrictSerializer):
         if attrs.get("kind", getattr(self.instance, "kind", None)) == "credit_card" and attrs.get("opening_balance", 0) < 0:
             raise serializers.ValidationError({"opening_balance": "Opening card debt cannot be negative."})
         kind = attrs.get("kind", getattr(self.instance, "kind", "bank"))
+        if kind == "cash":
+            errors = {field: "Cash accounts do not have card or account-number details." for field in ("last_four", "card_expiry") if attrs.get(field, getattr(self.instance, field, ""))}
+            if errors:
+                raise serializers.ValidationError(errors)
         subtype = attrs.get("fund_type", getattr(self.instance, "fund_type", ""))
         if kind == "fund":
             if not subtype:
@@ -62,7 +67,7 @@ class TransactionSerializer(StrictSerializer):
     class Meta:
         model = models.Transaction
         fields = ("id", "kind", "name", "recipient", "amount", "account", "account_name", "category", "category_name", "date", "payment_method", "receipt_state", "notes", "deadline", "schedule", "request_id", "shared_bill_id")
-        read_only_fields = ("deadline", "schedule")
+        read_only_fields = ("deadline", "schedule", "asset_financing_payment")
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -87,18 +92,25 @@ class TransactionSerializer(StrictSerializer):
             raise serializers.ValidationError("This is a settled bill. Correct it explicitly through an adjustment; its history cannot be silently rewritten.")
         if self.instance and hasattr(self.instance, "shared_payment"):
             raise serializers.ValidationError("Shared-bill payment history is read-only. Use an explicit account correction.")
+        if self.instance and self.instance.asset_financing_payment_id:
+            raise serializers.ValidationError("Financing interest and fees belong to their payment history and cannot be edited separately.")
         return attrs
 
 
 class DeadlineSerializer(StrictSerializer):
     urgency = serializers.SerializerMethodField()
     overdue_duration = serializers.SerializerMethodField()
+    remaining_due = serializers.SerializerMethodField()
+    financing_asset_id = serializers.IntegerField(source="asset_financing.asset_id", read_only=True, default=None)
     category_name = serializers.CharField(source="category.name", read_only=True, default="Other")
 
     class Meta:
         model = models.Deadline
-        fields = ("id", "title", "kind", "amount", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "credit_card", "loan", "settlement_kind", "completed_at", "urgency", "overdue_duration")
-        read_only_fields = ("status", "schedule", "completed_at")
+        fields = ("id", "title", "kind", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
+        read_only_fields = ("status", "schedule", "asset_financing", "installment_index", "completed_at")
+
+    def get_remaining_due(self, obj):
+        return str(max(0, obj.amount - installment_paid(obj))) if obj.asset_financing_id and obj.amount is not None else None
 
     def get_urgency(self, obj):
         return urgency(obj)
@@ -119,6 +131,8 @@ class DeadlineSerializer(StrictSerializer):
         attrs = super().validate(attrs)
         if self.instance and self.instance.status != "pending":
             raise serializers.ValidationError("Settled history is read-only.")
+        if self.instance and self.instance.asset_financing_id:
+            raise serializers.ValidationError("Update financing terms or record a payment from the asset page.")
         if self.instance and self.instance.schedule_id and attrs.get("due_date", self.instance.due_date) != self.instance.due_date:
             raise serializers.ValidationError({"due_date": "Change recurring dates through the schedule, not this generated occurrence."})
         kind = attrs.get("settlement_kind", getattr(self.instance, "settlement_kind", "expense"))
@@ -197,14 +211,69 @@ class CategorySerializer(StrictSerializer):
 
 
 class AssetSerializer(StrictSerializer):
+    financing_id = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Asset
-        fields = ("id", "name", "kind", "value", "valuation_date", "notes", "active")
+        fields = ("id", "name", "kind", "value", "valuation_date", "notes", "active", "financing_id")
+
+    def get_financing_id(self, obj):
+        return obj.financing.pk if hasattr(obj, "financing") else None
 
     def validate_valuation_date(self, value):
         if value > today():
             raise serializers.ValidationError("Use a current or past valuation date.")
         return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if self.instance and attrs.get("active") is False and hasattr(self.instance, "financing") and financing_balance(self.instance.financing) > 0:
+            raise serializers.ValidationError({"active": "Resolve the linked financing before archiving this asset."})
+        return attrs
+
+
+class AssetFinancingSerializer(StrictSerializer):
+    class Meta:
+        model = models.AssetFinancing
+        fields = ("id", "lender", "opening_principal", "balance_as_of", "next_due_date", "monthly_due", "annual_rate", "remaining_months")
+
+    def validate(self, attrs):
+        if attrs["balance_as_of"] > today():
+            raise serializers.ValidationError({"balance_as_of": "Use the date of a current or past lender statement."})
+        if attrs["next_due_date"] < attrs["balance_as_of"]:
+            raise serializers.ValidationError({"next_due_date": "The next due date must be on or after the confirmed balance date."})
+        if attrs["opening_principal"] <= 0:
+            raise serializers.ValidationError({"opening_principal": "Enter a positive outstanding principal balance."})
+        return attrs
+
+
+class AssetFinancingTermsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.AssetFinancingTerms
+        fields = ("effective_date", "annual_rate", "monthly_due")
+
+    def validate_effective_date(self, value):
+        if value < today():
+            raise serializers.ValidationError("Use today or a future effective date. Past paid installments remain unchanged.")
+        return value
+
+
+class AssetFinancingPaymentSerializer(serializers.ModelSerializer):
+    account_name = serializers.CharField(source="account.name", read_only=True)
+    request_id = serializers.UUIDField(required=True, validators=[])
+    historical = serializers.BooleanField(required=False, default=False)
+    notes = serializers.CharField(required=False, allow_blank=True, default="", max_length=500)
+    advance_applied = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=0, min_value=0)
+    principal = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=0, min_value=0)
+    extra_principal = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=0, min_value=0)
+    interest = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=0, min_value=0)
+    fees = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=0, min_value=0)
+    advance_reserved = serializers.DecimalField(max_digits=14, decimal_places=2, required=False, default=0, min_value=0)
+
+    class Meta:
+        model = models.AssetFinancingPayment
+        fields = ("id", "date", "account", "account_name", "deadline", "cash_amount", "advance_applied", "principal", "extra_principal", "interest", "fees", "advance_reserved", "historical", "notes", "request_id")
+        read_only_fields = ("id",)
 
 
 class MovementSerializer(StrictSerializer):

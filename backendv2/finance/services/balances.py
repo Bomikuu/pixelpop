@@ -5,7 +5,7 @@ from django.db.models import Sum
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from finance.models import Account, Asset, BalanceAdjustment, LoanReceivable, MoneyMovement, Transaction
+from finance.models import Account, Asset, AssetFinancing, AssetFinancingPayment, BalanceAdjustment, LoanReceivable, MoneyMovement, Transaction
 
 
 ZERO = Decimal("0.00")
@@ -23,12 +23,14 @@ def account_balance(account, as_of=None):
     as_of = as_of or today()
     result = total(BalanceAdjustment.objects.filter(account=account, date__lte=as_of))
     transactions = Transaction.objects.filter(account=account, date__lte=as_of)
-    spending = total(transactions.filter(kind="expense"))
+    # Financing costs are expenses, but the full payment is deducted below once.
+    spending = total(transactions.filter(kind="expense", asset_financing_payment__isnull=True))
     incoming = total(MoneyMovement.objects.filter(destination=account, date__lte=as_of))
     outgoing = total(MoneyMovement.objects.filter(source=account, date__lte=as_of))
+    financing_cash = total(AssetFinancingPayment.objects.filter(account=account, historical=False, date__lte=as_of), "cash_amount")
     if account.kind == "credit_card":
         return result + spending - incoming
-    return result + total(transactions.filter(kind="income", receipt_state="received")) - spending + incoming - outgoing
+    return result + total(transactions.filter(kind="income", receipt_state="received")) - spending + incoming - outgoing - financing_cash
 
 
 def outstanding(loan, as_of=None):
@@ -59,4 +61,7 @@ def financial_position():
     debt = sum((account_balance(a) for a in accounts if a.kind == "credit_card"), ZERO)
     assets = total(Asset.objects.filter(active=True), "value")
     receivables = sum((outstanding(a) for a in LoanReceivable.objects.all()), ZERO)
-    return {"available": available, "funds": funds, "debt": debt, "assets": assets, "receivables": receivables, "net_worth": available + funds + assets + receivables - debt}
+    financing = list(AssetFinancing.objects.all())
+    financing_debt = sum((max(ZERO, f.opening_principal - total(f.payments.filter(historical=False), "principal") - total(f.payments.filter(historical=False), "extra_principal")) for f in financing), ZERO)
+    advance_credit = sum((total(f.payments.filter(historical=False), "advance_reserved") - total(f.payments.filter(historical=False), "advance_applied") for f in financing), ZERO)
+    return {"available": available, "funds": funds, "debt": debt, "assets": assets, "receivables": receivables, "financing_debt": financing_debt, "advance_credit": advance_credit, "net_worth": available + funds + assets + receivables + advance_credit - debt - financing_debt}

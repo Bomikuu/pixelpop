@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from . import views
 from . import shared_bills
+from . import nutrition
 
 router = DefaultRouter()
 for prefix, view in (
@@ -13,6 +14,14 @@ for prefix, view in (
     router.register(prefix, view, basename="finance-" + prefix)
 
 urlpatterns = [
+    path("nutrition/profile/", nutrition.NutritionProfileView.as_view()),
+    path("nutrition/setup/", nutrition.NutritionSetupView.as_view()),
+    path("nutrition/weights/", nutrition.NutritionWeightListView.as_view()),
+    path("nutrition/weights/<str:day>/", nutrition.NutritionWeightDetailView.as_view()),
+    path("nutrition/meals/", nutrition.NutritionMealListView.as_view()),
+    path("nutrition/meals/<int:pk>/", nutrition.NutritionMealDetailView.as_view()),
+    path("nutrition/summary/", nutrition.NutritionSummaryView.as_view()),
+    path("nutrition/period-summary/", nutrition.NutritionPeriodSummaryView.as_view()),
     path("session/", views.SessionView.as_view()),
     path("overview/", views.OverviewView.as_view()),
     path("people/", views.PeopleView.as_view()),
@@ -22,10 +31,15 @@ urlpatterns = [
     path("shared-bills/share/<str:token>/unlock/", shared_bills.PublicSharedBillMutationView.as_view(action="unlock")),
     path("shared-bills/share/<str:token>/participants/", shared_bills.PublicSharedBillMutationView.as_view(action="participants")),
     path("shared-bills/share/<str:token>/pay/", shared_bills.PublicSharedBillMutationView.as_view(action="pay")),
+    path("shared-bills/share/<str:token>/approve/", shared_bills.PublicSharedBillMutationView.as_view(action="approve")),
+    path("shared-bills/share/<str:token>/reject/", shared_bills.PublicSharedBillMutationView.as_view(action="reject")),
+    path("shared-bills/share/<str:token>/close/", shared_bills.PublicSharedBillMutationView.as_view(action="close")),
     path("shared-bills/<int:pk>/", shared_bills.SharedBillView.as_view()),
     path("shared-bills/<int:pk>/pay/", shared_bills.SharedBillPayView.as_view()),
+    path("shared-bills/<int:pk>/close/", shared_bills.SharedBillCloseView.as_view()),
     path("shared-bills/<int:pk>/pin/", shared_bills.SharedBillPinView.as_view()),
     path("shared-bills/<int:pk>/participants/", shared_bills.SharedBillParticipantView.as_view()),
+    path("shared-bills/<int:pk>/ledger-allocation/", shared_bills.SharedBillLedgerAllocationView.as_view()),
     path("shared-bills/<int:pk>/payments/<int:payment_id>/approve/", shared_bills.SharedBillPaymentDecisionView.as_view()),
     path("shared-bills/<int:pk>/payments/<int:payment_id>/reject/", shared_bills.SharedBillPaymentDecisionView.as_view(approve=False)),
     path("shared-bills/<int:pk>/share/", shared_bills.SharedBillShareView.as_view()),

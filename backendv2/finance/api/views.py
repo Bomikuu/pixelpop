@@ -20,7 +20,8 @@ from finance.services.recurrence import materialize
 from finance.services.settlements import action_date, move_money, settle_deadline
 from finance.services.summaries import overview, transaction_summary, deadline_summary
 from finance.services.charts import record_charts
-from .serializers import AccountSerializer, AssetSerializer, CategorySerializer, DeadlineSerializer, LoanSerializer, MovementSerializer, ScheduleSerializer, SettingsSerializer, TransactionSerializer
+from finance.services.asset_financing import financing_balance, financing_projection, installment_paid, materialize_installments, record_payment, terms_on
+from .serializers import AccountSerializer, AssetFinancingPaymentSerializer, AssetFinancingSerializer, AssetFinancingTermsSerializer, AssetSerializer, CategorySerializer, DeadlineSerializer, LoanSerializer, MovementSerializer, ScheduleSerializer, SettingsSerializer, TransactionSerializer
 
 
 def json_money(value):
@@ -181,9 +182,10 @@ class AccountViewSet(FinanceViewSet):
     @action(detail=True, methods=["get"])
     def history(self, request, pk=None):
         account = self.get_object()
-        entries = [{"id": r.pk, "date": str(r.date), "name": r.name, "kind": r.kind, "amount": str(r.amount)} for r in account.transactions.order_by("-date")[:100]]
+        entries = [{"id": r.pk, "date": str(r.date), "name": r.name, "kind": r.kind, "amount": str(r.amount)} for r in account.transactions.filter(asset_financing_payment__isnull=True).order_by("-date")[:100]]
         entries += [{"id": r.pk, "date": str(r.date), "name": r.kind.replace("_", " ") + " — " + ((r.destination.name if r.destination else "") if r.source_id == account.pk else (r.source.name if r.source else "")), "kind": r.kind, "amount": str(-r.amount if r.source_id == account.pk and account.kind == "fund" else r.amount)} for r in models.MoneyMovement.objects.select_related("source", "destination").filter(Q(source=account) | Q(destination=account)).order_by("-date", "-pk")[:100]]
         entries += [{"id": r.pk, "date": str(r.date), "name": r.reason, "kind": "adjustment", "amount": str(r.amount)} for r in account.adjustments.order_by("-date")[:100]]
+        entries += [{"id": r.pk, "date": str(r.date), "name": r.financing.asset.name + " financing payment", "kind": "asset_financing_payment", "amount": str(r.cash_amount)} for r in account.asset_financing_payments.filter(historical=False, cash_amount__gt=0).select_related("financing__asset").order_by("-date", "-pk")[:100]]
         return Response(sorted(entries, key=lambda r: r["date"], reverse=True)[:100])
 
 
@@ -197,13 +199,13 @@ class TransactionViewSet(FinanceViewSet):
         return transaction_summary(qs)
 
     def perform_destroy(self, instance):
-        if instance.deadline_id or instance.schedule_id or hasattr(instance, "shared_payment"):
+        if instance.deadline_id or instance.schedule_id or instance.asset_financing_payment_id or hasattr(instance, "shared_payment"):
             raise ValidationError("Linked settlement/schedule history cannot be deleted. Use an explicit correction.")
         super().perform_destroy(instance)
 
 
 class DeadlineViewSet(FinanceViewSet):
-    queryset = models.Deadline.objects.select_related("category", "loan", "credit_card")
+    queryset = models.Deadline.objects.select_related("category", "loan", "credit_card", "asset_financing")
     serializer_class = DeadlineSerializer
     date_field = "due_date"
     search_fields = ("title", "notes", "category__name")
@@ -211,6 +213,8 @@ class DeadlineViewSet(FinanceViewSet):
     def get_queryset(self):
         _, end = month_range(self.request.query_params.get("chart_month") or self.request.query_params.get("month"))
         materialize(end + timedelta(days=95))
+        for financing in models.AssetFinancing.objects.select_related("asset"):
+            materialize_installments(financing)
         qs = super().get_queryset()
         if self.request.query_params.get("bills") == "1":
             qs = qs.filter(kind__in=["bill", "subscription", "payment"]).exclude(settlement_kind="loan_collection")
@@ -232,7 +236,7 @@ class DeadlineViewSet(FinanceViewSet):
         return Response(self.get_serializer(result).data)
 
     def perform_destroy(self, instance):
-        if instance.status != "pending" or instance.schedule_id or instance.loan_id:
+        if instance.status != "pending" or instance.schedule_id or instance.loan_id or instance.asset_financing_id:
             raise ValidationError("Settled, recurring or loan-linked history cannot be deleted.")
         super().perform_destroy(instance)
 
@@ -283,12 +287,89 @@ class LoanViewSet(FinanceViewSet):
 
 
 class AssetViewSet(FinanceViewSet):
-    queryset = models.Asset.objects.all()
+    queryset = models.Asset.objects.select_related("financing")
     serializer_class = AssetSerializer
     search_fields = ("name", "notes")
 
+    def perform_update(self, serializer):
+        asset = serializer.save()
+        if hasattr(asset, "financing"):
+            asset.financing.installments.filter(status="pending").update(title=asset.name + " financing")
+
+    def perform_destroy(self, instance):
+        if hasattr(instance, "financing") and financing_balance(instance.financing) > 0:
+            raise ValidationError("Pay off or resolve the linked financing before archiving this asset.")
+        super().perform_destroy(instance)
+
     def summary(self, qs):
-        return {"count": qs.count(), "value": total(qs.filter(active=True), "value"), "house": total(qs.filter(active=True, kind__in=["house", "condo", "land"]), "value"), "car": total(qs.filter(active=True, kind__in=["car", "motorcycle"]), "value"), "other": total(qs.filter(active=True).exclude(kind__in=["house", "condo", "land", "car", "motorcycle"]), "value")}
+        financed = [asset.financing for asset in qs.filter(active=True) if hasattr(asset, "financing")]
+        financing_debt = sum((financing_balance(f) for f in financed), Decimal(0))
+        return {"count": qs.count(), "value": total(qs.filter(active=True), "value"), "house": total(qs.filter(active=True, kind__in=["house", "condo", "land"]), "value"), "car": total(qs.filter(active=True, kind__in=["car", "motorcycle"]), "value"), "other": total(qs.filter(active=True).exclude(kind__in=["house", "condo", "land", "car", "motorcycle"]), "value"), "financing_debt": financing_debt, "estimated_equity": total(qs.filter(active=True), "value") - financing_debt}
+
+    def financing_response(self, asset):
+        financing = asset.financing if hasattr(asset, "financing") else None
+        if not financing:
+            return {"asset": self.get_serializer(asset).data, "financing": None}
+        return {
+            "asset": self.get_serializer(asset).data,
+            "financing": {
+                **AssetFinancingSerializer(financing).data,
+                **financing_projection(financing),
+                "term_changes": AssetFinancingTermsSerializer(financing.term_changes.order_by("effective_date", "pk"), many=True).data,
+                "payments": AssetFinancingPaymentSerializer(financing.payments.select_related("account", "deadline").order_by("-date", "-pk"), many=True).data,
+            },
+        }
+
+    @action(detail=True, methods=["get", "post"], url_path="financing")
+    @transaction.atomic
+    def financing(self, request, pk=None):
+        asset = self.get_object()
+        if request.method == "GET":
+            return Response(self.financing_response(asset))
+        asset = models.Asset.objects.select_for_update().get(pk=asset.pk)
+        if not asset.active or hasattr(asset, "financing"):
+            raise ValidationError({"asset": "Choose an active asset without financing. Update existing terms from its detail page."})
+        serializer = AssetFinancingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(asset=asset, created_by=request.user)
+        return Response(self.financing_response(models.Asset.objects.get(pk=asset.pk)), status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="financing/terms")
+    @transaction.atomic
+    def financing_terms(self, request, pk=None):
+        financing = models.AssetFinancing.objects.select_for_update().filter(asset_id=self.get_object().pk).first()
+        if not financing:
+            raise ValidationError({"asset": "Add financing to this asset first."})
+        if not financing.asset.active:
+            raise ValidationError({"asset": "Archived assets cannot change financing terms."})
+        serializer = AssetFinancingTermsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        effective = serializer.validated_data["effective_date"]
+        existing = financing.term_changes.filter(effective_date=effective).first()
+        if existing:
+            if existing.annual_rate == serializer.validated_data["annual_rate"] and existing.monthly_due == serializer.validated_data["monthly_due"]:
+                return Response(self.financing_response(financing.asset))
+            raise ValidationError({"effective_date": "A different terms update already exists for this date."})
+        pending = financing.installments.filter(status="pending", due_date__gte=effective)
+        serializer.save(financing=financing, created_by=request.user)
+        for item in pending:
+            next_due = terms_on(financing, item.due_date)[1]
+            if installment_paid(item) > next_due:
+                raise ValidationError({"monthly_due": "The new due cannot be below an amount already paid toward an installment."})
+            item.amount = next_due
+            item.save(update_fields=["amount", "updated_at"])
+        return Response(self.financing_response(financing.asset))
+
+    @action(detail=True, methods=["post"], url_path="financing/payments")
+    @transaction.atomic
+    def financing_payments(self, request, pk=None):
+        financing = models.AssetFinancing.objects.filter(asset_id=self.get_object().pk).first()
+        if not financing:
+            raise ValidationError({"asset": "Add financing to this asset first."})
+        serializer = AssetFinancingPaymentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payment = record_payment(financing, serializer.validated_data, request.user)
+        return Response({"payment": AssetFinancingPaymentSerializer(payment).data, **self.financing_response(financing.asset)})
 
 
 class CategoryViewSet(FinanceViewSet):
@@ -413,7 +494,7 @@ class CalendarView(PrivateMixin, APIView):
     def get(self, request):
         start, end = month_range(request.query_params.get("month"))
         materialize(end)
-        deadlines = models.Deadline.objects.filter(due_date__range=(start, end)).select_related("category", "loan", "credit_card").order_by("due_date", "due_time", "id")
+        deadlines = models.Deadline.objects.filter(due_date__range=(start, end)).select_related("category", "loan", "credit_card", "asset_financing").order_by("due_date", "due_time", "id")
         income = models.Transaction.objects.filter(kind="income", date__range=(start, end)).order_by("date", "id")
         days = sorted({str(d) for d in deadlines.values_list("due_date", flat=True)} | {str(d) for d in income.values_list("date", flat=True)})
         selected = request.query_params.get("day", str(today()))
