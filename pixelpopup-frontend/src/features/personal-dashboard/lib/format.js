@@ -27,3 +27,13 @@ export const monthLabel = (value) =>
 export const words = (value = "") =>
   value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 export const requestId = () => crypto.randomUUID();
+export const accountLabel = (account) =>
+  [
+    account.name,
+    account.kind !== "cash" && account.last_four && "•••• " + account.last_four,
+    account.kind !== "cash" &&
+      account.card_expiry &&
+      "Exp " + account.card_expiry,
+  ]
+    .filter(Boolean)
+    .join(" · ");

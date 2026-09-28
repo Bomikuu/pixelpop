@@ -29,7 +29,7 @@ import {
 } from "../../lib/presets";
 import { Button } from "../../ui/button";
 import { formDefinition } from "./formDefinitions";
-import { requestId } from "../../lib/format";
+import { accountLabel, requestId } from "../../lib/format";
 
 export default function FormDialog({
   entity,
@@ -76,7 +76,7 @@ export default function FormDialog({
       .filter((a) => a.active && a.kind !== "fund")
       .map((a) => ({
         value: String(a.id),
-        label: a.name,
+        label: accountLabel(a),
         icon: choiceIcon(a.kind),
         logo: institutionFor(a.institution)?.logo,
       })),
@@ -84,7 +84,7 @@ export default function FormDialog({
       .filter((a) => a.active && cashKinds.includes(a.kind))
       .map((a) => ({
         value: String(a.id),
-        label: a.name,
+        label: accountLabel(a),
         icon: choiceIcon(a.kind),
         logo: institutionFor(a.institution)?.logo,
       })),
@@ -92,7 +92,7 @@ export default function FormDialog({
       .filter((a) => a.active && a.kind === "credit_card")
       .map((a) => ({
         value: String(a.id),
-        label: a.name,
+        label: accountLabel(a),
         icon: choiceIcon(a.kind),
         logo: institutionFor(a.institution)?.logo,
       })),
@@ -100,7 +100,7 @@ export default function FormDialog({
       .filter((a) => a.active && a.kind === "fund")
       .map((a) => ({
         value: String(a.id),
-        label: a.name,
+        label: accountLabel(a),
         icon: choiceIcon(a.fund_type),
       })),
     categories: data.categories.map((c) => ({
@@ -151,6 +151,8 @@ export default function FormDialog({
         invalid[f.name] = "Enter a valid amount or number.";
       if (f.max && value > f.max)
         invalid[f.name] = "Use today or an earlier date.";
+      if (value && f.pattern && !new RegExp(f.pattern).test(value))
+        invalid[f.name] = f.validationMessage;
     }
     if (Object.keys(invalid).length) {
       setErrors(invalid);
@@ -435,18 +437,29 @@ export default function FormDialog({
                         min={f.min}
                         max={f.max}
                         step={f.step}
+                        inputMode={f.inputMode}
+                        placeholder={f.placeholder}
+                        pattern={f.pattern}
                         maxLength={
                           f.maxLength || (f.name === "reason" ? 240 : 160)
                         }
                         disabled={saving || f.disabled}
                         aria-invalid={!!errors[f.name]}
                         aria-describedby={
-                          errors[f.name] ? id + "-error" : undefined
+                          [
+                            f.hint && id + "-hint",
+                            errors[f.name] && id + "-error",
+                          ]
+                            .filter(Boolean)
+                            .join(" ") || undefined
                         }
                       />
                     )}
                     {f.hint && (
-                      <p className="mt-1 text-xs leading-5 text-slate-600">
+                      <p
+                        id={id + "-hint"}
+                        className="mt-1 text-xs leading-5 text-slate-600"
+                      >
                         {f.hint}
                       </p>
                     )}

@@ -28,6 +28,26 @@ const account = field("account", "Account", "select", {
   source: "accounts",
   required: true,
 });
+const accountDetails = [
+  field("last_four", "Last 4 digits", "text", {
+    when: (v) => v.kind !== "cash",
+    maxLength: 4,
+    inputMode: "numeric",
+    placeholder: "1234",
+    pattern: "^[0-9]{4}$",
+    validationMessage: "Enter exactly four digits.",
+    hint: "Last four digits of the card or account number only. Leave blank if not applicable.",
+  }),
+  field("card_expiry", "Expiry (MM/YY)", "text", {
+    when: (v) => v.kind !== "cash",
+    maxLength: 5,
+    placeholder: "10/28",
+    pattern: "^(0[1-9]|1[0-2])/[0-9]{2}$",
+    validationMessage:
+      "Use MM/YY with a month from 01 to 12, for example 10/28.",
+    hint: "Optional. Leave blank if the account has no card expiry.",
+  }),
+];
 const repeats = field("repeat", "Repeat", "select", {
   default: "never",
   options: choices([
@@ -111,6 +131,7 @@ export function formDefinition(entity, record) {
           options: fundTypes,
           disabled: !!record?.id,
         }),
+        ...accountDetails,
         ...(!record?.id
           ? [
               field(
@@ -271,6 +292,7 @@ export function formDefinition(entity, record) {
         field("institution", "Bank / institution", "institution", {
           when: (v) => v.kind !== "cash",
         }),
+        ...accountDetails,
         field("credit_limit", "Credit limit (₱)", "number", {
           min: "0",
           step: "0.01",

@@ -79,6 +79,26 @@ export default function AccountCards({
                   aria-hidden="true"
                 />
               )}
+              {account.kind !== "cash" &&
+                (account.last_four || account.card_expiry) && (
+                  <div
+                    className={
+                      "mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm tabular-nums " +
+                      (card ? "text-slate-300" : "text-slate-600")
+                    }
+                  >
+                    {account.last_four && (
+                      <span
+                        aria-label={"Number ending in " + account.last_four}
+                      >
+                        •••• {account.last_four}
+                      </span>
+                    )}
+                    {account.card_expiry && (
+                      <span>Exp {account.card_expiry}</span>
+                    )}
+                  </div>
+                )}
               <div className="mt-5">
                 <p
                   className={
