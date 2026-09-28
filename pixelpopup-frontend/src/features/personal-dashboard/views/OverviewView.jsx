@@ -1,11 +1,13 @@
 import {
   ArrowUpRight,
+  ArrowLeftRight,
   CalendarClock,
   LayoutDashboard,
-  Wallet,
   ChartNoAxesCombined,
   CalendarDays,
   ChevronRight,
+  Lightbulb,
+  TrendingUp,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import RecordIdentity from "../components/RecordIdentity";
@@ -28,6 +30,34 @@ function deadlineGroup(row) {
   if (days === 0) return "Today";
   if (days === 1) return "Tomorrow";
   return days <= 7 - (now.getUTCDay() || 7) ? "This week" : "Later";
+}
+
+function monthComparison(current, previous, previousMonth, increaseIsGood) {
+  if (!previousMonth || previous == null || current == null) return null;
+  const value = Number(current);
+  const baseline = Number(previous);
+  if (!Number.isFinite(value) || !Number.isFinite(baseline)) return null;
+  const priorLabel = monthLabel(previousMonth);
+  if (baseline === 0) {
+    return value === 0
+      ? { text: "No change from " + priorLabel, trend: "flat", tone: "neutral" }
+      : { text: "No " + priorLabel + " baseline", tone: "neutral" };
+  }
+  const difference = value - baseline;
+  if (difference === 0)
+    return { text: "No change from " + priorLabel, trend: "flat", tone: "neutral" };
+  const percentage = Math.abs((difference / baseline) * 100);
+  const rounded = Number(percentage.toFixed(1));
+  return {
+    text:
+      (rounded === 0 ? "<0.1" : String(rounded)) +
+      "% " +
+      (difference > 0 ? "more" : "less") +
+      " than " +
+      priorLabel,
+    trend: difference > 0 ? "up" : "down",
+    tone: (difference > 0) === increaseIsGood ? "positive" : "negative",
+  };
 }
 
 export default function OverviewView({
@@ -58,10 +88,29 @@ export default function OverviewView({
       icon: "balance",
     },
     {
+      label: "Tracked net worth",
+      value: money(o.position.net_worth),
+      hint: "Estimated; excludes unrecorded liabilities",
+      icon: "assets",
+    },
+    {
+      label: "Credit-card debt",
+      value: money(o.position.debt),
+      hint: "Outstanding recorded card balances",
+      icon: "debt",
+    },
+    {
+      label: "Money owed to you",
+      value: money(o.position.receivables),
+      hint: "Outstanding loans to people",
+      icon: "loans",
+    },
+    {
       label: "Monthly income",
       value: money(o.month.income),
       hint: money(o.month.expected) + " still expected",
       icon: "income",
+      comparison: monthComparison(o.month.income, o.previous_month?.income, o.previous_month?.month, true),
     },
     {
       label: "Monthly expenses",
@@ -73,11 +122,25 @@ export default function OverviewView({
             ) + "% of monthly income"
           : "No monthly income recorded",
       icon: "expenses",
+      comparison: monthComparison(o.month.expenses, o.previous_month?.expenses, o.previous_month?.month, false),
+    },
+    {
+      label: "Monthly cash outflow",
+      value: money(o.month.cash_outflow),
+      hint: money(o.month.financing_cash) + " paid toward financed assets; excludes transfers",
+      icon: "expenses",
+      comparison: monthComparison(o.month.cash_outflow, o.previous_month?.cash_outflow, o.previous_month?.month, false),
+    },
+    {
+      label: "Financing principal",
+      value: money(o.position.financing_debt),
+      hint: "Outstanding principal on financed assets",
+      icon: "debt",
     },
     {
       label: "Projected remaining",
       value: money(o.month.remaining),
-      hint: "Income less expenses and unpaid ordinary bills",
+      hint: "Income less expenses and unpaid bills; financed payments include principal",
       icon: "budget",
     },
     {
@@ -92,7 +155,6 @@ export default function OverviewView({
   ];
   return (
     <div className="space-y-6">
-      <SummaryTiles items={tiles} />
       <Tabs defaultValue="summary" className="gap-5">
         <TabsList
           aria-label="Dashboard overview groups"
@@ -106,16 +168,17 @@ export default function OverviewView({
             <CalendarClock aria-hidden="true" />
             Planning
           </TabsTrigger>
-          <TabsTrigger value="money" className="px-3 py-2">
-            <Wallet aria-hidden="true" />
-            Money
-          </TabsTrigger>
           <TabsTrigger value="insights" className="px-3 py-2">
             <ChartNoAxesCombined aria-hidden="true" />
             Insights
           </TabsTrigger>
+          <TabsTrigger value="transactions" className="px-3 py-2">
+            <ArrowLeftRight aria-hidden="true" />
+            Recent transactions
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="summary" className="space-y-6">
+          <SummaryTiles items={tiles} />
           <Panel
             title="Next deadlines"
             description="Outstanding items across all months, earliest first."
@@ -215,7 +278,8 @@ export default function OverviewView({
                               </span>
                               {r.amount != null && (
                                 <span className="ml-11 mt-1 text-xs leading-5 text-slate-600 tabular-nums">
-                                  {money(r.amount)}
+                                  {money(r.financing_asset_id ? r.remaining_due : r.amount)}
+                                  {r.financing_asset_id && " left of " + money(r.amount)}
                                 </span>
                               )}
                               <span className="mt-auto pt-2">
@@ -230,7 +294,6 @@ export default function OverviewView({
               </div>
             )}
           </Panel>
-          <SpendingChart charts={o.charts} />
         </TabsContent>
         <TabsContent value="planning" className="space-y-6">
           <div className="space-y-6">
@@ -367,121 +430,6 @@ export default function OverviewView({
             fields={["paid", "unpaid"]}
           />
         </TabsContent>
-        <TabsContent value="money" className="space-y-6">
-          <section aria-labelledby="position-title" className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 id="position-title" className="text-lg font-semibold">
-                Your financial position
-              </h2>
-              <span className="text-xs text-slate-600">
-                Current recorded values, separate from the selected month
-              </span>
-            </div>
-            <SummaryTiles
-              items={[
-                {
-                  label: "Estimated assets",
-                  value: money(o.position.assets),
-                  icon: "assets",
-                  hint: "House, car and other assets",
-                },
-                {
-                  label: "Credit-card debt",
-                  value: money(o.position.debt),
-                  icon: "debt",
-                },
-                {
-                  label: "Benefits & investments",
-                  value: money(o.position.funds),
-                  icon: "funds",
-                  hint: "Recorded value, not available cash",
-                },
-                {
-                  label: "Money owed to you",
-                  value: money(o.position.receivables),
-                  icon: "loans",
-                },
-                {
-                  label: "Tracked net worth",
-                  value: money(o.position.net_worth),
-                  icon: "balance",
-                  hint: "Estimated; excludes unrecorded liabilities",
-                },
-                {
-                  label: "Account count",
-                  value: o.configuration.accounts,
-                  icon: "count",
-                },
-              ]}
-            />
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" onClick={() => navigate("accounts")}>
-                Accounts & cards
-              </Button>
-              <Button variant="outline" onClick={() => navigate("assets")}>
-                House & other assets
-              </Button>
-              <Button variant="outline" onClick={() => navigate("funds")}>
-                Benefits & investments
-              </Button>
-              <Button variant="outline" onClick={() => navigate("people")}>
-                People & money
-              </Button>
-            </div>
-            <Panel
-              title="Account balances"
-              description="Cash and bank balances are available money. Card debt and fund values are separate."
-            >
-              {dashboard.data.accounts.length ? (
-                <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {dashboard.data.accounts.map((a) => (
-                    <div key={a.id} className="border-l-2 pl-3">
-                      <dt className="text-sm text-slate-600">
-                        <RecordIdentity
-                          resource="accounts"
-                          row={a}
-                          label={a.name}
-                        />
-                        {!a.active ? " · Archived" : ""}
-                      </dt>
-                      <dd className="mt-1 text-lg font-semibold tabular-nums">
-                        {money(a.balance)}
-                        {a.kind === "credit_card" && (
-                          <span className="ml-2 text-xs font-normal text-slate-600">
-                            debt
-                          </span>
-                        )}
-                        {a.kind === "fund" && (
-                          <span className="ml-2 text-xs font-normal text-slate-600">
-                            fund value
-                          </span>
-                        )}
-                      </dd>
-                      {a.kind === "credit_card" && a.credit_limit != null && (
-                        <BudgetProgress
-                          credit
-                          label="Credit utilization"
-                          used={a.balance}
-                          limit={a.credit_limit}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </dl>
-              ) : (
-                <EmptyState
-                  title="Add your first account"
-                  message="For example, add Metrobank with your current recorded balance."
-                  action={
-                    <Button onClick={() => actions.openForm("account")}>
-                      Add account
-                    </Button>
-                  }
-                />
-              )}
-            </Panel>
-          </section>
-        </TabsContent>
         <TabsContent value="insights" className="space-y-6">
           <div className="grid gap-6 lg:grid-cols-2">
             <ComparisonChart
@@ -496,19 +444,23 @@ export default function OverviewView({
               description="Calculated from your records, not AI predictions."
             >
               {o.insights.length ? (
-                <ul className="space-y-3 text-sm">
+                <ul className="grid gap-2 xl:grid-cols-2">
                   {o.insights.map((text) => (
-                    <li key={text} className="border-b pb-3 last:border-0">
-                      {text}
+                    <li
+                      key={text}
+                      className="flex items-start gap-3 rounded-md border border-[var(--pd-border)] bg-[var(--pd-soft)]/40 p-3 text-sm leading-6 text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50/50 motion-reduce:transition-none"
+                    >
+                      <Lightbulb size={17} className="mt-1 shrink-0 text-[var(--pd-primary)]" aria-hidden="true" />
+                      <span>{text}</span>
                     </li>
                   ))}
-                  <li>
-                    Average daily spending:{" "}
-                    <strong>{money(o.average_daily)}</strong>
+                  <li className="flex items-start gap-3 rounded-md border border-[var(--pd-border)] bg-[var(--pd-soft)]/40 p-3 text-sm leading-6 text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50/50 motion-reduce:transition-none">
+                    <CalendarDays size={17} className="mt-1 shrink-0 text-[var(--pd-primary)]" aria-hidden="true" />
+                    <span>Average daily spending <strong className="block text-base text-slate-950 tabular-nums">{money(o.average_daily)}</strong></span>
                   </li>
-                  <li>
-                    Estimated month-end expenses:{" "}
-                    <strong>{money(o.projected_expenses)}</strong>
+                  <li className="flex items-start gap-3 rounded-md border border-[var(--pd-border)] bg-[var(--pd-soft)]/40 p-3 text-sm leading-6 text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50/50 motion-reduce:transition-none">
+                    <TrendingUp size={17} className="mt-1 shrink-0 text-[var(--pd-primary)]" aria-hidden="true" />
+                    <span>Estimated month-end expenses <strong className="block text-base text-slate-950 tabular-nums">{money(o.projected_expenses)}</strong></span>
                   </li>
                 </ul>
               ) : (
@@ -519,6 +471,9 @@ export default function OverviewView({
               )}
             </Panel>
           </div>
+          <SpendingChart charts={o.charts} />
+        </TabsContent>
+        <TabsContent value="transactions" className="space-y-6">
           <RecordList
             title="Recent transactions"
             resource="transactions"
