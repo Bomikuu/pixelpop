@@ -117,7 +117,18 @@ export default function CalendarView({ dashboard, month, setMonth, openForm }) {
                   className="flex flex-wrap items-center justify-between gap-3 py-4"
                 >
                   <div>
-                    <p className="font-medium">{row.title}</p>
+                    {row.calendar_kind === "deadline" &&
+                    (row.status === "pending" || row.financing_asset_id) ? (
+                      <button
+                        type="button"
+                        onClick={() => openForm("deadline", row)}
+                        className="rounded-sm text-left font-medium hover:text-[var(--pd-primary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)]"
+                      >
+                        {row.title}
+                      </button>
+                    ) : (
+                      <p className="font-medium">{row.title}</p>
+                    )}
                     <p className="mt-1 text-sm text-slate-600">
                       {row.calendar_kind === "income"
                         ? "Income · "
@@ -126,7 +137,9 @@ export default function CalendarView({ dashboard, month, setMonth, openForm }) {
                           : ""}
                       {row.amount == null
                         ? "No fixed amount"
-                        : money(row.amount)}
+                        : row.financing_asset_id && row.status === "pending"
+                          ? money(row.remaining_due) + " left of " + money(row.amount)
+                          : money(row.amount)}
                       {row.due_time
                         ? " · " + row.due_time.slice(0, 5) + " PHT"
                         : ""}

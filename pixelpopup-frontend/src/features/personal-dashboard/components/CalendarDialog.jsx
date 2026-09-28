@@ -346,7 +346,9 @@ export default function CalendarDialog({
                               {entryType(row)} ·{" "}
                               {row.amount == null
                                 ? "No amount set"
-                                : money(row.amount)}
+                                : row.financing_asset_id && row.status === "pending"
+                                  ? money(row.remaining_due) + " left of " + money(row.amount)
+                                  : money(row.amount)}
                               {row.due_time
                                 ? " · " + row.due_time.slice(0, 5) + " PHT"
                                 : ""}
