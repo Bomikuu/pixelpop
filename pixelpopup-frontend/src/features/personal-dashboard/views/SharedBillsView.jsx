@@ -139,11 +139,15 @@ export default function SharedBillsView({ dashboard, month, notify }) {
                 <p className="border-t pt-3 text-xs text-slate-600">
                   {bill.archived
                     ? "Archived"
-                    : bill.participants.every(
-                          (person) => Number(person.remaining) <= 0,
-                        ) && Number(bill.remaining_bill) <= 0
-                      ? "Settled"
-                      : "Payments outstanding"}
+                    : bill.all_paid
+                      ? "All paid · volunteer coverage agreed"
+                      : bill.participants.every(
+                            (person) => Number(person.remaining) <= 0,
+                          ) &&
+                          Number(bill.remaining_bill) <= 0 &&
+                          Number(bill.reimbursement_due || 0) <= 0
+                        ? "Settled"
+                        : "Payments outstanding"}
                 </p>
               </Link>
             ))}

@@ -1,5 +1,5 @@
 import { Toast } from "radix-ui";
-import { CheckCircle2, TriangleAlert, X } from "lucide-react";
+import { CheckCircle2, TriangleAlert, PartyPopper, X } from "lucide-react";
 
 export default function DashboardToasts({ notices, dismiss }) {
   return (
@@ -18,6 +18,11 @@ export default function DashboardToasts({ notices, dismiss }) {
           {notice.tone === "error" ? (
             <TriangleAlert
               className="mt-0.5 size-5 shrink-0 text-red-700"
+              aria-hidden="true"
+            />
+          ) : notice.tone === "celebrate" ? (
+            <PartyPopper
+              className="mt-0.5 size-5 shrink-0 text-teal-700 motion-safe:animate-in motion-safe:zoom-in"
               aria-hidden="true"
             />
           ) : (

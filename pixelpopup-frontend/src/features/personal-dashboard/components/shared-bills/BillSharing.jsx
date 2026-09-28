@@ -14,16 +14,29 @@ import {
   AlertDialogAction,
 } from "../../ui/alert-dialog";
 import { Panel, ErrorState } from "../Panel";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../../ui/dialog";
 import { formError } from "../../lib/sharedBills";
 
-export default function BillSharing({ bill, dashboard, notify }) {
+export default function BillSharing({
+  bill,
+  dashboard,
+  notify,
+  pinOpen,
+  setPinOpen,
+  pinTrigger,
+}) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [confirm, setConfirm] = useState(false);
   const [editPin, setEditPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [confirmLegacy, setConfirmLegacy] = useState(false);
-  const [replacePin, setReplacePin] = useState(false);
   const link = bill.share_token
     ? window.location.origin + "/shared-bills/" + bill.share_token
     : "";
@@ -91,7 +104,6 @@ export default function BillSharing({ bill, dashboard, notify }) {
       );
       setEditPin(result.edit_pin);
       setShowPin(false);
-      setReplacePin(false);
       notify("Editing PIN generated. Share it only with event participants.");
     } catch (failure) {
       setError(formError(failure));
@@ -108,169 +120,205 @@ export default function BillSharing({ bill, dashboard, notify }) {
     }
   }
   return (
-    <Panel
-      title="Share this breakdown"
-      description="The link shares only this event's names, contributions, and payment history. Your accounts and private notes stay private. A separate PIN enables joining and payment reports."
-    >
-      {error && (
-        <div className="mb-3">
-          <ErrorState message={error} />
-        </div>
-      )}
-      {link && !expired ? (
-        <div className="space-y-3">
-          <Label htmlFor="shared-bill-link">
-            Shared link · expires {expiresLabel}
-          </Label>
-          <div className="flex flex-wrap gap-2">
-            <Input
-              id="shared-bill-link"
-              readOnly
-              value={link}
-              className="min-w-0 flex-1"
-              onFocus={(event) => event.target.select()}
-            />
-            <Button variant="outline" onClick={copy}>
-              <Copy aria-hidden="true" />
-              Copy link
-            </Button>
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() => setConfirm(true)}
-            >
-              <Link2Off aria-hidden="true" />
-              Revoke link
-            </Button>
+    <>
+      <Panel
+        title="Share this breakdown"
+        description="The link shares only this event's names, contributions, and payment history. Your accounts and private notes stay private. A separate PIN enables joining and payment reports."
+      >
+        {error && !pinOpen && (
+          <div className="mb-3">
+            <ErrorState message={error} />
           </div>
-          <div className="space-y-3 border-t pt-4">
-            <p className="text-sm text-slate-600">
-              PIN holders can add people, recalculate flexible shares, and
-              report payments or reimbursements. Payment reports need your
-              confirmation before changing totals or your ledger.
-            </p>
-            {!bill.allocation_confirmed && (
-              <label className="flex items-start gap-3 text-sm">
-                <input
-                  type="checkbox"
-                  className="mt-1 size-4 accent-[var(--pd-primary)]"
-                  checked={confirmLegacy}
-                  disabled={busy}
-                  onChange={(event) => setConfirmLegacy(event.target.checked)}
-                />
-                <span>
-                  This older bill did not save split rules. Keep my contribution
-                  fixed; let others split the remainder when people join.
-                </span>
-              </label>
-            )}
-            <Button
-              variant="outline"
-              disabled={busy || (!bill.allocation_confirmed && !confirmLegacy)}
-              onClick={() =>
-                bill.has_edit_pin ? setReplacePin(true) : generatePin()
-              }
-            >
-              <KeyRound aria-hidden="true" />
-              {busy
-                ? "Saving…"
-                : bill.has_edit_pin
-                  ? "Replace editing PIN"
-                  : "Generate editing PIN"}
-            </Button>
-            {editPin && (
-              <div className="space-y-2">
-                <Label htmlFor="generated-event-pin">
-                  New editing PIN · available only until you leave this page
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  <Input
-                    id="generated-event-pin"
-                    type={showPin ? "text" : "password"}
-                    readOnly
-                    value={editPin}
-                    autoComplete="off"
-                    className="max-w-48 font-mono tracking-widest"
-                    onFocus={(event) => event.target.select()}
+        )}
+        {link && !expired ? (
+          <div className="space-y-3">
+            <Label htmlFor="shared-bill-link">
+              Shared link · expires {expiresLabel}
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              <Input
+                id="shared-bill-link"
+                readOnly
+                value={link}
+                className="min-w-0 flex-1"
+                onFocus={(event) => event.target.select()}
+              />
+              <Button variant="outline" onClick={copy}>
+                <Copy aria-hidden="true" />
+                Copy link
+              </Button>
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => setConfirm(true)}
+              >
+                <Link2Off aria-hidden="true" />
+                Revoke link
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button disabled={busy} onClick={share}>
+            <Share2 aria-hidden="true" />
+            {busy
+              ? "Creating link…"
+              : expired
+                ? "Create a new share link"
+                : "Create shared link"}
+          </Button>
+        )}
+        <Dialog
+          open={pinOpen}
+          onOpenChange={(open) => {
+            if (!busy) setPinOpen(open);
+          }}
+        >
+          <DialogContent
+            className="personal-dashboard max-h-[85dvh] overflow-y-auto sm:max-w-md"
+            onEscapeKeyDown={(event) => {
+              if (busy) event.preventDefault();
+            }}
+            onInteractOutside={(event) => {
+              if (busy) event.preventDefault();
+            }}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              requestAnimationFrame(() => pinTrigger.current?.focus());
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Editing PIN</DialogTitle>
+              <DialogDescription>
+                Share this PIN only with event participants. Regenerating it
+                immediately disables the previous PIN.
+              </DialogDescription>
+            </DialogHeader>
+            {error && <ErrorState message={error} />}
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600">
+                PIN holders can add people, recalculate flexible shares, and
+                report payments or reimbursements. Payment reports need your
+                confirmation before changing totals or your ledger.
+              </p>
+              {(!link || expired) && (
+                <p className="text-sm text-slate-600">
+                  Create an active shared link below the breakdown before
+                  generating an editing PIN.
+                </p>
+              )}
+              {bill.has_edit_pin && !editPin && (
+                <p className="text-sm text-slate-600">
+                  For security, the current PIN cannot be retrieved after you
+                  leave the page. Regenerate it to get a new PIN.
+                </p>
+              )}
+              {!bill.allocation_confirmed && (
+                <label className="flex items-start gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    className="mt-1 size-4 accent-[var(--pd-primary)]"
+                    checked={confirmLegacy}
+                    disabled={busy}
+                    onChange={(event) => setConfirmLegacy(event.target.checked)}
                   />
+                  <span>
+                    This older bill did not save split rules. Keep my
+                    contribution fixed; let others split the remainder when
+                    people join.
+                  </span>
+                </label>
+              )}
+              {editPin && (
+                <div className="space-y-2">
+                  <Label htmlFor="generated-event-pin">
+                    New editing PIN · available only until you leave this page
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="generated-event-pin"
+                      type={showPin ? "text" : "password"}
+                      readOnly
+                      value={editPin}
+                      autoComplete="off"
+                      className="min-w-0 flex-1 font-mono tracking-widest"
+                      onFocus={(event) => event.target.select()}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      title={showPin ? "Hide editing PIN" : "Show editing PIN"}
+                      aria-label={
+                        showPin ? "Hide editing PIN" : "Show editing PIN"
+                      }
+                      aria-pressed={showPin}
+                      onClick={() => setShowPin((value) => !value)}
+                    >
+                      {showPin ? (
+                        <EyeOff aria-hidden="true" />
+                      ) : (
+                        <Eye aria-hidden="true" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <div className={editPin ? "grid grid-cols-2 gap-2" : "flex"}>
+                {editPin && (
                   <Button
                     variant="outline"
-                    aria-label={
-                      showPin ? "Hide editing PIN" : "Show editing PIN"
-                    }
-                    aria-pressed={showPin}
-                    onClick={() => setShowPin((value) => !value)}
+                    className="min-w-0 text-xs sm:text-sm"
+                    disabled={busy}
+                    onClick={copyPin}
                   >
-                    {showPin ? (
-                      <EyeOff aria-hidden="true" />
-                    ) : (
-                      <Eye aria-hidden="true" />
-                    )}
-                    {showPin ? "Hide PIN" : "Show PIN"}
-                  </Button>
-                  <Button variant="outline" onClick={copyPin}>
                     <Copy aria-hidden="true" />
                     Copy PIN
                   </Button>
-                </div>
+                )}
+                <Button
+                  variant="outline"
+                  className="min-w-0 text-xs sm:text-sm"
+                  disabled={
+                    busy ||
+                    !link ||
+                    expired ||
+                    (!bill.allocation_confirmed && !confirmLegacy)
+                  }
+                  onClick={generatePin}
+                >
+                  <KeyRound aria-hidden="true" className="hidden sm:block" />
+                  {busy
+                    ? "Saving…"
+                    : bill.has_edit_pin
+                      ? "Regenerate PIN"
+                      : "Generate PIN"}
+                </Button>
               </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <Button disabled={busy} onClick={share}>
-          <Share2 aria-hidden="true" />
-          {busy
-            ? "Creating link…"
-            : expired
-              ? "Create a new share link"
-              : "Create shared link"}
-        </Button>
-      )}
-      <AlertDialog
-        open={confirm}
-        onOpenChange={(open) => {
-          if (!busy) setConfirm(open);
-        }}
-      >
-        <AlertDialogContent className="personal-dashboard">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Revoke this shared link?</AlertDialogTitle>
-            <AlertDialogDescription>
-              The existing link will stop working. Your bill and payment records
-              are kept.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Keep link</AlertDialogCancel>
-            <AlertDialogAction disabled={busy} onClick={revoke}>
-              {busy ? "Revoking…" : "Revoke link"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog
-        open={replacePin}
-        onOpenChange={(open) => {
-          if (!busy) setReplacePin(open);
-        }}
-      >
-        <AlertDialogContent className="personal-dashboard">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Replace the editing PIN?</AlertDialogTitle>
-            <AlertDialogDescription>
-              The previous PIN will stop working immediately. The viewing link
-              and recorded payments are kept.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>Keep PIN</AlertDialogCancel>
-            <AlertDialogAction disabled={busy} onClick={generatePin}>
-              Replace PIN
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </Panel>
+            </div>
+          </DialogContent>
+        </Dialog>
+        <AlertDialog
+          open={confirm}
+          onOpenChange={(open) => {
+            if (!busy) setConfirm(open);
+          }}
+        >
+          <AlertDialogContent className="personal-dashboard">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Revoke this shared link?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The existing link will stop working. Your bill and payment
+                records are kept.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={busy}>Keep link</AlertDialogCancel>
+              <AlertDialogAction disabled={busy} onClick={revoke}>
+                {busy ? "Revoking…" : "Revoke link"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Panel>
+    </>
   );
 }
