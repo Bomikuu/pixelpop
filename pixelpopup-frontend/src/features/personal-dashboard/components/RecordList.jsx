@@ -6,11 +6,15 @@ import {
   Pencil,
   Trash2,
   History,
+  ArrowUpRight,
   Check,
   ArrowLeftRight,
   Plus,
   Receipt,
+  ArrowDownLeft,
+  ListChecks,
 } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -26,6 +30,7 @@ import AccountCards from "./AccountCards";
 import RecordIdentity from "./RecordIdentity";
 import { choiceIcon } from "../lib/presets";
 import { RecordCharts } from "./Charts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import {
   Table,
   TableBody,
@@ -106,6 +111,8 @@ function summaries(resource, values = {}, kind, bills) {
   if (resource === "assets")
     return [
       f("Estimated asset value", values.value, "assets"),
+      f("Financing principal", values.financing_debt, "debt"),
+      f("Estimated equity", values.estimated_equity, "balance"),
       f("Real estate", values.house, "assets"),
       f("Vehicles", values.car, "assets"),
       f("Other assets", values.other, "assets"),
@@ -178,6 +185,45 @@ function periodParams(period, month, start, end) {
   return { month };
 }
 
+const recentChartConfig = {
+  income: { label: "Received income", color: "var(--chart-3)" },
+  expenses: { label: "Expenses", color: "var(--chart-1)" },
+};
+
+function RecentTransactionsChart({ rows = [] }) {
+  const values = rows.map((row) => ({
+    ...row,
+    income: Number(row.income || 0),
+    expenses: Number(row.expenses || 0),
+  }));
+  return (
+    <section className="min-w-0 rounded-lg border border-[var(--pd-border)] bg-white p-4 lg:col-span-3 xl:col-span-6">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold text-slate-950">Income vs. expenses</h3>
+        <span className="text-xs text-slate-600">12 months to selected month</span>
+      </div>
+      <div className="mb-2 flex flex-wrap gap-4 text-xs text-slate-600">
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-[var(--chart-3)]" aria-hidden="true" />Received income</span>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-[var(--chart-1)]" aria-hidden="true" />Expenses</span>
+      </div>
+      {values.some((row) => row.income || row.expenses) ? (
+        <ChartContainer config={recentChartConfig} className="h-44 w-full">
+          <BarChart accessibilityLayer data={values} barGap={2}>
+            <CartesianGrid vertical={false} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} tickFormatter={(label) => label.slice(0, 3)} />
+            <YAxis tickFormatter={(value) => "₱" + new Intl.NumberFormat("en-PH", { notation: "compact" }).format(value)} tickLine={false} axisLine={false} width={58} />
+            <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => <span>{recentChartConfig[name]?.label}: {money(value)}</span>} />} />
+            <Bar dataKey="income" fill="var(--color-income)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+            <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+          </BarChart>
+        </ChartContainer>
+      ) : (
+        <p className="grid h-44 place-items-center text-center text-sm text-slate-600">No income or expenses to chart yet.</p>
+      )}
+    </section>
+  );
+}
+
 export default function RecordList({
   resource,
   title,
@@ -203,6 +249,7 @@ export default function RecordList({
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [page, setPage] = useState(1);
+  const [transactionKind, setTransactionKind] = useState("");
   const [acting, setActing] = useState(null);
   const [actionError, setActionError] = useState("");
   useEffect(() => {
@@ -214,16 +261,18 @@ export default function RecordList({
     return () => clearTimeout(timer);
   }, [search, composing]);
   const dated = ["transactions", "deadlines", "movements"].includes(resource);
+  const recent = compact && resource === "transactions";
   const params = new URLSearchParams({
     page: String(page),
-    page_size: compact ? "100" : "20",
+    page_size: recent ? "10" : compact ? "100" : "20",
     ...(dated || kind === "fund" ? { chart_month: month } : {}),
-    ...(dated && !compact ? periodParams(period, month, start, end) : {}),
+    ...(dated && (!compact || recent) ? periodParams(period, month, start, end) : {}),
     ...fixedParams,
   });
   if (query) params.set("q", query);
   if (category) params.set("category", category);
   if (kind) params.set("kind", kind);
+  if (recent && transactionKind) params.set("kind", transactionKind);
   if (bills) params.set("bills", "1");
   const state = useRecords(
     resource + "/?" + params.toString(),
@@ -253,7 +302,7 @@ export default function RecordList({
                       "category_name",
                       "amount",
                       "account_name",
-                      "payment_method",
+                      ...(!recent ? ["payment_method"] : []),
                       ...(kind === "income" ? ["receipt_state"] : []),
                       ...(!compact ? ["notes"] : []),
                     ];
@@ -286,6 +335,63 @@ export default function RecordList({
   }
   function display(field, row) {
     if (field === "recipient" && !row.recipient) return "—";
+    if (recent && field === "date")
+      return (
+        <span className="block min-w-28 leading-5">
+          <span className="block font-medium text-slate-950">{dateLabel(row.date)}</span>
+          <span className="block text-xs text-slate-600">
+            {new Intl.DateTimeFormat("en-PH", { weekday: "short" }).format(new Date(row.date + "T12:00:00"))}
+          </span>
+        </span>
+      );
+    if (recent && field === "category_name") {
+      const Icon = choiceIcon(row.category_name?.toLowerCase() || "other", row.category_name);
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--pd-soft)] px-2.5 py-1 text-xs font-medium text-slate-700">
+          <Icon size={14} aria-hidden="true" />
+          {row.category_name || "Other"}
+        </span>
+      );
+    }
+    if (recent && field === "account_name") {
+      if (!row.account_name) return "—";
+      const account = dashboard.data.accounts.find((item) => String(item.id) === String(row.account));
+      const AccountIcon = choiceIcon(account?.kind || "bank");
+      return (
+        <span className="inline-flex min-w-32 items-center gap-2 text-sm">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-600"><AccountIcon size={15} aria-hidden="true" /></span>
+          <span className="min-w-0 break-words">{row.account_name}</span>
+        </span>
+      );
+    }
+    if (recent && field === "amount") {
+      const Icon = row.kind === "income" ? ArrowDownLeft : ArrowUpRight;
+      return (
+        <span className={"inline-flex items-center gap-1 font-semibold tabular-nums " + (row.kind === "income" ? "text-emerald-700" : "text-rose-700")}>
+          <Icon size={15} aria-hidden="true" />
+          <span className="sr-only">{row.kind === "income" ? "Income" : "Expense"}: </span>
+          {money(row.amount)}
+        </span>
+      );
+    }
+    if (resource === "assets" && field === "name")
+      return (
+        <Link
+          to={"/dashboard/assets/" + row.id + "?month=" + month}
+          className="inline-flex rounded-sm hover:text-[var(--pd-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)]"
+        >
+          <RecordIdentity resource={resource} row={row} label={row.name || "—"} />
+        </Link>
+      );
+    if (resource === "deadlines" && field === "title" && row.financing_asset_id)
+      return (
+        <Link
+          to={"/dashboard/assets/" + row.financing_asset_id + "?month=" + month}
+          className="inline-flex rounded-sm hover:text-[var(--pd-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)]"
+        >
+          <RecordIdentity resource={resource} row={row} label={row.title || "—"} />
+        </Link>
+      );
     if (
       ["name", "title", "person", "recipient"].includes(field) ||
       (resource === "movements" && field === "kind")
@@ -324,7 +430,12 @@ export default function RecordList({
     )
       return (
         <span className="tabular-nums">
-          {row[field] == null ? (
+          {field === "amount" && row.asset_financing && row.status === "pending" ? (
+            <>
+              {money(row.remaining_due)}
+              <span className="block text-xs text-slate-600">of {money(row.amount)} due</span>
+            </>
+          ) : row[field] == null ? (
             resource === "deadlines" ? (
               <span className="font-medium text-amber-800">
                 {["bill", "subscription", "payment"].includes(row.kind)
@@ -369,7 +480,9 @@ export default function RecordList({
       <Panel
         title={title}
         description={
-          compact
+          recent
+            ? "Your latest income and expenses, with the selected period applied to the list and totals."
+            : compact
             ? undefined
             : dated
               ? "Summary and records follow this period and filters."
@@ -384,11 +497,11 @@ export default function RecordList({
           ) : undefined
         }
       >
-        {!compact && (
-          <div className="mb-4 flex flex-wrap items-end gap-3">
-            <div className="min-w-40 flex-1">
-              <Label htmlFor={resource + "-search"} className="mb-2 block">
-                Search records
+        {(!compact || recent) && (
+          <div className={recent ? "mb-5 flex flex-wrap items-end justify-end gap-3" : "mb-4 flex flex-wrap items-end gap-3"}>
+            <div className={recent ? "w-full min-w-44 sm:w-64" : "min-w-40 flex-1"}>
+              <Label htmlFor={resource + "-search"} className={recent ? "sr-only" : "mb-2 block"}>
+                {recent ? "Search transactions" : "Search records"}
               </Label>
               <div className="relative">
                 <Search
@@ -409,7 +522,7 @@ export default function RecordList({
                     }
                   }}
                   className="pl-9 pr-10"
-                  placeholder="Name, category or notes"
+                  placeholder={recent ? "Search transactions..." : "Name, category or notes"}
                 />
                 {search && (
                   <Button
@@ -430,7 +543,7 @@ export default function RecordList({
             </div>
             {dated && (
               <div className="w-full sm:w-44">
-                <Label htmlFor={resource + "-period"} className="mb-2 block">
+                <Label htmlFor={resource + "-period"} className={recent ? "sr-only" : "mb-2 block"}>
                   Period
                 </Label>
                 <Select
@@ -464,7 +577,7 @@ export default function RecordList({
             )}
             {["transactions", "deadlines"].includes(resource) && (
               <div className="w-full sm:w-48">
-                <Label htmlFor={resource + "-category"} className="mb-2 block">
+                <Label htmlFor={resource + "-category"} className={recent ? "sr-only" : "mb-2 block"}>
                   Category
                 </Label>
                 <Select
@@ -529,6 +642,39 @@ export default function RecordList({
             )}
           </div>
         )}
+        {recent && state.data && !state.error && (
+          <>
+            <div className="grid gap-3 border-b border-[var(--pd-border)] pb-5 lg:grid-cols-3 xl:grid-cols-12">
+              <RecentTransactionsChart rows={state.data.charts?.monthly} />
+              {[
+                { label: "Transactions", value: state.data.summary?.count ?? 0, icon: ListChecks, tone: "bg-blue-50 text-blue-700", surface: "bg-blue-50/30" },
+                { label: "Money in", value: money(state.data.summary?.income ?? 0), icon: ArrowDownLeft, tone: "bg-emerald-50 text-emerald-700", surface: "bg-emerald-50/30" },
+                { label: "Money out", value: money(state.data.summary?.expenses ?? 0), icon: ArrowUpRight, tone: "bg-rose-50 text-rose-700", surface: "bg-rose-50/30" },
+              ].map(({ label, value, icon: Icon, tone, surface }) => (
+                <div key={label} className={"min-w-0 rounded-lg border border-[var(--pd-border)] p-4 transition-colors hover:border-blue-200 motion-reduce:transition-none lg:col-span-1 xl:col-span-2 " + surface}>
+                  <span className={"grid size-9 place-items-center rounded-full " + tone}><Icon size={18} aria-hidden="true" /></span>
+                  <p className="mt-4 text-sm text-slate-600">{label}</p>
+                  <p className="mt-1 break-words text-xl font-semibold tracking-tight text-slate-950 tabular-nums">{value}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-slate-600">Search, category and type apply to the chart. Period selection applies to the list and totals.</p>
+            <div className="my-4 flex flex-wrap gap-2" aria-label="Transaction type">
+              {[["", "All"], ["income", "Income"], ["expense", "Expenses"]].map(([value, label]) => (
+                <Button
+                  key={label}
+                  size="sm"
+                  variant={transactionKind === value ? "secondary" : "ghost"}
+                  aria-pressed={transactionKind === value}
+                  onClick={() => { setTransactionKind(value); setPage(1); }}
+                >
+                  {value === "income" ? <ArrowDownLeft aria-hidden="true" /> : value === "expense" ? <ArrowUpRight aria-hidden="true" /> : <ArrowLeftRight aria-hidden="true" />}
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </>
+        )}
         {(state.error || actionError) && (
           <ErrorState
             message={state.error || actionError}
@@ -541,9 +687,9 @@ export default function RecordList({
           </p>
         ) : !rows.length ? (
           <EmptyState
-            title={query || category ? "No matching records" : "No records yet"}
+            title={query || category || (recent && (transactionKind || period !== "month")) ? "No matching records" : "No records yet"}
             message={
-              query || category
+              query || category || (recent && (transactionKind || period !== "month"))
                 ? "Try clearing the search or changing your filters."
                 : "Add a record when you're ready. No sample balances are included."
             }
@@ -559,8 +705,8 @@ export default function RecordList({
               />
             ) : (
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
+                <Table className={recent ? "min-w-[760px]" : undefined}>
+                  <TableHeader className={recent ? "bg-[var(--pd-soft)]/60" : undefined}>
                     <TableRow>
                       {fields.map((f) => (
                         <TableHead key={f}>
@@ -588,13 +734,27 @@ export default function RecordList({
                         {fields.map((f) => (
                           <TableCell
                             key={f}
-                            className="max-w-64 whitespace-normal break-words align-top"
+                            className={"max-w-64 whitespace-normal break-words " + (recent ? "align-middle py-3" : "align-top")}
                           >
                             {display(f, row)}
                           </TableCell>
                         ))}
                         <TableCell>
                           <div className="flex justify-end gap-1">
+                            {resource === "assets" && (
+                              <Button asChild size="sm" variant="outline">
+                                <Link to={"/dashboard/assets/" + row.id + "?month=" + month}>
+                                  <ArrowUpRight aria-hidden="true" /> View
+                                </Link>
+                              </Button>
+                            )}
+                            {resource === "deadlines" && row.financing_asset_id && (
+                              <Button asChild size="sm" variant="outline">
+                                <Link to={"/dashboard/assets/" + row.financing_asset_id + "?month=" + month}>
+                                  <ArrowUpRight aria-hidden="true" /> Asset
+                                </Link>
+                              </Button>
+                            )}
                             {row.shared_bill_id && (
                               <Button asChild size="sm" variant="outline">
                                 <Link
@@ -686,13 +846,14 @@ export default function RecordList({
                             )}
                             {entity(row) &&
                               !row.shared_bill_id &&
+                              !row.asset_financing &&
                               row.status !== "paid" &&
                               row.status !== "completed" &&
                               !row.deadline &&
                               !(resource === "deadlines" && row.loan) && (
                                 <Button
                                   size="icon"
-                                  variant="ghost"
+                                  variant={recent ? "outline" : "ghost"}
                                   aria-label={
                                     "Edit " +
                                     (row.name || row.title || row.person)
@@ -704,6 +865,7 @@ export default function RecordList({
                               )}
                             {entity(row) &&
                               !row.shared_bill_id &&
+                              !row.asset_financing &&
                               !row.deadline &&
                               !row.schedule &&
                               row.status !== "paid" &&
@@ -712,7 +874,7 @@ export default function RecordList({
                               !(resource === "deadlines" && row.loan) && (
                                 <Button
                                   size="icon"
-                                  variant="ghost"
+                                  variant={recent ? "outline" : "ghost"}
                                   aria-label={
                                     "Delete or archive " +
                                     (row.name || row.title || row.person)
@@ -730,7 +892,7 @@ export default function RecordList({
                 </Table>
               </div>
             )}
-            {!compact && (
+            {(!compact || recent) && (
               <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4 text-sm text-slate-600">
                 <span>
                   {state.data.count} records • Page {page}

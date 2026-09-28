@@ -21,6 +21,7 @@ import {
   PanelLeftOpen,
   PiggyBank,
   HeartHandshake,
+  Utensils,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { Button } from "./ui/button";
@@ -42,6 +43,9 @@ import FundsView from "./views/FundsView";
 import PeopleView from "./views/PeopleView";
 import PersonHistoryView from "./views/PersonHistoryView";
 import SharedBillView from "./views/SharedBillView";
+import AssetDetailView from "./views/AssetDetailView";
+import NutritionView from "./views/NutritionView";
+import NutritionDateControls from "./components/nutrition/NutritionDateControls";
 import { money, today } from "./lib/format";
 import "./styles/theme.css";
 
@@ -57,6 +61,7 @@ const tabs = [
   ["deadlines", "Tasks & deadlines", ListChecks, "Planning"],
   ["bills", "Bills", Receipt, "Planning"],
   ["calendar", "Calendar", CalendarDays, "Planning"],
+  ["nutrition", "Nutrition", Utensils, "Wellbeing"],
   ["spending", "Spending", ChartNoAxesCombined, "Insights"],
   ["reports", "Monthly reports", FileChartColumn, "Insights"],
   ["settings", "Settings", Settings, "Workspace"],
@@ -75,11 +80,13 @@ export default function Dashboard() {
     .split("/");
   const tab = routeParts[0];
   const personKey = tab === "people" ? routeParts[1] : undefined;
+  const assetId = tab === "assets" ? routeParts[1] : undefined;
   const sharedBillRoute = tab === "people" && routeParts[1] === "shared";
   const sharedBillId = sharedBillRoute ? routeParts[2] : undefined;
   const current = tabs.find((t) => t[0] === (tab === "loans" ? "people" : tab));
   const dashboard = useDashboardData(selectedMonth);
   const [mobileNav, setMobileNav] = useState(false);
+  const [nutritionDate, setNutritionDate] = useState(today);
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return (
@@ -181,6 +188,16 @@ export default function Dashboard() {
   };
   const actions = {
     openForm: (entity, record) => {
+      if (
+        (entity === "deadline" || entity === "settlement") &&
+        record?.financing_asset_id
+      ) {
+        navigateRouter(
+          "/dashboard/assets/" + record.financing_asset_id +
+            "?month=" + selectedMonth,
+        );
+        return;
+      }
       launchingControl.current = document.activeElement;
       setDialog({ entity, record });
       setCompanionActivity(entity);
@@ -196,6 +213,10 @@ export default function Dashboard() {
     notify,
   };
   async function searchSelect(row) {
+    if (row.tab === "assets") {
+      navigateRouter("/dashboard/assets/" + row.id + "?month=" + selectedMonth);
+      return;
+    }
     navigate(row.tab);
     try {
       const record = await dashboard.request(
@@ -207,6 +228,13 @@ export default function Dashboard() {
             record.shared_bill_id +
             "?month=" +
             selectedMonth,
+        );
+        return;
+      }
+      if (record.financing_asset_id) {
+        navigateRouter(
+          "/dashboard/assets/" + (record.financing_asset_id || record.id) +
+            "?month=" + selectedMonth,
         );
         return;
       }
@@ -383,95 +411,89 @@ export default function Dashboard() {
           </p>
         </aside>
         <main className="min-w-0 p-4 sm:p-6 lg:p-8">
-          <header className="mb-6 space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="flex items-center gap-2 text-sm text-slate-500">
-                Workspace
-                <ChevronRight size={14} aria-hidden="true" />
-                {current?.[1] || "Page not found"}
-              </p>
-              <GlobalSearch request={dashboard.request} select={searchSelect} />
-            </div>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-4">
+          <header className="mb-4 border-b pb-4">
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+              <div className="flex min-w-0 flex-1 items-start gap-2">
                 {!tab && (
                   <img
                     src="/portfolio/assets/mico-ang-pixel-portrait.webp"
                     alt="Miku’s pixel portrait"
-                    width="64"
-                    height="64"
-                    className="size-16 shrink-0 object-contain [image-rendering:pixelated]"
+                    width="36"
+                    height="36"
+                    className="size-9 shrink-0 object-contain [image-rendering:pixelated]"
                   />
                 )}
-                <div>
-                  <h1 className="text-2xl font-semibold tracking-tight">
-                    {tab
-                      ? current?.[1] || "Page not found"
-                      : "Welcome back, Miku!"}
-                  </h1>
-                  <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
-                    Your money, expenses, bills, and deadlines in one place.
+                <div className="min-w-0">
+                  <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="text-slate-500">Workspace</span>
+                    <ChevronRight size={14} className="text-slate-500" aria-hidden="true" />
+                    <h1 className="text-sm! leading-5! font-semibold text-slate-950">
+                      {tab ? current?.[1] || "Page not found" : "Welcome back, Miku!"}
+                    </h1>
+                  </nav>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
+                    {tab === "nutrition"
+                      ? "Meals, macros, weight readings, and your own daily target."
+                      : "Your money, expenses, bills, and deadlines in one place."}
+                    <span className="inline-block whitespace-nowrap">
+                      <span className="mx-2 text-slate-400" aria-hidden="true">·</span>
+                      <time dateTime={today()}>
+                        {new Intl.DateTimeFormat("en-PH", {
+                          weekday: "long",
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                          timeZone: "Asia/Manila",
+                        }).format(new Date())}
+                      </time>
+                    </span>
                   </p>
                 </div>
               </div>
-              {!tab && (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    ref={calendarTrigger}
-                    variant="outline"
-                    onClick={() => {
-                      calendarEditing.current = false;
-                      setCalendarOpen(true);
-                    }}
-                  >
-                    <CalendarDays aria-hidden="true" />
-                    View calendar
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => actions.openForm("deadline")}
-                  >
-                    <Plus />
-                    Add task / bill
-                  </Button>
-                  <Button onClick={() => actions.openForm("expense")}>
-                    <Plus />
-                    Add expense
-                  </Button>
-                </div>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-5">
-              <p className="text-sm text-slate-600">
-                {new Intl.DateTimeFormat("en-PH", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                  timeZone: "Asia/Manila",
-                }).format(new Date())}
-              </p>
-              <div className="flex items-center gap-3">
-                <label
-                  htmlFor="workspace-month"
-                  className="text-sm text-slate-600"
-                >
+              {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+                <label htmlFor="workspace-month" className="sr-only">
                   Summary month
                 </label>
                 <input
                   id="workspace-month"
                   type="month"
-                  className="h-9 rounded-md border bg-white px-3 text-sm"
+                  className="h-9 w-[10.5rem] rounded-md border bg-white px-3 text-sm"
                   value={selectedMonth}
                   onChange={(e) => {
                     if (e.target.value) setMonth(e.target.value);
                   }}
-                  aria-label="Summary month"
                 />
-              </div>
+                <GlobalSearch request={dashboard.request} select={searchSelect} />
+              </div>}
             </div>
+            {!tab && (
+              <div className="mt-3 flex flex-wrap justify-end gap-2">
+                <Button
+                  ref={calendarTrigger}
+                  variant="outline"
+                  onClick={() => {
+                    calendarEditing.current = false;
+                    setCalendarOpen(true);
+                  }}
+                >
+                  <CalendarDays aria-hidden="true" />
+                  View calendar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => actions.openForm("deadline")}
+                >
+                  <Plus />
+                  Add task / bill
+                </Button>
+                <Button onClick={() => actions.openForm("expense")}>
+                  <Plus />
+                  Add expense
+                </Button>
+              </div>
+            )}
           </header>
-          {dashboard.data.overview.attention.overdue > 0 && (
+          {tab !== "nutrition" && dashboard.data.overview.attention.overdue > 0 && (
             <div
               role="status"
               className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900"
@@ -505,8 +527,19 @@ export default function Dashboard() {
               setMonth={setMonth}
               openForm={actions.openForm}
             />
+          ) : tab === "nutrition" ? (
+            <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onLeave={() => navigate("")} />
           ) : tab === "funds" ? (
             <FundsView {...shared} />
+          ) : tab === "assets" && assetId ? (
+            /^\d+$/.test(assetId) && !routeParts.slice(2).some(Boolean) ? (
+              <AssetDetailView key={assetId} assetId={assetId} {...shared} />
+            ) : (
+              <EmptyState
+                title="This asset page does not exist"
+                action={<Button onClick={() => navigate("assets")}>Back to assets</Button>}
+              />
+            )
           ) : tab === "people" || tab === "loans" ? (
             sharedBillRoute ? (
               /^\d+$/.test(sharedBillId || "") &&
