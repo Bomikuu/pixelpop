@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Check, Users, Store, ArrowLeftRight } from "lucide-react";
+import { Check, Users } from "lucide-react";
 import SharedFormFrame from "./SharedFormFrame";
 import SelectableField from "../SelectableField";
 import { Button } from "../../ui/button";
@@ -7,44 +7,61 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { money, requestId, today } from "../../lib/format";
 import { formError } from "../../lib/sharedBills";
+import PersonPaymentSummary from "./PersonPaymentSummary";
+import PaymentReceiver from "./PaymentReceiver";
 
-export default function PublicPaymentDialog({ bill, submit, close }) {
+const available = (value) => Math.max(0, Math.round(value * 100) / 100);
+
+export default function PublicPaymentDialog({
+  bill,
+  submit,
+  close,
+  paymentKind = "provider",
+  privateEntry = false,
+}) {
+  const kind = paymentKind;
+  const refund = kind === "reimbursement" && Boolean(bill.receiver_id);
   const pending = bill.payments.filter(
     (payment) => payment.status === "pending",
   );
   const remaining = (person) =>
-    Math.max(
-      0,
+    available(
       Number(person.remaining) -
         pending
-          .filter((payment) => payment.payer_id === person.id)
+          .filter(
+            (payment) =>
+              payment.payer_id === person.id && payment.kind !== "refund",
+          )
           .reduce((sum, payment) => sum + Number(payment.amount), 0),
     );
   const receive = (person) =>
-    Math.max(
-      0,
-      Number(person.to_receive) -
+    available(
+      Number(refund ? person.refund_due : person.to_receive) -
         pending
-          .filter((payment) => payment.paid_to_id === person.id)
+          .filter(
+            (payment) =>
+              payment.paid_to_id === person.id &&
+              (!refund || payment.kind === "refund"),
+          )
           .reduce((sum, payment) => sum + Number(payment.amount), 0),
     );
-  const merchantRemaining = Math.max(
-    0,
-    Number(bill.remaining_bill) -
+  const refundablePool = available(
+    Number(bill.merchant_paid) -
+      Number(bill.total) -
       pending
-        .filter((payment) => !payment.paid_to_id)
+        .filter((payment) => payment.kind === "refund")
         .reduce((sum, payment) => sum + Number(payment.amount), 0),
   );
   const initial =
-    bill.participants.find((person) => remaining(person) > 0) ||
+    (refund
+      ? bill.participants.find((person) => person.id === bill.receiver_id)
+      : bill.participants.find((person) => remaining(person) > 0)) ||
     bill.participants[0];
   const [payerId, setPayerId] = useState(String(initial.id));
-  const [kind, setKind] = useState(
-    merchantRemaining > 0 ? "provider" : "reimbursement",
-  );
   const eligibleRecipients = (payer) =>
     bill.participants.filter(
-      (person) => String(person.id) !== payer && receive(person) > 0,
+      (person) =>
+        (refund || String(person.id) !== payer) && receive(person) > 0,
     );
   const firstRecipient = eligibleRecipients(String(initial.id))[0];
   const [recipientId, setRecipientId] = useState(
@@ -52,10 +69,10 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
   );
   const [amount, setAmount] = useState(
     String(
-      merchantRemaining > 0
-        ? Math.min(remaining(initial), merchantRemaining)
+      kind === "provider"
+        ? Number(initial.remaining) || ""
         : Math.min(
-            remaining(initial),
+            refund ? refundablePool : remaining(initial),
             firstRecipient ? receive(firstRecipient) : 0,
           ),
     ),
@@ -78,6 +95,9 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
     (person) => String(person.id) === payerId,
   );
   const recipients = eligibleRecipients(payerId);
+  const selectedPerson = refund
+    ? bill.participants.find((person) => String(person.id) === recipientId)
+    : payer;
   function changePayer(value) {
     const person = bill.participants.find((row) => String(row.id) === value);
     const next = eligibleRecipients(value)[0];
@@ -86,22 +106,11 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
     setAmount(
       String(
         kind === "provider"
-          ? Math.min(remaining(person), merchantRemaining)
-          : Math.min(remaining(person), next ? receive(next) : 0),
-      ),
-    );
-  }
-  function changeKind(value) {
-    setKind(value);
-    const recipient =
-      recipients.find((person) => String(person.id) === recipientId) ||
-      recipients[0];
-    setRecipientId(String(recipient?.id || ""));
-    setAmount(
-      String(
-        value === "provider"
-          ? Math.min(remaining(payer), merchantRemaining)
-          : Math.min(remaining(payer), recipient ? receive(recipient) : 0),
+          ? Number(person.remaining) || ""
+          : Math.min(
+              refund ? refundablePool : remaining(person),
+              next ? receive(next) : 0,
+            ),
       ),
     );
   }
@@ -128,7 +137,13 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
     try {
       await submit({
         payer_id: payerId,
-        paid_to_id: kind === "provider" ? null : recipientId,
+        paid_to_id:
+          kind === "provider" ? bill.receiver_id || null : recipientId,
+        kind: refund
+          ? "refund"
+          : kind === "provider" && bill.receiver_id
+            ? "contribution"
+            : "payment",
         amount,
         date,
         request_id: key,
@@ -144,8 +159,24 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
   }
   return (
     <SharedFormFrame
-      title="Record a payment or reimbursement"
-      description="This records an actual payment, not a money transfer through the app. The event owner must confirm it before totals or personal accounts change."
+      title={
+        refund
+          ? "Return an overpayment"
+          : kind === "reimbursement"
+            ? "Report a reimbursement"
+            : privateEntry
+              ? "Record a payment"
+              : "Report a payment"
+      }
+      description={
+        privateEntry
+          ? "Record an actual event payment. This form does not transfer money or change private accounts; personal expense recording stays separate."
+          : refund
+            ? "Return excess from the event receiver to the person who overpaid. Management must confirm this report before their net paid amount changes."
+            : kind === "reimbursement"
+              ? "Management must be unlocked to report a reimbursement to a person. The report still needs confirmation before event totals change; this does not transfer money or update private accounts."
+              : "Anyone with the link can report a payment, including more than their share or the event total. The owner or a PIN holder must confirm it before totals change. This does not transfer money or update private accounts."
+      }
       busy={busy}
       dirty={dirty}
       close={close}
@@ -162,7 +193,9 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
           </p>
         )}
         <div className="space-y-2">
-          <Label htmlFor="public-payer">Who is paying?</Label>
+          <Label htmlFor="public-payer">
+            {refund ? "Refund comes from" : "Who is paying?"}
+          </Label>
           <SelectableField
             id="public-payer"
             label="Person paying"
@@ -173,29 +206,7 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
             }))}
             value={payerId}
             onChange={changePayer}
-            disabled={busy}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="public-payment-kind">Payment type</Label>
-          <SelectableField
-            id="public-payment-kind"
-            label="Payment type"
-            options={[
-              {
-                value: "provider",
-                label: "Pay the bill provider",
-                icon: Store,
-              },
-              {
-                value: "reimbursement",
-                label: "Reimburse a person",
-                icon: ArrowLeftRight,
-              },
-            ]}
-            value={kind}
-            onChange={changeKind}
-            disabled={busy}
+            disabled={busy || refund}
           />
         </div>
         {kind === "reimbursement" ? (
@@ -218,7 +229,14 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
                 const person = recipients.find(
                   (row) => String(row.id) === value,
                 );
-                setAmount(String(Math.min(remaining(payer), receive(person))));
+                setAmount(
+                  String(
+                    Math.min(
+                      refund ? refundablePool : remaining(payer),
+                      receive(person),
+                    ),
+                  ),
+                );
               }}
               disabled={busy}
             />
@@ -229,10 +247,14 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
             )}
           </div>
         ) : (
+          <PaymentReceiver bill={bill} />
+        )}
+        <PersonPaymentSummary bill={bill} person={selectedPerson} />
+        {refund && (
           <p className="text-sm text-slate-600">
-            Still payable to the bill provider:{" "}
-            <strong className="tabular-nums">{money(merchantRemaining)}</strong>
-            . Pending reports reserve their amounts until reviewed.
+            Available excess to return:{" "}
+            <strong className="tabular-nums">{money(refundablePool)}</strong>.
+            Refunds cannot bring confirmed event funds below the total.
           </p>
         )}
         <div className="grid gap-4 sm:grid-cols-2">
@@ -268,13 +290,22 @@ export default function PublicPaymentDialog({ bill, submit, close }) {
             type="submit"
             disabled={
               busy ||
-              (kind === "provider"
-                ? merchantRemaining <= 0
-                : !recipients.length)
+              (kind === "reimbursement" &&
+                (!recipients.length || (refund && refundablePool <= 0)))
             }
           >
             <Check aria-hidden="true" />
-            {busy ? "Submitting…" : "Submit payment for confirmation"}
+            {busy
+              ? "Submitting…"
+              : privateEntry
+                ? refund
+                  ? "Confirm refund"
+                  : "Confirm payment"
+                : refund
+                  ? "Submit refund for confirmation"
+                  : kind === "reimbursement"
+                    ? "Submit reimbursement for confirmation"
+                    : "Submit payment for confirmation"}
           </Button>
         </div>
       </form>

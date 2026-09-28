@@ -19,6 +19,9 @@
   scrollbar-color: #94a3b8 #f1f5f9;
   scrollbar-width: thin;
 }
+.personal-dashboard[data-slot="tooltip-content"] {
+  color: white;
+}
 @layer base {
   .personal-dashboard *,
   .personal-dashboard *::before,

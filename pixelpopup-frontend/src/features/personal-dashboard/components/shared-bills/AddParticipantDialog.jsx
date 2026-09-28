@@ -28,11 +28,9 @@ export default function AddParticipantDialog({
   const previewRows = [
     ...bill.participants.map((person) => ({
       name: person.name,
-      amount:
-        (legacy && confirmLegacy ? person.is_me : person.share_is_fixed) ||
-        (person.is_me && bill.ledger_recorded)
-          ? String(person.share)
-          : "",
+      amount: (legacy && confirmLegacy ? person.is_me : person.share_is_fixed)
+        ? String(person.share)
+        : "",
     })),
     {
       name: name.trim() || "New person",

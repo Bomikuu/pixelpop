@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { RefreshCw, Link2, ShieldCheck } from "lucide-react";
+import { RefreshCw, Link2, ShieldCheck, Receipt, Heart } from "lucide-react";
 import { financeApi } from "../features/personal-dashboard/api";
 import { useRecords } from "../features/personal-dashboard/hooks/useDashboardData";
 import BillBreakdown from "../features/personal-dashboard/components/shared-bills/BillBreakdown";
 import ParticipantAvatars from "../features/personal-dashboard/components/shared-bills/ParticipantAvatars";
 import PublicBillActions from "../features/personal-dashboard/components/shared-bills/PublicBillActions";
+import PaymentReceiver from "../features/personal-dashboard/components/shared-bills/PaymentReceiver";
 import { Button } from "../features/personal-dashboard/ui/button";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "../features/personal-dashboard/ui/tooltip";
 import {
   EmptyState,
   ErrorState,
@@ -50,17 +57,20 @@ export default function SharedBillPage() {
   useEffect(() => {
     document.title = state.data?.title || "Shared bill breakdown";
   }, [state.data?.title, token]);
-  return (
-    <main className="personal-dashboard min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">
+  const renderContent = ({ headerActions, contributionActions } = {}) => (
+    <>
+      <header className="flex flex-wrap items-start justify-between gap-4 rounded-xl border bg-white p-5 sm:p-6">
+        <div className="flex min-w-0 flex-1 basis-72 items-start gap-4">
+          <span className="grid size-14 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700 sm:size-16">
+            <Receipt size={28} aria-hidden="true" />
+          </span>
           <div className="min-w-0">
             <h1 className="break-words text-2xl font-semibold">
               {state.data?.title || "Shared bill breakdown"}
             </h1>
             <p className="mt-2 flex items-center gap-2 text-sm text-slate-600">
               <ShieldCheck size={16} aria-hidden="true" />
-              Public breakdown · Editing requires the event PIN.
+              Public breakdown · Payments need no PIN; management does.
             </p>
             {state.data && (
               <>
@@ -70,46 +80,102 @@ export default function SharedBillPage() {
                 <div className="mt-3">
                   <ParticipantAvatars participants={state.data.participants} />
                 </div>
+                <PaymentReceiver bill={state.data} />
               </>
             )}
           </div>
-          <Button variant="outline" onClick={retry} disabled={state.loading}>
-            <RefreshCw aria-hidden="true" />
-            Refresh breakdown
-          </Button>
-        </header>
-        {state.loading ? (
-          <p role="status" className="py-8 text-sm text-slate-600">
-            Loading shared breakdown…
-          </p>
-        ) : state.error ? (
-          <>
-            <EmptyState
-              icon={Link2}
-              title="This breakdown is unavailable"
-              message="The link may have expired or been revoked. Ask the person who shared it for a new link."
-            />
-            <ErrorState message={state.error} retry={retry} />
-          </>
-        ) : (
-          state.data && (
-            <>
-              <PublicBillActions
-                key={token}
-                bill={state.data}
-                token={token}
-                changed={retry}
-              />
-              <BillBreakdown bill={state.data} readOnly />
-            </>
-          )
-        )}
-        <p className="border-t pt-4 text-xs leading-5 text-slate-600">
-          Only this event's breakdown is shared. PIN holders can add people and
-          report payments or reimbursements. Reports await owner confirmation;
-          recording a payment here does not transfer money.
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {headerActions}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={retry}
+                disabled={state.loading}
+                aria-label="Refresh breakdown"
+              >
+                <RefreshCw aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              className="personal-dashboard"
+              side="bottom"
+              sideOffset={6}
+            >
+              Refresh breakdown
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </header>
+      {state.loading ? (
+        <p role="status" className="py-8 text-sm text-slate-600">
+          Loading shared breakdown…
         </p>
-      </div>
-    </main>
+      ) : state.error ? (
+        <>
+          <EmptyState
+            icon={Link2}
+            title="This breakdown is unavailable"
+            message="The link may have expired or been revoked. Ask the person who shared it for a new link."
+          />
+          <ErrorState message={state.error} retry={retry} />
+        </>
+      ) : (
+        state.data && (
+          <>
+            <BillBreakdown
+              bill={state.data}
+              readOnly
+              actions={contributionActions}
+            />
+          </>
+        )
+      )}
+      <p className="border-t pt-4 text-xs leading-5 text-slate-600">
+        Only this event's breakdown is shared. Anyone with this link can report
+        a payment to the displayed receiver. PIN holders can reimburse, add
+        people and review reports. Private ledger changes remain with the owner.
+        Reporting a payment here does not transfer money.
+      </p>
+      <footer className="flex items-center justify-center gap-2 py-4 text-sm text-slate-600">
+        <img
+          src="/portfolio/assets/mico-ang-pixel-portrait.webp"
+          alt="Miku"
+          width={36}
+          height={36}
+          loading="lazy"
+          className="size-9 rounded-full bg-slate-100 object-cover [image-rendering:pixelated]"
+        />
+        <span>Made by Miku</span>
+        <Heart
+          size={16}
+          aria-hidden="true"
+          className="fill-rose-600 text-rose-600"
+        />
+        <span className="sr-only">with love</span>
+      </footer>
+    </>
+  );
+  return (
+    <TooltipProvider delayDuration={200}>
+      <main className="personal-dashboard min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-5xl space-y-6">
+          {state.data && !state.error ? (
+            <PublicBillActions
+              key={token}
+              bill={state.data}
+              token={token}
+              changed={retry}
+            >
+              {renderContent}
+            </PublicBillActions>
+          ) : (
+            renderContent()
+          )}
+        </div>
+      </main>
+    </TooltipProvider>
   );
 }
