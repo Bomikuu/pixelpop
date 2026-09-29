@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'import_export',
     'pixelpopup',
     'finance',
+    'leadership',
     'django_json_widget',
 ]
 
