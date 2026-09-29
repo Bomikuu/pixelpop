@@ -8,7 +8,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from finance.models import Account, AssetFinancingPayment, Deadline, Transaction
-from .balances import ZERO, today
+from .balances import ZERO, ensure_account_capacity, today
 
 
 CENT = Decimal("0.01")
@@ -120,6 +120,7 @@ def record_payment(financing, values, user):
             raise ValidationError({"request_id": "This payment identifier was already used for different details."})
         return existing
     account = values["account"]
+    account = Account.objects.select_for_update().get(pk=account.pk)
     historical = values["historical"]
     if account.kind not in account.CASH_KINDS or (not historical and not account.active):
         raise ValidationError({"account": "Choose a cash, bank or e-wallet account; current payments need an active account."})
@@ -161,6 +162,7 @@ def record_payment(financing, values, user):
             raise ValidationError({"deadline": "The regular portion exceeds this installment's remaining due. Put the excess in principal or advance credit."})
     payment = AssetFinancingPayment.objects.create(financing=financing, created_by=user, **values)
     if not historical:
+        ensure_account_capacity(account, day)
         costs = values["interest"] + values["fees"]
         if costs:
             Transaction.objects.create(

@@ -1,13 +1,19 @@
 import uuid
+import secrets
 from decimal import Decimal
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
+from django.db.models.functions import Lower, Trim
 
 
 POSITIVE = [MinValueValidator(Decimal("0.01"))]
 NONNEGATIVE = [MinValueValidator(Decimal("0"))]
+
+
+def new_person_key():
+    return secrets.token_hex(20)
 
 
 class Record(models.Model):
@@ -27,15 +33,33 @@ class Category(Record):
         return self.name
 
 
+class Person(Record):
+    RELATIONSHIPS = [(value, value) for value in ("Mother", "Father", "Parent", "Sibling", "Partner", "Child", "Friend", "Colleague", "Other")]
+    key = models.CharField(max_length=40, unique=True, default=new_person_key, editable=False)
+    name = models.CharField(max_length=120)
+    relationship = models.CharField(max_length=20, choices=RELATIONSHIPS)
+    custom_relationship = models.CharField(max_length=60, blank=True)
+    notes = models.TextField(blank=True, max_length=4000)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(Lower(Trim("name")), name="finance_person_name_ci_unique")]
+
+    def __str__(self):
+        return self.name
+
+
 class Account(Record):
     CASH_KINDS = ("cash", "bank", "ewallet")
     KINDS = [(v, v.replace("_", " ").title()) for v in (*CASH_KINDS, "credit_card", "fund")]
-    FUND_TYPES = [("pag_ibig", "Pag-IBIG"), ("mp2", "Pag-IBIG MP2"), ("investment", "Investment"), ("other", "Other fund")]
+    COVERAGE_TYPES = ("insurance", "hmo", "philhealth")
+    FUND_TYPES = [("pag_ibig", "Pag-IBIG"), ("mp2", "Pag-IBIG MP2"), ("sss", "SSS"), ("gsis", "GSIS"), ("retirement", "Retirement fund"), ("mutual_fund", "Mutual fund"), ("time_deposit", "Time deposit"), ("investment", "Investment"), ("other", "Other fund"), ("insurance", "Insurance coverage"), ("hmo", "HMO"), ("philhealth", "PhilHealth")]
+    CARD_NETWORKS = [("mastercard", "Mastercard"), ("visa", "Visa"), ("amex", "American Express"), ("jcb", "JCB"), ("unionpay", "UnionPay"), ("discover", "Discover"), ("maestro", "Maestro")]
     name = models.CharField(max_length=100)
     kind = models.CharField(max_length=20, choices=KINDS, default="bank")
     institution = models.CharField(max_length=100, blank=True)
     last_four = models.CharField(max_length=4, blank=True, default="", validators=[RegexValidator(r"\A[0-9]{4}\Z", "Enter exactly four digits.")])
     card_expiry = models.CharField(max_length=5, blank=True, default="", validators=[RegexValidator(r"\A(?:0[1-9]|1[0-2])/[0-9]{2}\Z", "Use MM/YY, for example 10/28.")])
+    card_network = models.CharField(max_length=20, choices=CARD_NETWORKS, blank=True, default="")
     fund_type = models.CharField(max_length=20, choices=FUND_TYPES, blank=True)
     credit_limit = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=NONNEGATIVE)
     active = models.BooleanField(default=True)
@@ -111,6 +135,7 @@ class AssetFinancingPayment(Record):
 
 class LoanReceivable(Record):
     person = models.CharField(max_length=120)
+    contact = models.ForeignKey(Person, null=True, blank=True, on_delete=models.PROTECT, related_name="loans")
     principal = models.DecimalField(max_digits=14, decimal_places=2, validators=POSITIVE)
     date = models.DateField()
     due_date = models.DateField(null=True, blank=True)
@@ -129,6 +154,7 @@ class RecurringSchedule(Record):
     variable_amount = models.BooleanField(default=False)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
     account = models.ForeignKey(Account, null=True, blank=True, on_delete=models.PROTECT)
+    coverage = models.OneToOneField(Account, null=True, blank=True, on_delete=models.PROTECT, related_name="premium_schedule")
     settlement_kind = models.CharField(max_length=25, default="expense")
     anchor_date = models.DateField()
     due_time = models.TimeField(null=True, blank=True)
@@ -171,8 +197,10 @@ class Transaction(Record):
     amount = models.DecimalField(max_digits=14, decimal_places=2, validators=POSITIVE)
     name = models.CharField(max_length=160)
     recipient = models.CharField(max_length=120, blank=True)
+    contact = models.ForeignKey(Person, null=True, blank=True, on_delete=models.PROTECT, related_name="giving_transactions")
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
     account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="transactions")
+    coverage = models.ForeignKey(Account, null=True, blank=True, on_delete=models.PROTECT, related_name="premium_payments")
     date = models.DateField(db_index=True)
     payment_method = models.CharField(max_length=20, choices=[(v, v.title()) for v in ("cash", "bank", "credit_card", "debit_card", "gcash", "maya", "other")], default="bank")
     receipt_state = models.CharField(max_length=10, choices=[("received", "Received"), ("expected", "Expected")], default="received")

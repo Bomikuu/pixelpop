@@ -33,6 +33,19 @@ def account_balance(account, as_of=None):
     return result + total(transactions.filter(kind="income", receipt_state="received")) - spending + incoming - outgoing - financing_cash
 
 
+def ensure_account_capacity(account, date, field="account"):
+    """Reject a posted outflow that exceeds the balance or configured card limit."""
+    for day in {date, today()}:
+        balance = account_balance(account, day)
+        if account.kind == "credit_card":
+            if account.credit_limit is None:
+                raise ValidationError({field: "Set a credit limit for this card before recording a charge."})
+            if balance > account.credit_limit:
+                raise ValidationError({field: "This payment exceeds the card's available credit. Use another account or a smaller amount."})
+        elif balance < ZERO:
+            raise ValidationError({field: "This payment exceeds the account's available balance. Use another account or a smaller amount."})
+
+
 def outstanding(loan, as_of=None):
     day = as_of or today()
     if day < loan.date:
@@ -57,7 +70,7 @@ def financial_position():
     # Archived accounts still own balances; archiving never erases money/history.
     accounts = list(Account.objects.all().order_by("id"))
     available = sum((account_balance(a) for a in accounts if a.kind in Account.CASH_KINDS), ZERO)
-    funds = sum((account_balance(a) for a in accounts if a.kind == "fund"), ZERO)
+    funds = sum((account_balance(a) for a in accounts if a.kind == "fund" and a.fund_type not in Account.COVERAGE_TYPES), ZERO)
     debt = sum((account_balance(a) for a in accounts if a.kind == "credit_card"), ZERO)
     assets = total(Asset.objects.filter(active=True), "value")
     receivables = sum((outstanding(a) for a in LoanReceivable.objects.all()), ZERO)

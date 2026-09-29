@@ -34,6 +34,10 @@ def record_charts(qs, base, params, date_field=None, search_fields=()):
         for key in ("month", "chart_month", "start", "end", "page", "page_size"):
             compare_params.pop(key, None)
         series = filtered(base, compare_params, date_field, search_fields)
+        if model == Transaction and params.get("account"):
+            series = series.filter(account_id=int(params["account"]))
+        if model == Transaction and params.get("coverage"):
+            series = series.filter(coverage_id=int(params["coverage"]))
         if model == Deadline and params.get("bills") == "1":
             series = series.filter(kind__in=["bill", "subscription", "payment"]).exclude(settlement_kind="loan_collection")
         series = series.filter(**{date_field + "__range": (months[0][0], months[-1][1])})

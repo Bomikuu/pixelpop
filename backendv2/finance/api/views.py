@@ -14,14 +14,15 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from finance import models
-from finance.services.balances import today, total, outstanding, account_balance, validate_fund_history
+from finance.services.balances import today, total, outstanding, account_balance, ensure_account_capacity, validate_fund_history
 from finance.services.queries import filtered, month_range, by_person
 from finance.services.recurrence import materialize
 from finance.services.settlements import action_date, move_money, settle_deadline
 from finance.services.summaries import overview, transaction_summary, deadline_summary
 from finance.services.charts import record_charts
+from finance.services.account_detail import account_ledger, account_summary
 from finance.services.asset_financing import financing_balance, financing_projection, installment_paid, materialize_installments, record_payment, terms_on
-from .serializers import AccountSerializer, AssetFinancingPaymentSerializer, AssetFinancingSerializer, AssetFinancingTermsSerializer, AssetSerializer, CategorySerializer, DeadlineSerializer, LoanSerializer, MovementSerializer, ScheduleSerializer, SettingsSerializer, TransactionSerializer
+from .serializers import AccountSerializer, AssetFinancingPaymentSerializer, AssetFinancingSerializer, AssetFinancingTermsSerializer, AssetSerializer, CategorySerializer, DeadlineSerializer, LoanSerializer, MovementSerializer, PersonSerializer, ScheduleSerializer, SettingsSerializer, TransactionSerializer
 
 
 def json_money(value):
@@ -94,6 +95,7 @@ class FinanceViewSet(PrivateMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+
     def create(self, request, *args, **kwargs):
         # Resolve uncertain network retries without applying another ledger write.
         if request.data.get("request_id") and self.queryset.model in (models.Transaction, models.LoanReceivable):
@@ -118,6 +120,16 @@ class FinanceViewSet(PrivateMixin, viewsets.ModelViewSet):
             raise ValidationError("This record has financial history and cannot be deleted.")
 
 
+class PersonViewSet(PrivateMixin, viewsets.ModelViewSet):
+    queryset = models.Person.objects.all().order_by("name", "id")
+    serializer_class = PersonSerializer
+    pagination_class = FinancePagination
+    http_method_names = ["get", "post", "patch", "head", "options"]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
 class AccountViewSet(FinanceViewSet):
     queryset = models.Account.objects.all()
     serializer_class = AccountSerializer
@@ -126,6 +138,10 @@ class AccountViewSet(FinanceViewSet):
         qs = super().get_queryset()
         if self.request.query_params.get("kind"):
             qs = qs.filter(kind=self.request.query_params["kind"])
+        if self.request.query_params.get("coverage") == "1":
+            qs = qs.filter(kind="fund", fund_type__in=models.Account.COVERAGE_TYPES)
+        elif self.request.query_params.get("coverage") == "0":
+            qs = qs.exclude(kind="fund", fund_type__in=models.Account.COVERAGE_TYPES)
         if self.request.query_params.get("exclude_funds") == "1":
             qs = qs.exclude(kind="fund")
         return qs
@@ -136,9 +152,41 @@ class AccountViewSet(FinanceViewSet):
         limit = sum((r.credit_limit for r in limited), Decimal(0))
         debt = sum((account_balance(r) for r in limited), Decimal(0))
         start, end = month_range(self.request.query_params.get("chart_month") or self.request.query_params.get("month"))
-        fund_ids = [r.pk for r in rows if r.kind == "fund"]
+        fund_ids = [r.pk for r in rows if r.kind == "fund" and r.fund_type not in models.Account.COVERAGE_TYPES]
         movements = models.MoneyMovement.objects.filter(date__range=(start, end))
-        return {"count": len(rows), "available": sum((account_balance(r) for r in rows if r.kind in models.Account.CASH_KINDS), Decimal(0)), "funds": sum((account_balance(r) for r in rows if r.kind == "fund"), Decimal(0)), "contributions": total(movements.filter(kind="fund_contribution", destination_id__in=fund_ids)), "withdrawals": total(movements.filter(kind="fund_withdrawal", source_id__in=fund_ids)), "debt": sum((account_balance(r) for r in rows if r.kind == "credit_card"), Decimal(0)), "utilization": debt / limit * 100 if limit else None}
+        return {"count": len(rows), "available": sum((account_balance(r) for r in rows if r.kind in models.Account.CASH_KINDS), Decimal(0)), "funds": sum((account_balance(r) for r in rows if r.pk in fund_ids), Decimal(0)), "contributions": total(movements.filter(kind="fund_contribution", destination_id__in=fund_ids)), "withdrawals": total(movements.filter(kind="fund_withdrawal", source_id__in=fund_ids)), "debt": sum((account_balance(r) for r in rows if r.kind == "credit_card"), Decimal(0)), "utilization": debt / limit * 100 if limit else None}
+
+    @action(detail=True, methods=["get"], url_path="detail", url_name="detail")
+    def account_detail(self, request, pk=None):
+        account = self.get_object()
+        month = request.query_params.get("month") or today().strftime("%Y-%m")
+        is_coverage = account.kind == "fund" and account.fund_type in models.Account.COVERAGE_TYPES
+        result = {"summary": {}, "charts": {}} if is_coverage else account_summary(account, month)
+        details = {"account": self.get_serializer(account).data, **result}
+        if is_coverage:
+            start, end = month_range(month)
+            premiums = models.Transaction.objects.filter(coverage=account, kind="expense")
+            details["premium_summary"] = {
+                "paid_this_month": total(premiums.filter(date__range=(start, end))),
+                "paid_total": total(premiums),
+                "payment_count": premiums.count(),
+            }
+            schedule = models.RecurringSchedule.objects.filter(coverage=account).first()
+            if schedule:
+                if schedule.active:
+                    materialize(today() + timedelta(days=100))
+                dues = list(schedule.deadlines.filter(status="pending").order_by("due_date", "id")[:4])
+                details["premium_schedule"] = ScheduleSerializer(schedule).data
+                details["premium_dues"] = DeadlineSerializer(dues, many=True).data
+                details["next_premium_due"] = str(dues[0].due_date) if dues else str(schedule.anchor_date) if schedule.active and schedule.anchor_date > today() else None
+        return Response(json_money(details))
+
+    @action(detail=True, methods=["get"])
+    def ledger(self, request, pk=None):
+        account = self.get_object()
+        entries = account_ledger(account, request.query_params.get("month") or None)
+        page = self.paginate_queryset(entries)
+        return self.get_paginated_response(json_money(page))
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -153,10 +201,21 @@ class AccountViewSet(FinanceViewSet):
         serializer.validated_data.pop("opening_date", None)
         serializer.save()
 
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+        schedule = models.RecurringSchedule.objects.filter(coverage=instance, active=True).first()
+        if schedule:
+            schedule.active = False
+            schedule.save(update_fields=["active", "updated_at"])
+            schedule.deadlines.filter(status="pending", due_date__gte=today()).delete()
+
     @action(detail=True, methods=["post"])
     @transaction.atomic
     def adjust(self, request, pk=None):
         account = models.Account.objects.select_for_update().get(pk=self.get_object().pk)
+        if account.kind == "fund" and account.fund_type in models.Account.COVERAGE_TYPES:
+            raise ValidationError({"account": "Coverage has no cash value to adjust."})
         try:
             value = Decimal(str(request.data["amount"]))
             if not value.is_finite() or value.as_tuple().exponent < -2 or abs(value) >= Decimal("1000000000000"):
@@ -190,13 +249,59 @@ class AccountViewSet(FinanceViewSet):
 
 
 class TransactionViewSet(FinanceViewSet):
-    queryset = models.Transaction.objects.select_related("account", "category")
+    queryset = models.Transaction.objects.select_related("account", "category", "coverage")
     serializer_class = TransactionSerializer
     date_field = "date"
     search_fields = ("name", "recipient", "notes", "category__name")
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        coverage_id = self.request.query_params.get("coverage")
+        if coverage_id is not None:
+            try:
+                identifier = int(coverage_id)
+                if identifier <= 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                raise ValidationError({"coverage": "Choose a valid coverage record."})
+            qs = qs.filter(coverage_id=identifier, kind="expense")
+        account_id = self.request.query_params.get("account")
+        if account_id is None:
+            return qs
+        try:
+            identifier = int(account_id)
+            if identifier <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            raise ValidationError({"account": "Choose a valid account."})
+        return qs.filter(account_id=identifier)
+
     def summary(self, qs):
         return transaction_summary(qs)
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        account = serializer.validated_data["account"]
+        account = models.Account.objects.select_for_update().get(pk=account.pk)
+        entry = serializer.save(created_by=self.request.user)
+        if entry.kind == "expense":
+            ensure_account_capacity(account, entry.date)
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        previous = serializer.instance
+        old_account_id, old_amount, old_date, old_kind = previous.account_id, previous.amount, previous.date, previous.kind
+        next_account = serializer.validated_data.get("account", previous.account)
+        locked = {
+            account.pk: account for account in models.Account.objects.select_for_update()
+            .filter(pk__in={old_account_id, next_account.pk}).order_by("pk")
+        }
+        entry = serializer.save()
+        if entry.kind == "expense" and not (
+            old_kind == "expense" and entry.account_id == old_account_id
+            and entry.amount <= old_amount and entry.date >= old_date
+        ):
+            ensure_account_capacity(locked[entry.account_id], entry.date)
 
     def perform_destroy(self, instance):
         if instance.deadline_id or instance.schedule_id or instance.asset_financing_payment_id or hasattr(instance, "shared_payment"):
@@ -383,12 +488,24 @@ class ScheduleViewSet(FinanceViewSet):
     search_fields = ("title", "notes")
 
     @transaction.atomic
+    def perform_create(self, serializer):
+        schedule = serializer.save(created_by=self.request.user)
+        if schedule.coverage_id:
+            materialize(today() + timedelta(days=100))
+
+    @transaction.atomic
     def perform_update(self, serializer):
         schedule = serializer.save()
         # Pending future occurrences are projections, not settlement history.
-        schedule.deadlines.filter(status="pending", due_date__gt=today()).delete()
+        if schedule.coverage_id:
+            schedule.deadlines.filter(status="pending", due_date__gte=today()).delete()
+        else:
+            schedule.deadlines.filter(status="pending", due_date__gt=today()).delete()
         models.Transaction.objects.filter(schedule=schedule, receipt_state="expected", date__gt=today()).delete()
-        materialize()
+        if schedule.coverage_id:
+            materialize(today() + timedelta(days=100))
+        else:
+            materialize()
 
     @transaction.atomic
     def perform_destroy(self, instance):

@@ -1,9 +1,11 @@
 from rest_framework import serializers
+from django.db import transaction
 
 from finance import models
 from finance.services.balances import account_balance, outstanding, today
 from finance.services.summaries import urgency
 from finance.services.asset_financing import financing_balance, installment_paid
+from finance.services.people import person_key
 
 
 class StrictSerializer(serializers.ModelSerializer):
@@ -20,6 +22,62 @@ class StrictSerializer(serializers.ModelSerializer):
         return attrs
 
 
+def contact_for_name(name):
+    label = name.strip()
+    if not label:
+        return None
+    existing = next((person for person in models.Person.objects.only("id", "name").iterator() if person.name.casefold() == label.casefold()), None)
+    return existing or models.Person.objects.create(name=label, relationship="Other")
+
+
+class PersonSerializer(StrictSerializer):
+    class Meta:
+        model = models.Person
+        fields = ("id", "key", "name", "relationship", "custom_relationship", "notes")
+        read_only_fields = ("key",)
+
+    def validate_name(self, value):
+        name = value.strip()
+        if not name:
+            raise serializers.ValidationError("Enter a person's name.")
+        if any(person.name.casefold() == name.casefold() for person in models.Person.objects.exclude(pk=getattr(self.instance, "pk", None)).only("name").iterator()):
+            raise serializers.ValidationError("This person already exists.")
+        return name
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        relationship = attrs.get("relationship", getattr(self.instance, "relationship", ""))
+        custom = attrs.get("custom_relationship", getattr(self.instance, "custom_relationship", "")).strip()
+        if relationship == "Other":
+            attrs["custom_relationship"] = custom
+        elif custom:
+            attrs["custom_relationship"] = ""
+        return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        name = validated_data["name"]
+        matching_loans = [row.pk for row in models.LoanReceivable.objects.filter(contact__isnull=True).only("id", "person") if row.person.strip().casefold() == name.casefold()]
+        matching_gifts = [row.pk for row in models.Transaction.objects.filter(contact__isnull=True, kind="expense").only("id", "recipient") if row.recipient.strip().casefold() == name.casefold()]
+        if matching_loans or matching_gifts:
+            validated_data["key"] = person_key(name)
+        person = super().create(validated_data)
+        if matching_loans:
+            models.LoanReceivable.objects.filter(pk__in=matching_loans).update(contact=person, person=name)
+        if matching_gifts:
+            models.Transaction.objects.filter(pk__in=matching_gifts).update(contact=person, recipient=name)
+        return person
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        person = super().update(instance, validated_data)
+        if "name" in validated_data:
+            person.loans.update(person=person.name)
+            person.giving_transactions.update(recipient=person.name)
+            models.Deadline.objects.filter(loan__contact=person, settlement_kind="loan_collection", status="pending").update(title="Collect from " + person.name)
+        return person
+
+
 class AccountSerializer(StrictSerializer):
     balance = serializers.SerializerMethodField()
     opening_balance = serializers.DecimalField(max_digits=14, decimal_places=2, write_only=True, required=False, default=0)
@@ -27,7 +85,7 @@ class AccountSerializer(StrictSerializer):
 
     class Meta:
         model = models.Account
-        fields = ("id", "name", "kind", "institution", "last_four", "card_expiry", "fund_type", "credit_limit", "active", "balance", "opening_balance", "opening_date")
+        fields = ("id", "name", "kind", "institution", "last_four", "card_expiry", "card_network", "fund_type", "credit_limit", "active", "balance", "opening_balance", "opening_date")
 
     def get_balance(self, obj):
         return str(account_balance(obj))
@@ -41,13 +99,19 @@ class AccountSerializer(StrictSerializer):
             raise serializers.ValidationError({"opening_balance": "Opening card debt cannot be negative."})
         kind = attrs.get("kind", getattr(self.instance, "kind", "bank"))
         if kind == "cash":
-            errors = {field: "Cash accounts do not have card or account-number details." for field in ("last_four", "card_expiry") if attrs.get(field, getattr(self.instance, field, ""))}
+            errors = {field: "Cash accounts do not have card or account-number details." for field in ("last_four", "card_expiry", "card_network") if attrs.get(field, getattr(self.instance, field, ""))}
             if errors:
                 raise serializers.ValidationError(errors)
         subtype = attrs.get("fund_type", getattr(self.instance, "fund_type", ""))
         if kind == "fund":
+            if attrs.get("card_network", getattr(self.instance, "card_network", "")):
+                raise serializers.ValidationError({"card_network": "Funds do not have a card network."})
             if not subtype:
                 raise serializers.ValidationError({"fund_type": "Choose a fund type."})
+            if subtype in models.Account.COVERAGE_TYPES and attrs.get("opening_balance", 0):
+                raise serializers.ValidationError({"opening_balance": "Coverage has no cash value. Record premiums as expenses instead."})
+            if subtype in models.Account.COVERAGE_TYPES and any(attrs.get(field, getattr(self.instance, field, "")) for field in ("last_four", "card_expiry")):
+                raise serializers.ValidationError({"fund_type": "Coverage does not use account-number or card-expiry details."})
             if attrs.get("opening_balance", 0) < 0:
                 raise serializers.ValidationError({"opening_balance": "Opening fund value cannot be negative."})
             if attrs.get("credit_limit") is not None:
@@ -66,7 +130,7 @@ class TransactionSerializer(StrictSerializer):
 
     class Meta:
         model = models.Transaction
-        fields = ("id", "kind", "name", "recipient", "amount", "account", "account_name", "category", "category_name", "date", "payment_method", "receipt_state", "notes", "deadline", "schedule", "request_id", "shared_bill_id")
+        fields = ("id", "kind", "name", "recipient", "contact", "amount", "account", "account_name", "coverage", "category", "category_name", "date", "payment_method", "receipt_state", "notes", "deadline", "schedule", "request_id", "shared_bill_id")
         read_only_fields = ("deadline", "schedule", "asset_financing_payment")
 
     def validate(self, attrs):
@@ -74,14 +138,24 @@ class TransactionSerializer(StrictSerializer):
         kind = attrs.get("kind", getattr(self.instance, "kind", None))
         day = attrs.get("date", getattr(self.instance, "date", today()))
         account = attrs.get("account", getattr(self.instance, "account", None))
+        coverage = attrs.get("coverage", getattr(self.instance, "coverage", None))
         state = attrs.get("receipt_state", getattr(self.instance, "receipt_state", "received"))
+        contact = attrs.get("contact", getattr(self.instance, "contact", None))
         recipient = attrs.get("recipient", getattr(self.instance, "recipient", "")).strip()
-        if kind != "expense" and recipient:
+        if "contact" in attrs and contact:
+            recipient = contact.name
+            attrs["recipient"] = recipient
+        if kind != "expense" and (recipient or contact):
             raise serializers.ValidationError({"recipient": "Only giving expenses can have a recipient."})
         if "recipient" in attrs:
             attrs["recipient"] = recipient
         if account and account.kind == "fund":
             raise serializers.ValidationError({"account": "Use a cash account or card, not a benefit or investment fund."})
+        if coverage:
+            if kind != "expense" or coverage.kind != "fund" or coverage.fund_type not in models.Account.COVERAGE_TYPES:
+                raise serializers.ValidationError({"coverage": "Choose an insurance or health coverage record for this expense."})
+            if "coverage" in attrs and not coverage.active and coverage != getattr(self.instance, "coverage", None):
+                raise serializers.ValidationError({"coverage": "Choose an active coverage record."})
         if day > today() and (kind == "expense" or state == "received"):
             raise serializers.ValidationError({"date": "Future money must be expected income or a scheduled deadline."})
         if kind == "expense" and state == "expected":
@@ -95,6 +169,20 @@ class TransactionSerializer(StrictSerializer):
         if self.instance and self.instance.asset_financing_payment_id:
             raise serializers.ValidationError("Financing interest and fees belong to their payment history and cannot be edited separately.")
         return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        if validated_data.get("recipient") and not validated_data.get("contact"):
+            validated_data["contact"] = contact_for_name(validated_data["recipient"])
+        return super().create(validated_data)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        if "recipient" in validated_data and "contact" not in validated_data:
+            validated_data["contact"] = contact_for_name(validated_data["recipient"])
+        if "contact" in validated_data and validated_data["contact"] is None:
+            validated_data["recipient"] = ""
+        return super().update(instance, validated_data)
 
 
 class DeadlineSerializer(StrictSerializer):
@@ -146,6 +234,7 @@ class DeadlineSerializer(StrictSerializer):
 
 
 class LoanSerializer(StrictSerializer):
+    person = serializers.CharField(required=False)
     outstanding = serializers.SerializerMethodField()
     account_name = serializers.CharField(source="account.name", read_only=True)
     collection_state = serializers.SerializerMethodField()
@@ -153,7 +242,7 @@ class LoanSerializer(StrictSerializer):
 
     class Meta:
         model = models.LoanReceivable
-        fields = ("id", "person", "principal", "date", "due_date", "account", "account_name", "existing", "notes", "active", "request_id", "outstanding", "collection_state", "shared_bill_id")
+        fields = ("id", "person", "contact", "principal", "date", "due_date", "account", "account_name", "existing", "notes", "active", "request_id", "outstanding", "collection_state", "shared_bill_id")
 
     def get_outstanding(self, obj):
         return str(outstanding(obj))
@@ -168,6 +257,11 @@ class LoanSerializer(StrictSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        contact = attrs.get("contact", getattr(self.instance, "contact", None))
+        if "contact" in attrs and contact:
+            attrs["person"] = contact.name
+        elif not attrs.get("person", getattr(self.instance, "person", "")).strip():
+            raise serializers.ValidationError({"person": "Choose a person."})
         account = attrs.get("account", getattr(self.instance, "account", None))
         if self.instance and hasattr(self.instance, "shared_participant"):
             raise serializers.ValidationError("Shared-bill advances are read-only. Record repayment from the shared bill.")
@@ -182,15 +276,29 @@ class LoanSerializer(StrictSerializer):
             raise serializers.ValidationError("Loan principal/disbursement history cannot be rewritten. Record repayments or an explicit correction.")
         return attrs
 
+    def create(self, validated_data):
+        if not validated_data.get("contact"):
+            validated_data["contact"] = contact_for_name(validated_data["person"])
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if "person" in validated_data and "contact" not in validated_data:
+            validated_data["contact"] = contact_for_name(validated_data["person"])
+        return super().update(instance, validated_data)
+
 
 class ScheduleSerializer(StrictSerializer):
     class Meta:
         model = models.RecurringSchedule
-        fields = ("id", "title", "kind", "amount", "variable_amount", "category", "account", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active")
+        fields = ("id", "title", "kind", "amount", "variable_amount", "category", "account", "coverage", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active")
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        merged = {field: attrs.get(field, getattr(self.instance, field, None)) for field in ("kind", "amount", "account", "settlement_kind", "anchor_date")}
+        merged = {field: attrs.get(field, getattr(self.instance, field, None)) for field in ("kind", "amount", "account", "coverage", "settlement_kind", "anchor_date", "frequency", "interval", "variable_amount", "active")}
+        if merged["interval"] is None:
+            merged["interval"] = 1
+        if merged["active"] is None:
+            merged["active"] = True
         if merged["kind"] not in ("task", "bill", "subscription", "payment", "reminder", "income"):
             raise serializers.ValidationError({"kind": "Choose a supported recurring item type."})
         if merged["settlement_kind"] not in ("expense", "credit_card_payment"):
@@ -201,6 +309,23 @@ class ScheduleSerializer(StrictSerializer):
             raise serializers.ValidationError({"account": "Funds cannot be used for recurring income or bills."})
         if merged["settlement_kind"] == "credit_card_payment" and (not merged["account"] or merged["account"].kind != "credit_card"):
             raise serializers.ValidationError({"account": "Choose the credit card being paid."})
+        coverage = merged["coverage"]
+        if coverage:
+            if coverage.kind != "fund" or coverage.fund_type not in models.Account.COVERAGE_TYPES:
+                raise serializers.ValidationError({"coverage": "Choose an insurance or health coverage record."})
+            if merged["active"] and not coverage.active:
+                raise serializers.ValidationError({"coverage": "Archived coverage cannot have an active premium schedule."})
+            if merged["kind"] != "bill" or merged["settlement_kind"] != "expense":
+                raise serializers.ValidationError({"kind": "Coverage premiums must be ordinary bills."})
+            if merged["frequency"] not in ("monthly", "quarterly") or merged["interval"] != 1:
+                raise serializers.ValidationError({"frequency": "Choose monthly or quarterly for a premium schedule."})
+            if not self.instance and merged["anchor_date"] and merged["anchor_date"] < today():
+                raise serializers.ValidationError({"anchor_date": "Choose today or a future first due date."})
+            if merged["variable_amount"]:
+                if merged["amount"] is not None:
+                    raise serializers.ValidationError({"amount": "Leave the amount blank when each premium varies."})
+            elif merged["amount"] is None:
+                raise serializers.ValidationError({"amount": "Enter the fixed premium amount, or choose a variable amount."})
         return attrs
 
 

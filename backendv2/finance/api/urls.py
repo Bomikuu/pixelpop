@@ -8,6 +8,7 @@ router = DefaultRouter()
 for prefix, view in (
     ("accounts", views.AccountViewSet), ("assets", views.AssetViewSet),
     ("loans", views.LoanViewSet), ("transactions", views.TransactionViewSet),
+    ("contacts", views.PersonViewSet),
     ("categories", views.CategoryViewSet), ("deadlines", views.DeadlineViewSet),
     ("schedules", views.ScheduleViewSet), ("movements", views.MovementViewSet),
 ):

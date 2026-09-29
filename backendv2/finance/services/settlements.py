@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from finance.models import Account, Deadline, LoanReceivable, MoneyMovement, Transaction
-from .balances import account_balance, outstanding, today, validate_fund_history
+from .balances import account_balance, ensure_account_capacity, outstanding, today, validate_fund_history
 
 
 def amount(value):
@@ -72,7 +72,7 @@ def move_money(data, user, deadline=None, shared_bill=False):
             raise ValidationError({"loan": "Fund movements cannot be linked to a loan."})
         field = "destination" if kind == "fund_contribution" else "source"
         fund = locked_account(data.get(field), field)
-        if fund.kind != "fund":
+        if fund.kind != "fund" or fund.fund_type in Account.COVERAGE_TYPES:
             raise ValidationError({field: "Choose an active benefit or investment fund."})
         if kind == "fund_contribution":
             destination = fund
@@ -103,6 +103,8 @@ def move_money(data, user, deadline=None, shared_bill=False):
     if kind not in dict(MoneyMovement.KINDS):
         raise ValidationError({"kind": "Choose a supported movement."})
     movement = MoneyMovement.objects.create(kind=kind, amount=value, date=movement_date, source=source, destination=destination, loan=loan, deadline=deadline, notes=data.get("notes", ""), request_id=key, created_by=user)
+    if source:
+        ensure_account_capacity(source, movement_date, "source")
     if kind == "fund_withdrawal":
         validate_fund_history(source, movement_date)
     if loan and kind == "loan_repayment" and outstanding(loan) == 0:
@@ -117,7 +119,7 @@ def settle_deadline(pk, data, user):
         raise ValidationError({"deadline": "Record this installment from its asset page so principal and interest stay separate."})
     if item.status != "pending":
         return item
-    if item.kind in ("task", "reminder") and item.settlement_kind == "expense" and item.amount is None:
+    if item.kind in ("task", "reminder"):
         item.status = "completed"
     elif item.settlement_kind == "credit_card_payment":
         move_money({**data, "kind": "credit_card_payment", "source": data.get("account"), "destination": item.credit_card_id, "amount": data.get("amount") or item.amount}, user, item)
@@ -127,21 +129,28 @@ def settle_deadline(pk, data, user):
         move_money({**data, "kind": "loan_repayment", "destination": data.get("account"), "loan": item.loan_id, "amount": data.get("amount") or outstanding(item.loan)}, user)
         item.status = "completed" if outstanding(item.loan) == 0 else "pending"
     else:
+        coverage = item.schedule.coverage if item.schedule_id else None
         if data.get("transaction"):
             expense = Transaction.objects.select_for_update().filter(pk=data["transaction"], kind="expense", deadline__isnull=True).first()
             if not expense:
                 raise ValidationError({"transaction": "Choose an unlinked expense."})
             if item.amount is not None and expense.amount != item.amount:
                 raise ValidationError({"transaction": "The expense amount must match this bill."})
+            if coverage and expense.coverage_id not in (None, coverage.pk):
+                raise ValidationError({"transaction": "That expense belongs to a different coverage record."})
             expense.deadline = item
-            expense.save(update_fields=["deadline", "updated_at"])
+            if coverage:
+                expense.coverage = coverage
+            expense.save(update_fields=["deadline", "coverage", "updated_at"])
             item.amount = expense.amount
         else:
             paying = locked_account(data.get("account"), "account")
             if paying.kind == "fund":
                 raise ValidationError({"account": "Withdraw to a cash account before paying a bill."})
             value = amount(data.get("amount") or item.amount)
-            Transaction.objects.create(kind="expense", name=item.title, account=paying, category=item.category, amount=value, date=action_date(data.get("date")), payment_method=data.get("payment_method", "bank"), deadline=item, created_by=user, request_id=request_key(data))
+            payment_date = action_date(data.get("date"))
+            Transaction.objects.create(kind="expense", name=item.title, account=paying, coverage=coverage, category=item.category, amount=value, date=payment_date, payment_method=data.get("payment_method", "bank"), deadline=item, created_by=user, request_id=request_key(data))
+            ensure_account_capacity(paying, payment_date)
             item.amount = value
         item.status = "paid"
     item.completed_at = timezone.now() if item.status != "pending" else None

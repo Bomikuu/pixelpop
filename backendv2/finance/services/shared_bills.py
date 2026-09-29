@@ -12,7 +12,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError, PermissionDenied, Throttled
 
 from finance import models
-from .balances import ZERO, outstanding, today
+from .balances import ZERO, ensure_account_capacity, outstanding, today
 from .settlements import action_date, amount, locked_account, move_money, request_key
 
 
@@ -276,6 +276,7 @@ def pay_bill(bill_id, data, user, pending=False, approving=None, breakdown_only=
                 expense = models.Transaction.objects.create(kind="expense", name=(bill.title + " — my contribution")[:160],
                     amount=expense_value, date=ledger_day, account=account, category=bill.category,
                     payment_method=method, created_by=user)
+                ensure_account_capacity(account, ledger_day)
             if full_advance:
                 for participant in people.values():
                     contribution = rows[participant.pk]["share"]
