@@ -1,0 +1,87 @@
+/* Keep Card.js's face, but adapt its fixed dimensions and payment-only details. */
+.pd-card-preview .jp-card-container {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+}
+
+.pd-card-preview {
+  container-type: inline-size;
+}
+
+.pd-card-preview .jp-card {
+  font-family: inherit;
+  min-width: 0;
+  border-radius: 12px;
+}
+
+.pd-card-preview .jp-card .jp-card-front {
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 12px;
+  background: #1e3a68;
+}
+
+.pd-card-preview[data-kind="credit_card"] .jp-card .jp-card-front {
+  background: var(--pd-ink);
+}
+
+.pd-card-preview[data-kind="ewallet"] .jp-card .jp-card-front {
+  background: #234a72;
+}
+
+.pd-card-preview[data-kind="cash"] .jp-card .jp-card-front,
+.pd-card-preview[data-kind="fund"] .jp-card .jp-card-front {
+  background: #334155;
+}
+
+.pd-card-preview .jp-card .jp-card-front .jp-card-display {
+  color: #fff;
+  opacity: 1;
+}
+
+.pd-card-preview .jp-card .jp-card-front .jp-card-lower {
+  left: 7%;
+  bottom: 10%;
+  width: 86%;
+}
+
+.pd-card-preview .jp-card .jp-card-front .jp-card-lower .jp-card-number {
+  margin-bottom: 18%;
+  font-size: clamp(0.85rem, 5.2cqw, 1.2rem);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.pd-card-preview .jp-card .jp-card-front .jp-card-lower .jp-card-name {
+  max-width: 68%;
+  font-family: inherit;
+  font-size: clamp(0.75rem, 3.5cqw, 0.95rem);
+  line-height: 1.15;
+}
+
+.pd-card-preview .jp-card .jp-card-front .jp-card-lower .jp-card-expiry {
+  width: auto;
+  font-size: 0.8rem;
+}
+
+.pd-card-preview .jp-card .jp-card-front .jp-card-lower .jp-card-expiry:after {
+  content: none;
+}
+
+.pd-card-preview .jp-card .jp-card-back,
+.pd-card-preview .jp-card .jp-card-cvc {
+  display: none;
+}
+
+.pd-card-preview[data-kind="cash"] .jp-card-shiny,
+.pd-card-preview[data-kind="fund"] .jp-card-shiny {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pd-card-preview .jp-card,
+  .pd-card-preview .jp-card .jp-card-front,
+  .pd-card-preview .jp-card .jp-card-front .jp-card-display {
+    transition: none;
+  }
+}

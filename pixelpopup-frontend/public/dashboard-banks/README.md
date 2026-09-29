@@ -9,6 +9,7 @@ Locally served only for manually tracked dashboard accounts; these marks do not 
 - UnionBank: [Wikimedia source](https://commons.wikimedia.org/wiki/File:UnionBank_PH_logo.svg).
 - Security Bank: [Wikimedia source](https://commons.wikimedia.org/wiki/File:Security_Bank_logo.svg).
 - RCBC: [Wikimedia source](https://commons.wikimedia.org/wiki/File:RCBC_logo.svg).
+- GoTyme Bank: [official site header asset](https://www.gotyme.com.ph/static-assets/images/gotymebank-logo-primary-black.svg).
 - GCash: [Wikimedia source](https://commons.wikimedia.org/wiki/File:GCash_logo.svg).
 
 The asset-type presets follow common household categories (real estate, vehicles, investments, business interests and valuables), described in [BSP household-sector balance sheet practices](https://www.bsp.gov.ph/Media_And_Research/Publications/BS2015.pdf). Cash/bank balances and receivables stay in their existing Accounts and Money lent flows to avoid double counting.
