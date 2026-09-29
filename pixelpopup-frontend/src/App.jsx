@@ -84,12 +84,17 @@ const ScoreboardOverlayPage = lazy(
 const PersonalDashboardPage = lazy(
   () => import("./pages/PersonalDashboardPage"),
 );
+const BusinessDashboardPage = lazy(
+  () => import("./pages/BusinessDashboardPage"),
+);
 const SharedBillPage = lazy(() => import("./pages/SharedBillPage"));
 function PublicExtras() {
   const { pathname } = useLocation();
   if (
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||
+    pathname === "/business" ||
+    pathname.startsWith("/business/") ||
     pathname.startsWith("/shared-bills/")
   )
     return null;
@@ -113,6 +118,7 @@ export default function App() {
         >
           <Routes>
             <Route path="/dashboard/*" element={<PersonalDashboardPage />} />
+            <Route path="/business/*" element={<BusinessDashboardPage />} />
             <Route path="/shared-bills/:token" element={<SharedBillPage />} />
             <Route path="/" element={<PortfolioModern />} />
             <Route path="/ui" element={<UiKitPage />} />
