@@ -113,6 +113,12 @@ The fourth shared summary tile is Reimbursement owed, not People. Management can
 
 Shared-bill finishing details: the owner PIN field fills its row with an icon-only accessible reveal control; Copy PIN and Regenerate PIN share the next row. The breakdown announces Everyone has paid only when confirmed provider balance, every remaining contribution and every reimbursement balance are zero. The shared page footer uses the existing pixel portrait and a Made by Miku heart credit. These changes were source-reviewed/formatted only, without runtime tests.
 
+## Account detail
+
+Each account and fund card links to the private `/dashboard/accounts/:id` route, preserving the selected `?month=YYYY-MM`. Summary shows the current manually recorded balance/debt/fund value, selected-month account-only figures, and twelve months of posted inflows, outflows and month-end values with a readable chart-data table. Card amounts are debt-relative: charges increase debt and repayments reduce it. These are ledger reconstructions, not bank or provider statements.
+
+Transactions shows only that account's income and expenses, with the existing search, period, category, type, edit and pagination controls. Expected income can appear there but never in posted balances or History. Fund contributions and withdrawals appear in History, not as ordinary transactions. History is the full posted account ledger—including openings, corrections, transfers, card payments, fund movements and financing cash paid once—newest first, twenty entries per page. It defaults to the selected month and offers All time; older entries remain reachable. Archived accounts remain readable without new-entry actions. Card views show only saved last-four and expiry details, never full account or security numbers.
+
 ## Financed assets
 
 Each asset name opens `/dashboard/assets/:id`. A financed asset has one lender-confirmed opening principal, balance date, next due date, contractual monthly due, annual rate and remaining term. Its detail view distinguishes recorded value, outstanding principal, estimated equity, existing advance credit and estimated future interest/payments. Forecasts are explicitly labeled estimates; extra principal does not silently recalculate the lender's monthly due. Effective-dated lender terms update pending installments and forecasts without changing past payments. Up to five years of installment deadlines surface in Bills, Calendar and the overview; selecting one opens the asset page, never ordinary bill settlement.

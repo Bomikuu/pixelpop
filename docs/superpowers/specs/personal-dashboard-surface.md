@@ -38,7 +38,7 @@ The overview welcomes Miku with the existing pixel portrait and owns global quic
 
 Notifications use dismissible dashboard-owned Radix toasts, not inline success banners. Inline failures and persistent overdue attention remain. Successful mutations trigger immediate Smokey responses without waiting for random idle speech; failed actions do not. No new dependency or external service is introduced.
 
-The overview alone uses Summary, Planning, Money and Insights tabs beneath persistent summary tiles. Table markers are colored circles with semantic utility/type icons or person initials, including analytical tables; empty states include decorative icons. Smokey stays fixed during scrolling and pauses active walks, without changing public mascot behavior.
+The overview uses Summary, Planning, Insights and Recent transactions tabs, with summary tiles inside Summary rather than above the tab bar. Table markers are colored circles with semantic utility/type icons or person initials, including analytical tables; empty states include decorative icons. Smokey stays fixed during scrolling and pauses active walks, without changing public mascot behavior.
 
 Settings adds an admin-only native full-database download, including unrelated site tables and user/session data. SQLite uses online snapshots; PostgreSQL requires server-side pg_dump. The download is read-only and unencrypted, with a clear storage warning; restoring remains manual into a separate database. Media, source and environment files are outside this database backup. No backup/restore runtime test was authorized or performed.
 
@@ -49,6 +49,14 @@ Benefits & investments extends the same operational world with fund cards, manua
 Approved People navigation refinement: merge People & giving and Money lent into **People & money**, using Overview, Giving, and Loans views. Move a person's history from inline content to `/dashboard/people/:personKey`, retaining a visible back link, prefilled canonical add actions, separate month/lifetime summaries, monthly comparisons, and filtered Giving/Loans/Repayments sections. Person keys are opaque identifiers rather than names in browser URLs; legacy Money lent routes redirect to the Loans view. Financial records and their accounting semantics remain unchanged.
 
 The funds/giving extension was source-reviewed and formatted only. Runtime validation and application of its additive migration remain with the user.
+
+## Dashboard page pattern — September 29, 2026
+
+For future dashboard pages with tabs, place summary tiles immediately below the tabs inside the Overview or Summary panel. Do not repeat those tiles above the tab bar or in unrelated tabs. On desktop, the first row reserves four equal columns for the four highest-priority measures, in a consistent reading order. If more measures remain, show them in a separate, more compact row; omit that row when there are no remaining measures. Reflow to two columns on narrow screens rather than forcing four cramped tiles.
+
+Zero-valued money flows use neutral text and no up/down trend arrow or spoken flow direction. Keep the tile's category icon so the measure remains identifiable; use semantic color and direction only for nonzero flows. Summary tiles stay informational, with restrained hover feedback rather than implying they are clickable.
+
+When an overview contains a month-to-month chart and a peer breakdown chart, show them as equal-width columns on wide screens and stack them at narrower widths. Preserve each page's actual breakdown labels and data instead of inventing a generic chart.
 
 ## Direction contract — Shared bills
 

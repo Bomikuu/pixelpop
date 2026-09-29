@@ -1,6 +1,6 @@
 # Team Lead Promotion Tracker — design
 
-Status: approved conversational design, awaiting review of this written spec.
+Status: approved design; native implementation added, pending database migration and runtime verification.
 
 ## Purpose and scope
 
@@ -56,7 +56,7 @@ The PR & Quality page has editable quality indicators (template compliance, link
 
 `FrictionItem` stores recurring friction, frequency, impact, proposed improvement, owner, status, and observed result. The page favors small repeatable fixes over invented automation.
 
-`LeadershipEvidence` stores date, competency (the supplied 11 options), problem, action, result, evidence link, and affected person/team, with optional links to a weekly action, process, delegation, or metric. Evidence details are editable and searchable/filterable. Blank results stay blank; examples in the brief do not become claims.
+`LeadershipEvidence` stores date, competency (the supplied 12 options), problem, action, result, evidence link, and affected person/team, with optional links to a weekly action, process, delegation, or metric. Evidence details are editable and searchable/filterable. Blank results stay blank; examples in the brief do not become claims.
 
 `LeadershipHealthAssessment` stores one of Strong Evidence, Some Evidence, Needs More Evidence, or Not Started for each of Process, Coaching, Delegation, Measurement, Documentation, Communication, and Team Independence. The user selects a label and explains why with linked evidence; no hidden numerical scoring rule. Clicking a category reveals the note and evidence.
 
