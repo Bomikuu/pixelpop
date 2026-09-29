@@ -37,6 +37,7 @@ import PaymentReceiver from "../components/shared-bills/PaymentReceiver";
 import PublicPaymentDialog from "../components/shared-bills/PublicPaymentDialog";
 import CloseEventDialog from "../components/shared-bills/CloseEventDialog";
 import { money, dateLabel } from "../lib/format";
+import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import { formError } from "../lib/sharedBills";
 
 export default function SharedBillView({ billId, dashboard, month, notify }) {
@@ -242,7 +243,7 @@ export default function SharedBillView({ billId, dashboard, month, notify }) {
                   </strong>{" "}
                   · Recorded expenses:{" "}
                   <strong className="tabular-nums">
-                    {money(bill.my_recorded_expense)}
+                    <MoneyFlowAmount amount={bill.my_recorded_expense} direction="out" />
                   </strong>
                   .
                 </p>

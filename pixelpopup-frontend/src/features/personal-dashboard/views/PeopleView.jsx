@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  Plus,
   HeartHandshake,
   Users,
   LayoutDashboard,
@@ -20,12 +19,14 @@ import {
   TableCell,
 } from "../ui/table";
 import PeopleSummary from "../components/PeopleSummary";
+import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import { ComparisonChart } from "../components/Charts";
 import RecordList from "../components/RecordList";
 import RecordIdentity from "../components/RecordIdentity";
 import { EmptyState, ErrorState, Panel } from "../components/Panel";
 import { money, monthLabel } from "../lib/format";
 import SharedBillsView from "./SharedBillsView";
+import PeopleActions from "../components/PeopleActions";
 
 export default function PeopleView(props) {
   const { dashboard, month, openForm } = props;
@@ -55,20 +56,8 @@ export default function PeopleView(props) {
             One place for the people you support and lend to. Gifts are
             spending; loans remain repayable until collected.
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => openForm("loan")}>
-              <Plus />
-              Add loan
-            </Button>
-            <Button onClick={() => openForm("giving")}>
-              <Plus />
-              Add giving
-            </Button>
-          </div>
+          <PeopleActions openForm={openForm} />
         </div>
-      )}
-      {view !== "shared" && state.data?.summary && (
-        <PeopleSummary summary={state.data.summary} month={month} />
       )}
       <Tabs
         value={view}
@@ -103,6 +92,9 @@ export default function PeopleView(props) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-5">
+          {state.data?.summary && (
+            <PeopleSummary summary={state.data.summary} month={month} />
+          )}
           {state.data?.charts && (
             <ComparisonChart
               title="Monthly giving & lending"
@@ -129,8 +121,8 @@ export default function PeopleView(props) {
             ) : !state.data?.results.length ? (
               <EmptyState
                 icon={HeartHandshake}
-                title="No giving or loans recorded"
-                message="Add support for Mother, Father, or anyone else—or record money lent to them."
+                title="No people yet"
+                message="Add a person first, then record giving or money lent whenever you need to."
               />
             ) : (
               <>
@@ -155,11 +147,16 @@ export default function PeopleView(props) {
                               row={row}
                               label={row.person}
                             />
+                            <p className="ml-12 text-xs text-slate-600">
+                              {row.custom_relationship || row.relationship}
+                            </p>
                           </TableCell>
                           {["given", "lent", "repaid", "outstanding"].map(
                             (key) => (
                               <TableCell key={key} className="tabular-nums">
-                                {money(row[key])}
+                                {key === "outstanding" ? money(row[key]) : (
+                                  <MoneyFlowAmount amount={row[key]} direction={key === "repaid" ? "in" : "out"} />
+                                )}
                               </TableCell>
                             ),
                           )}

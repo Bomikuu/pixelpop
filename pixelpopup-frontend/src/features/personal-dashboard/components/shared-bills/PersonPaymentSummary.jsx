@@ -1,6 +1,7 @@
 import { Clock, History } from "lucide-react";
 import { money, dateLabel } from "../../lib/format";
 import { initials } from "../../lib/sharedBills";
+import MoneyFlowAmount from "../MoneyFlowAmount";
 
 export default function PersonPaymentSummary({ bill, person }) {
   if (!person) return null;
@@ -40,7 +41,7 @@ export default function PersonPaymentSummary({ bill, person }) {
           <div key={label} className="min-w-0">
             <dt className="text-xs text-slate-600">{label}</dt>
             <dd className="mt-1 break-words text-sm font-semibold tabular-nums">
-              {money(value)}
+              {label === "Net paid already" ? <MoneyFlowAmount amount={value} direction="out" /> : money(value)}
             </dd>
           </div>
         ))}
@@ -72,7 +73,12 @@ export default function PersonPaymentSummary({ bill, person }) {
                   </span>
                 </span>
                 <strong className="tabular-nums">
-                  {money(payment.amount)}
+                  {payment.status === "confirmed" ? (
+                    <MoneyFlowAmount
+                      amount={payment.amount}
+                      direction={payment.payer_id === person.id ? "out" : "in"}
+                    />
+                  ) : money(payment.amount)}
                 </strong>
               </li>
             ))}

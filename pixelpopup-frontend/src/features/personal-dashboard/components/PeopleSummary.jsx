@@ -1,4 +1,5 @@
 import SummaryTiles from "./SummaryTiles";
+import MoneyFlowAmount from "./MoneyFlowAmount";
 import { money, monthLabel } from "../lib/format";
 
 export default function PeopleSummary({ summary, month }) {
@@ -7,13 +8,13 @@ export default function PeopleSummary({ summary, month }) {
       items={[
         {
           label: "Given in " + monthLabel(month),
-          value: money(summary.given),
+          value: <MoneyFlowAmount amount={summary.given} direction="out" />,
           icon: "expenses",
         },
-        { label: "Lent · lifetime", value: money(summary.lent), icon: "loans" },
+        { label: "Lent · lifetime", value: <MoneyFlowAmount amount={summary.lent} direction="out" />, icon: "loans" },
         {
           label: "Repaid · lifetime",
-          value: money(summary.repaid),
+          value: <MoneyFlowAmount amount={summary.repaid} direction="in" />,
           icon: "income",
         },
         {

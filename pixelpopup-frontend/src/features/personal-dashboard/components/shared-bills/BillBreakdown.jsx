@@ -18,6 +18,7 @@ import {
   TableCell,
 } from "../../ui/table";
 import { money, dateLabel } from "../../lib/format";
+import MoneyFlowAmount from "../MoneyFlowAmount";
 import { initials } from "../../lib/sharedBills";
 
 const colors = [
@@ -52,7 +53,7 @@ export default function BillBreakdown({ bill, readOnly = false, actions }) {
               label: bill.receiver_id
                 ? "Net contributions paid"
                 : "Paid to provider",
-              value: money(bill.merchant_paid),
+              value: <MoneyFlowAmount amount={bill.merchant_paid} direction="out" />,
               icon: WalletCards,
             },
             {
@@ -277,13 +278,15 @@ export default function BillBreakdown({ bill, readOnly = false, actions }) {
                           {status}
                         </Badge>
                         <span className="mt-1 block text-xs text-slate-600 tabular-nums">
-                          {person.covered_by_group
-                            ? money(paid) + " personally paid"
-                            : advanced > 0
-                              ? money(advanced) + " to receive"
-                              : remaining > 0
-                                ? money(remaining) + " left"
-                                : money(paid) + " paid"}
+                          {person.covered_by_group ? (
+                            <><MoneyFlowAmount amount={paid} direction="out" /> personally paid</>
+                          ) : advanced > 0 ? (
+                            money(advanced) + " to receive"
+                          ) : remaining > 0 ? (
+                            money(remaining) + " left"
+                          ) : (
+                            <><MoneyFlowAmount amount={paid} direction="out" /> paid</>
+                          )}
                         </span>
                         {Number(person.waived_excess) > 0 && (
                           <span className="mt-1 block text-xs text-slate-600">
@@ -323,7 +326,7 @@ export default function BillBreakdown({ bill, readOnly = false, actions }) {
                     : "Paid to bill provider"}
                 </dt>
                 <dd className="mt-1 text-base font-semibold tabular-nums">
-                  {money(bill.merchant_paid)}
+                  <MoneyFlowAmount amount={bill.merchant_paid} direction="out" />
                 </dd>
               </div>
             </div>
@@ -386,7 +389,9 @@ export default function BillBreakdown({ bill, readOnly = false, actions }) {
                       )}
                     </TableCell>
                     <TableCell className="tabular-nums">
-                      {money(payment.amount)}
+                      {payment.status === "confirmed" ? (
+                        <MoneyFlowAmount amount={payment.amount} direction="out" />
+                      ) : money(payment.amount)}
                     </TableCell>
                     <TableCell>{dateLabel(payment.date)}</TableCell>
                     <TableCell>

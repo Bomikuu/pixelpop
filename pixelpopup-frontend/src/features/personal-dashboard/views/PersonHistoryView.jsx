@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
-  Plus,
   HeartHandshake,
   Users,
   ArrowDownLeft,
@@ -16,6 +15,7 @@ import RecordIdentity from "../components/RecordIdentity";
 import RecordList from "../components/RecordList";
 import { ComparisonChart } from "../components/Charts";
 import { EmptyState, ErrorState } from "../components/Panel";
+import PeopleActions from "../components/PeopleActions";
 
 export default function PersonHistoryView({ personKey, ...props }) {
   const { dashboard, month, openForm } = props;
@@ -74,24 +74,11 @@ export default function PersonHistoryView({ personKey, ...props }) {
                 />
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Giving, loans, and repayments for this person only.
+                {person.custom_relationship || person.relationship} · Giving, loans, and repayments for this person only.
               </p>
+              {person.notes && <p className="mt-1 line-clamp-2 max-w-2xl text-sm text-slate-600">{person.notes}</p>}
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                onClick={() => openForm("loan", { person: person.person })}
-              >
-                <Plus />
-                Add loan
-              </Button>
-              <Button
-                onClick={() => openForm("giving", { recipient: person.person })}
-              >
-                <Plus />
-                Add giving
-              </Button>
-            </div>
+            <PeopleActions openForm={openForm} person={person} />
           </div>
           <PeopleSummary summary={state.data.summary} month={month} />
           <Tabs defaultValue="overview" className="gap-5">

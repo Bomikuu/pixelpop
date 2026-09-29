@@ -5,10 +5,11 @@ import SelectableField from "../SelectableField";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
-import { choiceIcon, institutionFor, cashKinds } from "../../lib/presets";
-import { accountLabel, money, today, requestId } from "../../lib/format";
+import { choiceIcon, cashKinds } from "../../lib/presets";
+import { money, today, requestId } from "../../lib/format";
 import { formError } from "../../lib/sharedBills";
 import PersonPaymentSummary from "./PersonPaymentSummary";
+import AccountBalancePreview, { accountChoiceOption, accountProjection } from "../AccountBalancePreview";
 
 export default function BillPaymentDialog({
   bill,
@@ -128,12 +129,13 @@ export default function BillPaymentDialog({
           ? cashKinds.includes(item.kind)
           : item.kind !== "fund"),
     )
-    .map((item) => ({
-      value: String(item.id),
-      label: accountLabel(item),
-      icon: choiceIcon(item.kind),
-      logo: institutionFor(item.institution)?.logo,
-    }));
+    .map(accountChoiceOption);
+  const selectedAccount = dashboard.data.accounts.find((item) => String(item.id) === account);
+  const accountDirection = payer.is_me ? "out" : "in";
+  const insufficientAccount = recordLedger && payer.is_me && (
+    (selectedAccount?.kind === "credit_card" && selectedAccount.credit_limit == null) ||
+    accountProjection(selectedAccount, amount, "out")?.blocked
+  );
   const dirty =
     amount !== String(reportedPayment?.amount || initialPayer.remaining) ||
     payerId !== String(initialPayer.id) ||
@@ -198,6 +200,11 @@ export default function BillPaymentDialog({
       setError(
         "Choose a valid recipient and an account for your ledger entry.",
       );
+      requestAnimationFrame(() => errorRef.current?.focus());
+      return;
+    }
+    if (insufficientAccount) {
+      setError("This payment exceeds the selected account's balance or available credit.");
       requestAnimationFrame(() => errorRef.current?.focus());
       return;
     }
@@ -469,7 +476,9 @@ export default function BillPaymentDialog({
                     onChange={setAccount}
                     options={accounts}
                     disabled={busy}
+                    forceTiles
                   />
+                  <AccountBalancePreview account={selectedAccount} amount={amount} direction={accountDirection} />
                   {!accounts.length && (
                     <p className="text-sm text-red-800">
                       Add an active cash, bank, or e-wallet account first.
@@ -511,7 +520,7 @@ export default function BillPaymentDialog({
           </p>
         )}
         <div className="flex justify-end border-t pt-4">
-          <Button type="submit" disabled={busy || !recipients.length}>
+          <Button type="submit" disabled={busy || !recipients.length || insufficientAccount}>
             <Check aria-hidden="true" />
             {busy
               ? "Recording…"
