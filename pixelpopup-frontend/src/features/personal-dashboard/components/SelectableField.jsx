@@ -18,8 +18,9 @@ export default function SelectableField({
   invalid,
   describedBy,
   required,
+  forceTiles = false,
 }) {
-  if (options.length < 3)
+  if (forceTiles || options.length < 3)
     return (
       <ChoiceTiles
         {...{
@@ -32,6 +33,7 @@ export default function SelectableField({
           invalid,
           describedBy,
           required,
+          accountChoices: forceTiles,
         }}
       />
     );

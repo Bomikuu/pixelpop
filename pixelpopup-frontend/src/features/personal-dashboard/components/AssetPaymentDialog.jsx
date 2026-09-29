@@ -12,8 +12,9 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import SelectableField from "./SelectableField";
-import { cashKinds, choiceIcon, institutionFor } from "../lib/presets";
-import { accountLabel, dateLabel, money, requestId, today } from "../lib/format";
+import AccountBalancePreview, { accountChoiceOption, accountProjection } from "./AccountBalancePreview";
+import { cashKinds } from "../lib/presets";
+import { dateLabel, money, requestId, today } from "../lib/format";
 import { cents, formError } from "../lib/sharedBills";
 
 const allocationFields = [
@@ -67,12 +68,11 @@ export default function AssetPaymentDialog({ asset, financing, accounts, initial
   const creditCents = cents(values.advance_applied || "0");
   const allocated = allocationFields.reduce((sum, [name]) => sum + (cents(values[name] || "0") ?? 0), 0);
   const difference = cashCents == null || creditCents == null ? null : cashCents + creditCents - allocated;
+  const selectedAccount = accounts.find((item) => String(item.id) === values.account);
+  const insufficientAccount = !historical && accountProjection(selectedAccount, values.cash_amount)?.blocked;
   const accountOptions = accounts
     .filter((account) => (historical || account.active) && cashKinds.includes(account.kind))
-    .map((account) => ({
-      value: String(account.id), label: accountLabel(account) + (account.active ? "" : " · Archived"),
-      icon: choiceIcon(account.kind), logo: institutionFor(account.institution)?.logo,
-    }));
+    .map(accountChoiceOption);
 
   function change(name, value) {
     setError("");
@@ -93,6 +93,10 @@ export default function AssetPaymentDialog({ asset, financing, accounts, initial
     if (busy) return;
     if (!values.account || !values.date || cashCents == null || creditCents == null || cashCents + creditCents <= 0 || difference !== 0 || allocationFields.some(([name]) => cents(values[name] || "0") == null)) {
       setError("Choose an account and date, then make the payment split equal cash plus advance credit.");
+      return;
+    }
+    if (insufficientAccount) {
+      setError("This payment exceeds the selected account's available balance.");
       return;
     }
     setBusy(true);
@@ -136,7 +140,8 @@ export default function AssetPaymentDialog({ asset, financing, accounts, initial
             </div>
             <div className="space-y-2">
               <Label htmlFor="asset-payment-account">Account used</Label>
-              <SelectableField id="asset-payment-account" label="Account used" options={accountOptions} value={values.account} onChange={(value) => change("account", value)} disabled={busy} required />
+              <SelectableField id="asset-payment-account" label="Account used" options={accountOptions} value={values.account} onChange={(value) => change("account", value)} disabled={busy} required forceTiles />
+              {!historical && <AccountBalancePreview account={selectedAccount} amount={values.cash_amount} />}
             </div>
           </div>
           {!historical && (
@@ -187,7 +192,7 @@ export default function AssetPaymentDialog({ asset, financing, accounts, initial
           {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
           <DialogFooter>
             <Button type="button" variant="outline" disabled={busy} onClick={close}>Cancel</Button>
-            <Button type="submit" disabled={busy || !accountOptions.length}>{busy ? "Recording…" : historical ? "Add earlier history" : "Record payment"}</Button>
+            <Button type="submit" disabled={busy || !accountOptions.length || insufficientAccount}>{busy ? "Recording…" : historical ? "Add earlier history" : "Record payment"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

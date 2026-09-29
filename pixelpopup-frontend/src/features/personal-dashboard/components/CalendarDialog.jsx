@@ -49,6 +49,12 @@ function entryType(row) {
       ? "Collection"
       : "Bill";
 }
+function deadlineAction(row) {
+  if (["task", "reminder"].includes(row.kind)) return "Complete task";
+  if (row.financing_asset_id) return "Open asset to record payment";
+  if (row.settlement_kind === "loan_collection") return "Record collection";
+  return "Pay bill";
+}
 function settled(row) {
   return ["paid", "completed"].includes(row.status);
 }
@@ -67,6 +73,7 @@ export default function CalendarDialog({
   initialMonth,
   close,
   openForm,
+  settleDeadline,
   restoreFocus,
 }) {
   const [month, setMonth] = useState(initialMonth);
@@ -102,7 +109,7 @@ export default function CalendarDialog({
     setDay(next + "-01");
   }
   function selectItem(row) {
-    if (!settled(row)) openForm("deadline", row);
+    if (!settled(row)) settleDeadline(row);
     else showDay(row.due_date);
   }
   return (
@@ -264,7 +271,7 @@ export default function CalendarDialog({
                                               "flex w-full items-start gap-1 rounded border px-1.5 py-1 text-left text-[11px] leading-4 transition-colors hover:brightness-95 " +
                                               eventStyle(row)
                                             }
-                                            aria-label={`${row.title}, ${entryType(row)}, ${row.status}, ${dateLabel(date)}. ${settled(row) ? "View details" : "Edit item"}`}
+                                            aria-label={`${row.title}, ${entryType(row)}, ${row.status}, ${dateLabel(date)}. ${settled(row) ? "View details" : deadlineAction(row)}`}
                                             title={row.title}
                                           >
                                             <Icon
@@ -313,14 +320,24 @@ export default function CalendarDialog({
                   <h3 id="calendar-day-title" className="text-sm font-semibold">
                     {dateLabel(day)}
                   </h3>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openForm("deadline", { due_date: day })}
-                  >
-                    <Plus aria-hidden="true" />
-                    Add task / bill
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openForm("deadline", { kind: "task", due_date: day })}
+                    >
+                      <Plus aria-hidden="true" />
+                      Add task
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openForm("deadline", { kind: "bill", due_date: day })}
+                    >
+                      <Plus aria-hidden="true" />
+                      Add bill
+                    </Button>
+                  </div>
                 </div>
                 {!state.loading &&
                   (!selected.length ? (
@@ -343,12 +360,17 @@ export default function CalendarDialog({
                               label={row.title}
                             />
                             <p className="mt-1 text-xs text-slate-600">
-                              {entryType(row)} ·{" "}
-                              {row.amount == null
-                                ? "No amount set"
-                                : row.financing_asset_id && row.status === "pending"
-                                  ? money(row.remaining_due) + " left of " + money(row.amount)
-                                  : money(row.amount)}
+                              {entryType(row)}
+                              {!["task", "reminder"].includes(row.kind) && (
+                                <>
+                                  {" · "}
+                                  {row.amount == null
+                                    ? "Amount not set"
+                                    : row.financing_asset_id && row.status === "pending"
+                                      ? money(row.remaining_due) + " left of " + money(row.amount)
+                                      : money(row.amount)}
+                                </>
+                              )}
                               {row.due_time
                                 ? " · " + row.due_time.slice(0, 5) + " PHT"
                                 : ""}
@@ -362,7 +384,7 @@ export default function CalendarDialog({
                                 size="sm"
                                 onClick={() => selectItem(row)}
                               >
-                                Edit
+                                {deadlineAction(row)}
                               </Button>
                             )}
                           </div>

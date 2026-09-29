@@ -1,5 +1,6 @@
 import { today, words } from "../../lib/format";
-import { assetTypes, fundTypes } from "../../lib/presets";
+import { assetTypes, cardNetworks, coverageTypes, fundTypes } from "../../lib/presets";
+import { Users } from "lucide-react";
 
 const field = (name, label, type = "text", extra = {}) => ({
   name,
@@ -28,6 +29,14 @@ const account = field("account", "Account", "select", {
   source: "accounts",
   required: true,
 });
+const contact = field("contact", "Person", "select", {
+  source: "contacts",
+  required: true,
+});
+export const relationshipOptions = [
+  "Mother", "Father", "Parent", "Sibling", "Partner", "Child",
+  "Friend", "Colleague", "Other",
+].map((value) => ({ value, label: value, icon: Users }));
 const accountDetails = [
   field("last_four", "Last 4 digits", "text", {
     when: (v) => v.kind !== "cash",
@@ -86,16 +95,30 @@ const amountMode = field("amount_mode", "Bill amount", "select", {
 });
 
 export function formDefinition(entity, record) {
+  if (entity === "person")
+    return {
+      title: record?.id ? "Edit person" : "Add person",
+      endpoint: "contacts/",
+      fields: [
+        field("name", "Name", "text", { required: true, maxLength: 120 }),
+        field("relationship", "Relationship", "select", {
+          required: true,
+          options: relationshipOptions,
+        }),
+        field("custom_relationship", "Relationship detail", "text", {
+          when: (v) => v.relationship === "Other",
+          maxLength: 60,
+          hint: "Optional, for example Cousin or Neighbor.",
+        }),
+        notes,
+      ],
+    };
   if (entity === "giving")
     return {
       title: record?.id ? "Edit giving" : "Add giving",
       endpoint: "transactions/",
       fields: [
-        field("recipient", "Who received it?", "text", {
-          required: true,
-          maxLength: 120,
-          hint: "Use the same name as their loan records, for example Mother or Father.",
-        }),
+        { ...contact, label: "Who received it?" },
         amount,
         account,
         date,
@@ -119,19 +142,23 @@ export function formDefinition(entity, record) {
         notes,
       ],
     };
-  if (entity === "fund")
+  if (entity === "fund") {
+    const coverage = coverageTypes.includes(record?.fund_type);
     return {
-      title: record?.id ? "Edit fund" : "Add benefit / investment",
+      title: record?.id ? coverage ? "Edit coverage" : "Edit fund" : coverage ? "Add coverage" : "Add benefit / investment",
       endpoint: "accounts/",
       fields: [
-        field("name", "Fund name", "text", { required: true }),
-        field("fund_type", "Fund type", "select", {
+        field("name", coverage ? "Coverage name" : "Fund name", "text", { required: true }),
+        field("fund_type", "Type", "select", {
           required: true,
-          default: "mp2",
-          options: fundTypes,
+          default: coverage ? record.fund_type : "mp2",
+          options: fundTypes.filter((type) => coverageTypes.includes(type.value) === coverage),
           disabled: !!record?.id,
         }),
-        ...accountDetails,
+        ...accountDetails.map((detail) => ({
+          ...detail,
+          when: (values) => !coverageTypes.includes(values.fund_type),
+        })),
         ...(!record?.id
           ? [
               field(
@@ -144,17 +171,20 @@ export function formDefinition(entity, record) {
                   min: "0",
                   step: "0.01",
                   hint: "Already held in this fund. This does not deduct cash again. Do not count the same holding in Assets.",
+                  when: (values) => !coverageTypes.includes(values.fund_type),
                 },
               ),
               {
                 ...date,
                 name: "opening_date",
                 label: "Opening valuation date",
+                when: (values) => !coverageTypes.includes(values.fund_type),
               },
             ]
           : []),
       ],
     };
+  }
   if (["fund_contribution", "fund_withdrawal"].includes(entity)) {
     const contribution = entity === "fund_contribution";
     return {
@@ -179,7 +209,7 @@ export function formDefinition(entity, record) {
   }
   if (entity === "expense" || entity === "income")
     return {
-      title: (record ? "Edit " : "Add ") + entity,
+      title: (record?.id ? "Edit " : "Add ") + entity,
       endpoint: "transactions/",
       fields: [
         amount,
@@ -190,13 +220,13 @@ export function formDefinition(entity, record) {
           { required: true },
         ),
         { ...account, cashOnly: entity === "income" },
+        ...(entity === "expense" && record?.coverage
+          ? [field("coverage", "Coverage", "select", { source: "coverages", required: true })]
+          : []),
         category,
         ...(entity === "expense"
           ? [
-              field("recipient", "Giving recipient (optional)", "text", {
-                maxLength: 120,
-                hint: "Tag support or gifts to a person; leave blank for ordinary spending.",
-              }),
+              { ...contact, label: "Giving recipient (optional)", required: false, nullable: true },
             ]
           : []),
         { ...date, ...(entity === "income" ? { max: undefined } : {}) },
@@ -224,48 +254,44 @@ export function formDefinition(entity, record) {
         notes,
       ],
     };
-  if (entity === "deadline")
+  if (entity === "deadline") {
+    const taskForm = ["task", "reminder"].includes(record?.kind || "task");
+    const billKinds = ["bill", "subscription", "payment"];
     return {
-      title: record?.id ? "Edit task / bill" : "Add task / bill",
+      title: (record?.id ? "Edit " : "Add ") + (taskForm ? "task" : "bill"),
       endpoint: "deadlines/",
       fields: [
         field("title", "Title", "text", { required: true }),
         field("kind", "Type", "select", {
-          default: "task",
-          options: choices([
-            "task",
-            "bill",
-            "subscription",
-            "payment",
-            "reminder",
-          ]),
+          default: taskForm ? "task" : "bill",
+          options: choices(taskForm ? ["task", "reminder"] : billKinds),
         }),
         field("settlement_kind", "Payment type", "select", {
           default: "expense",
           options: [
-            { value: "expense", label: "Ordinary bill / task" },
+            { value: "expense", label: "Ordinary bill" },
             { value: "credit_card_payment", label: "Credit-card repayment" },
           ],
+          when: (v) => billKinds.includes(v.kind),
         }),
         field("credit_card", "Credit card", "select", {
           source: "cards",
           required: true,
-          when: (v) => v.settlement_kind === "credit_card_payment",
+          when: (v) => billKinds.includes(v.kind) && v.settlement_kind === "credit_card_payment",
         }),
         ...(!record?.id
           ? [
               {
                 ...amountMode,
-                when: (v) =>
-                  ["bill", "subscription", "payment"].includes(v.kind),
+                when: (v) => billKinds.includes(v.kind),
               },
             ]
           : []),
         {
           ...amount,
           required: false,
-          hint: "Leave blank for a task or variable bill.",
-          when: (v) => !!record?.id || v.amount_mode !== "variable",
+          hint: "Leave blank if this bill's amount is not known yet.",
+          when: (v) => billKinds.includes(v.kind) && (!!record?.id || v.amount_mode !== "variable"),
         },
         field("due_date", "Due date", "date", {
           required: true,
@@ -278,6 +304,7 @@ export function formDefinition(entity, record) {
         notes,
       ],
     };
+  }
   if (entity === "account")
     return {
       title: record ? "Edit account" : "Add account / card",
@@ -293,6 +320,11 @@ export function formDefinition(entity, record) {
           when: (v) => v.kind !== "cash",
         }),
         ...accountDetails,
+        field("card_network", "Card network", "select", {
+          options: cardNetworks,
+          when: (v) => v.kind !== "cash",
+          hint: "Optional. Choose the logo on your card; no extra digits are needed.",
+        }),
         field("credit_limit", "Credit limit (₱)", "number", {
           min: "0",
           step: "0.01",
@@ -340,7 +372,7 @@ export function formDefinition(entity, record) {
       title: record?.id ? "Edit loan details" : "Record money lent",
       endpoint: "loans/",
       fields: [
-        field("person", "Person", "text", { required: true }),
+        contact,
         {
           ...amount,
           name: "principal",
@@ -470,12 +502,42 @@ export function formDefinition(entity, record) {
         }),
       ],
     };
+  if (entity === "schedule" && record?.coverage)
+    return {
+      title: record?.id ? "Edit premium schedule" : "Set premium schedule",
+      endpoint: "schedules/",
+      fields: [
+        field("title", "Bill name", "text", { required: true }),
+        {
+          ...amountMode,
+          label: "Premium amount",
+          hint: "For a variable premium, enter the actual amount when you pay each bill.",
+          default: record?.variable_amount ? "variable" : "fixed",
+        },
+        { ...amount, required: true, when: (v) => v.amount_mode !== "variable" },
+        field("anchor_date", "First due date", "date", { required: true, default: today() }),
+        field("frequency", "Payment frequency", "select", {
+          required: true,
+          default: "monthly",
+          options: choices(["monthly", "quarterly"]),
+        }),
+        category,
+        reminder,
+        notes,
+        ...(record?.id ? [field("active", "Schedule status", "select", {
+          options: [
+            { value: "true", label: "Active" },
+            { value: "false", label: "Stopped" },
+          ],
+        })] : []),
+      ],
+    };
   return {
     title: "Edit recurring schedule",
     endpoint: "schedules/",
     fields: [
       field("title", "Title", "text", { required: true }),
-      ...(record?.kind !== "income"
+      ...(record?.kind !== "income" && !["task", "reminder"].includes(record?.kind)
         ? [
             {
               ...amountMode,
@@ -483,7 +545,11 @@ export function formDefinition(entity, record) {
             },
           ]
         : []),
-      { ...amount, required: false, when: (v) => v.amount_mode !== "variable" },
+      {
+        ...amount,
+        required: false,
+        when: (v) => !["task", "reminder"].includes(record?.kind) && v.amount_mode !== "variable",
+      },
       field("anchor_date", "Anchor date", "date", { required: true }),
       field("frequency", "Frequency", "select", {
         options: choices([

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import { Calendar } from "../ui/calendar";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
@@ -8,10 +9,23 @@ import UrgencyBadge from "../components/UrgencyBadge";
 import { ComparisonChart } from "../components/Charts";
 import { dateLabel, money, today } from "../lib/format";
 
-export default function CalendarView({ dashboard, month, setMonth, openForm }) {
+export default function CalendarView({ dashboard, month, setMonth, openForm, settleDeadline }) {
   const [day, setDay] = useState(() =>
     today().startsWith(month + "-") ? today() : month + "-01",
   );
+  const [acting, setActing] = useState(null);
+  async function settle(row) {
+    if (!["task", "reminder"].includes(row.kind)) {
+      await settleDeadline(row);
+      return;
+    }
+    setActing(row.id);
+    try {
+      await settleDeadline(row);
+    } finally {
+      setActing(null);
+    }
+  }
   const selectedDay = day.startsWith(month + "-") ? day : month + "-01";
   const state = useRecords(
     "calendar/?month=" + month + "&day=" + selectedDay,
@@ -94,12 +108,14 @@ export default function CalendarView({ dashboard, month, setMonth, openForm }) {
           title={dateLabel(selectedDay)}
           description="Everything scheduled for the selected day."
           action={
-            <Button
-              variant="outline"
-              onClick={() => openForm("deadline", { due_date: selectedDay })}
-            >
-              Add item
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={() => openForm("deadline", { kind: "task", due_date: selectedDay })}>
+                <Plus aria-hidden="true" /> Add task
+              </Button>
+              <Button variant="outline" onClick={() => openForm("deadline", { kind: "bill", due_date: selectedDay })}>
+                <Plus aria-hidden="true" /> Add bill
+              </Button>
+            </div>
           }
         >
           {state.loading ? (
@@ -117,11 +133,20 @@ export default function CalendarView({ dashboard, month, setMonth, openForm }) {
                   className="flex flex-wrap items-center justify-between gap-3 py-4"
                 >
                   <div>
-                    {row.calendar_kind === "deadline" &&
-                    (row.status === "pending" || row.financing_asset_id) ? (
+                    {row.calendar_kind === "deadline" && row.status === "pending" ? (
                       <button
                         type="button"
-                        onClick={() => openForm("deadline", row)}
+                        onClick={() => settle(row)}
+                        disabled={acting === row.id}
+                        aria-label={
+                          (["task", "reminder"].includes(row.kind)
+                            ? "Complete task "
+                            : row.financing_asset_id
+                              ? "Open asset to record payment for "
+                              : row.settlement_kind === "loan_collection"
+                                ? "Record collection for "
+                                : "Pay bill ") + row.title
+                        }
                         className="rounded-sm text-left font-medium hover:text-[var(--pd-primary)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)]"
                       >
                         {row.title}
@@ -134,12 +159,16 @@ export default function CalendarView({ dashboard, month, setMonth, openForm }) {
                         ? "Income · "
                         : row.settlement_kind === "loan_collection"
                           ? "Incoming collection · "
-                          : ""}
-                      {row.amount == null
-                        ? "No fixed amount"
-                        : row.financing_asset_id && row.status === "pending"
-                          ? money(row.remaining_due) + " left of " + money(row.amount)
-                          : money(row.amount)}
+                          : ["task", "reminder"].includes(row.kind)
+                            ? (row.kind === "reminder" ? "Reminder" : "Task")
+                            : ""}
+                      {!["task", "reminder"].includes(row.kind) && (
+                        row.amount == null
+                          ? "No fixed amount"
+                          : row.financing_asset_id && row.status === "pending"
+                            ? money(row.remaining_due) + " left of " + money(row.amount)
+                            : money(row.amount)
+                      )}
                       {row.due_time
                         ? " · " + row.due_time.slice(0, 5) + " PHT"
                         : ""}

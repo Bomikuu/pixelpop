@@ -1,5 +1,6 @@
 import { createElement, useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { DropdownMenu } from "radix-ui";
 import {
   LayoutDashboard,
   Wallet,
@@ -16,15 +17,25 @@ import {
   Plus,
   Menu,
   ChevronRight,
+  ChevronDown,
   ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
   PiggyBank,
   HeartHandshake,
   Utensils,
+  TriangleAlert,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import { TooltipProvider } from "./ui/tooltip";
 import FormDialog from "./components/forms/FormDialog";
 import { DeleteDialog, HistoryDialog } from "./components/ActionDialogs";
@@ -44,9 +55,10 @@ import PeopleView from "./views/PeopleView";
 import PersonHistoryView from "./views/PersonHistoryView";
 import SharedBillView from "./views/SharedBillView";
 import AssetDetailView from "./views/AssetDetailView";
+import AccountDetailView from "./views/AccountDetailView";
 import NutritionView from "./views/NutritionView";
 import NutritionDateControls from "./components/nutrition/NutritionDateControls";
-import { money, today } from "./lib/format";
+import { dateLabel, money, today, words } from "./lib/format";
 import "./styles/theme.css";
 
 const tabs = [
@@ -57,7 +69,6 @@ const tabs = [
   ["people", "People & money", HeartHandshake, "Money"],
   ["transactions", "Transactions", ArrowLeftRight, "Money"],
   ["income", "Income", ArrowDownLeft, "Money"],
-  ["expenses", "Expenses", ArrowUpRight, "Money"],
   ["deadlines", "Tasks & deadlines", ListChecks, "Planning"],
   ["bills", "Bills", Receipt, "Planning"],
   ["calendar", "Calendar", CalendarDays, "Planning"],
@@ -81,9 +92,12 @@ export default function Dashboard() {
   const tab = routeParts[0];
   const personKey = tab === "people" ? routeParts[1] : undefined;
   const assetId = tab === "assets" ? routeParts[1] : undefined;
+  const accountId = tab === "accounts" ? routeParts[1] : undefined;
   const sharedBillRoute = tab === "people" && routeParts[1] === "shared";
   const sharedBillId = sharedBillRoute ? routeParts[2] : undefined;
-  const current = tabs.find((t) => t[0] === (tab === "loans" ? "people" : tab));
+  const currentTab =
+    tab === "loans" ? "people" : tab === "expenses" ? "transactions" : tab;
+  const current = tabs.find((t) => t[0] === currentTab);
   const dashboard = useDashboardData(selectedMonth);
   const [mobileNav, setMobileNav] = useState(false);
   const [nutritionDate, setNutritionDate] = useState(today);
@@ -114,12 +128,17 @@ export default function Dashboard() {
     [history, setHistory] = useState(null);
   const [notices, setNotices] = useState([]);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [overdueItems, setOverdueItems] = useState(null);
+  const [overdueLoading, setOverdueLoading] = useState(false);
+  const [overdueError, setOverdueError] = useState("");
   const calendarTrigger = useRef(null);
   const calendarEditing = useRef(false);
   const notificationId = useRef(0);
   const [companionReaction, setCompanionReaction] = useState(null);
   const [companionActivity, setCompanionActivity] = useState(null);
   const launchingControl = useRef(null);
+  const quickAddTrigger = useRef(null);
+  const quickAddOpening = useRef(false);
   const restoreFocus = (event, removed = false) => {
     event.preventDefault();
     requestAnimationFrame(() => {
@@ -135,6 +154,11 @@ export default function Dashboard() {
       navigateRouter(
         "/dashboard/people?month=" + selectedMonth + "&view=loans",
         { replace: true },
+      );
+    } else if (tab === "expenses") {
+      navigateRouter(
+        "/dashboard/transactions?month=" + selectedMonth,
+        { replace: true, state: { transactionKind: "expense" } },
       );
     }
   }, [tab, selectedMonth, navigateRouter]);
@@ -164,6 +188,54 @@ export default function Dashboard() {
     );
     setMobileNav(false);
     setCompanionActivity(null);
+  };
+  const openOverdueItem = (item) => {
+    const month = item.due_date.slice(0, 7);
+    const path = item.financing_asset_id
+      ? "assets/" + item.financing_asset_id
+      : item.shared_bill_id
+        ? "people/shared/" + item.shared_bill_id
+        : item.settlement_kind === "loan_collection"
+          ? "people"
+          : ["task", "reminder"].includes(item.kind)
+            ? "deadlines"
+            : "bills";
+    setOverdueItems(null);
+    navigateRouter(
+      "/dashboard/" +
+        path +
+        "?month=" +
+        month +
+        (item.settlement_kind === "loan_collection" ? "&view=loans" : ""),
+    );
+  };
+  const reviewOverdue = async () => {
+    if (overdueLoading) return;
+    setOverdueLoading(true);
+    setOverdueError("");
+    try {
+      const items = [];
+      let page = 1;
+      let hasNext = true;
+      while (hasNext) {
+        const response = await dashboard.request(
+          "deadlines/?status=pending&urgency=overdue&page_size=100&page=" + page,
+        );
+        items.push(...response.results);
+        hasNext = Boolean(response.next);
+        page += 1;
+      }
+      if (items.length === 1) openOverdueItem(items[0]);
+      else if (items.length > 1) setOverdueItems(items);
+      else
+        setOverdueError("No overdue items remain. Refresh to update the count.");
+    } catch (error) {
+      setOverdueError(
+        error.message || "Could not load overdue items. Try again.",
+      );
+    } finally {
+      setOverdueLoading(false);
+    }
   };
   const setMonth = (month) =>
     setParams((previous) => {
@@ -202,6 +274,18 @@ export default function Dashboard() {
       setDialog({ entity, record });
       setCompanionActivity(entity);
     },
+    settleDeadline: async (record) => {
+      if (!["task", "reminder"].includes(record.kind)) {
+        actions.openForm("settlement", record);
+        return;
+      }
+      try {
+        await dashboard.mutate("deadlines/" + record.id + "/settle/", {});
+        notify("Task completed.", { action: "completed", entity: "deadline" });
+      } catch (error) {
+        notify(error.message, { tone: "error" });
+      }
+    },
     confirmDelete: (resource, record) => {
       launchingControl.current = document.activeElement;
       setDeleteTarget({ resource, record });
@@ -211,6 +295,11 @@ export default function Dashboard() {
       setHistory({ resource, record });
     },
     notify,
+  };
+  const openQuickAdd = (entity, record) => {
+    quickAddOpening.current = true;
+    actions.openForm(entity, record);
+    launchingControl.current = quickAddTrigger.current;
   };
   async function searchSelect(row) {
     if (row.tab === "assets") {
@@ -399,6 +488,14 @@ export default function Dashboard() {
               </div>
             ))}
           </nav>
+          <div className="border-t px-3 py-3">
+            <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal text-slate-600 " + (collapsed ? "lg:justify-center lg:px-0" : "")}>
+              <a href="/business" aria-label="Business dashboard" title={collapsed ? "Business dashboard" : undefined}>
+                <BriefcaseBusiness size={17} aria-hidden="true" />
+                <span className={collapsed ? "lg:hidden" : ""}>Business dashboard</span>
+              </a>
+            </Button>
+          </div>
           <p
             className={
               "hidden border-t px-5 py-4 text-xs leading-5 text-slate-500 " +
@@ -479,17 +576,43 @@ export default function Dashboard() {
                   <CalendarDays aria-hidden="true" />
                   View calendar
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => actions.openForm("deadline")}
-                >
-                  <Plus />
-                  Add task / bill
-                </Button>
-                <Button onClick={() => actions.openForm("expense")}>
-                  <Plus />
-                  Add expense
-                </Button>
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
+                    <Button ref={quickAddTrigger}>
+                      <Plus aria-hidden="true" />
+                      Add new
+                      <ChevronDown aria-hidden="true" />
+                    </Button>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="personal-dashboard z-50 min-w-44 rounded-md border border-[var(--pd-border)] bg-white p-1 text-[var(--pd-ink)] shadow-md"
+                      align="end"
+                      sideOffset={6}
+                      onCloseAutoFocus={(event) => {
+                        if (quickAddOpening.current) {
+                          event.preventDefault();
+                          quickAddOpening.current = false;
+                        }
+                      }}
+                    >
+                      {[
+                        ["Task", ListChecks, "deadline", { kind: "task" }],
+                        ["Bill", Receipt, "deadline", { kind: "bill" }],
+                        ["Expense", ArrowUpRight, "expense"],
+                      ].map(([label, Icon, entity, record]) => (
+                        <DropdownMenu.Item
+                          key={label}
+                          className="flex cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--pd-soft)] data-[highlighted]:text-slate-950"
+                          onSelect={() => openQuickAdd(entity, record)}
+                        >
+                          <Icon size={16} aria-hidden="true" />
+                          Add {label.toLowerCase()}
+                        </DropdownMenu.Item>
+                      ))}
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
               </div>
             )}
           </header>
@@ -498,14 +621,42 @@ export default function Dashboard() {
               role="status"
               className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900"
             >
-              <p>
-                <strong>
-                  {dashboard.data.overview.attention.overdue} overdue items
-                </strong>{" "}
-                across all months need attention.
-              </p>
-              <Button variant="outline" onClick={() => navigate("deadlines")}>
-                Review deadlines
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
+                  <TriangleAlert size={19} aria-hidden="true" />
+                </span>
+                <div>
+                  <p>
+                    <strong>
+                      {dashboard.data.overview.attention.overdue} overdue{" "}
+                      {dashboard.data.overview.attention.overdue === 1
+                        ? "item"
+                        : "items"}
+                    </strong>{" "}
+                    across all months{" "}
+                    {dashboard.data.overview.attention.overdue === 1
+                      ? "needs"
+                      : "need"}{" "}
+                    attention.
+                  </p>
+                  {overdueError && (
+                    <p role="alert" className="mt-1 text-xs">
+                      {overdueError}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                onClick={reviewOverdue}
+                disabled={overdueLoading}
+              >
+                {overdueLoading
+                  ? "Loading…"
+                  : dashboard.data.overview.attention.overdue === 1
+                    ? "Review item"
+                    : "Review items"}
+                {!overdueLoading && <ChevronRight aria-hidden="true" />}
               </Button>
             </div>
           )}
@@ -526,11 +677,21 @@ export default function Dashboard() {
               month={selectedMonth}
               setMonth={setMonth}
               openForm={actions.openForm}
+              settleDeadline={actions.settleDeadline}
             />
           ) : tab === "nutrition" ? (
             <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onLeave={() => navigate("")} />
           ) : tab === "funds" ? (
             <FundsView {...shared} />
+          ) : tab === "accounts" && accountId ? (
+            /^\d+$/.test(accountId) && !routeParts.slice(2).some(Boolean) ? (
+              <AccountDetailView key={accountId} accountId={accountId} {...shared} />
+            ) : (
+              <EmptyState
+                title="This account page does not exist"
+                action={<Button onClick={() => navigate("accounts")}>Back to accounts</Button>}
+              />
+            )
           ) : tab === "assets" && assetId ? (
             /^\d+$/.test(assetId) && !routeParts.slice(2).some(Boolean) ? (
               <AssetDetailView key={assetId} assetId={assetId} {...shared} />
@@ -665,16 +826,14 @@ export default function Dashboard() {
                 resource={
                   {
                     income: "transactions",
-                    expenses: "transactions",
                     bills: "deadlines",
                   }[tab] || tab
                 }
-                kind={
-                  tab === "income"
-                    ? "income"
-                    : tab === "expenses"
-                      ? "expense"
-                      : undefined
+                kind={tab === "income" ? "income" : undefined}
+                initialTransactionKind={
+                  tab === "transactions" && location.state?.transactionKind === "expense"
+                    ? "expense"
+                    : ""
                 }
                 bills={tab === "bills"}
                 title={current[1]}
@@ -705,6 +864,51 @@ export default function Dashboard() {
             setNotices((items) => items.filter((item) => item.id !== id))
           }
         />
+        {overdueItems && (
+          <Dialog
+            open
+            onOpenChange={(open) => {
+              if (!open) setOverdueItems(null);
+            }}
+          >
+            <DialogContent className="personal-dashboard max-h-[85dvh] overflow-y-auto bg-white sm:max-w-xl">
+              <DialogHeader className="pr-8">
+                <DialogTitle className="flex items-center gap-2 text-red-900">
+                  <TriangleAlert size={20} aria-hidden="true" />
+                  Overdue items
+                </DialogTitle>
+                <DialogDescription>
+                  Choose an item to open its page and take action.
+                </DialogDescription>
+              </DialogHeader>
+              <ul className="mt-2 space-y-2">
+                {overdueItems.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => openOverdueItem(item)}
+                      className="group flex w-full items-center justify-between gap-3 rounded-lg border border-red-100 bg-red-50/50 px-4 py-3 text-left transition-colors hover:border-red-300 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)] motion-reduce:transition-none"
+                    >
+                      <span className="min-w-0">
+                        <span className="block break-words font-medium text-slate-950">
+                          {item.title}
+                        </span>
+                        <span className="mt-1 block text-xs text-slate-600">
+                          {words(item.kind)} · Due {dateLabel(item.due_date)}
+                        </span>
+                      </span>
+                      <ChevronRight
+                        size={18}
+                        aria-hidden="true"
+                        className="shrink-0 text-red-700 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none"
+                      />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </DialogContent>
+          </Dialog>
+        )}
         {dialog && (
           <FormDialog
             key={dialog.entity + "-" + (dialog.record?.id || "new")}
@@ -731,6 +935,12 @@ export default function Dashboard() {
               setCalendarOpen(false);
               actions.openForm(entity, record);
               launchingControl.current = calendarTrigger.current;
+            }}
+            settleDeadline={async (record) => {
+              calendarEditing.current = !["task", "reminder"].includes(record.kind);
+              setCalendarOpen(false);
+              launchingControl.current = calendarTrigger.current;
+              await actions.settleDeadline(record);
             }}
           />
         )}

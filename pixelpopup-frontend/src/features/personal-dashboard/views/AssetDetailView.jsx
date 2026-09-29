@@ -5,6 +5,7 @@ import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
 import { EmptyState, ErrorState, Panel } from "../components/Panel";
 import SummaryTiles from "../components/SummaryTiles";
+import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import AssetFinancingDialog from "../components/AssetFinancingDialog";
 import AssetPaymentDialog from "../components/AssetPaymentDialog";
 import { dateLabel, money, today, words } from "../lib/format";
@@ -113,7 +114,7 @@ export default function AssetDetailView({ assetId, dashboard, month, openForm, n
                 {financing.payments.length ? <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm">
                   <thead className="border-b text-slate-600"><tr><th className="py-2 pr-3 font-medium">Date</th><th className="py-2 pr-3 font-medium">Account</th><th className="py-2 pr-3 font-medium">Cash paid</th><th className="py-2 pr-3 font-medium">Regular principal</th><th className="py-2 pr-3 font-medium">Extra principal</th><th className="py-2 pr-3 font-medium">Interest + fees</th><th className="py-2 pr-3 font-medium">Advance</th><th className="py-2 font-medium">Type</th></tr></thead>
                   <tbody className="divide-y">{financing.payments.map((payment) => (
-                    <tr key={payment.id}><th scope="row" className="py-3 pr-3 font-medium">{dateLabel(payment.date)}</th><td className="py-3 pr-3">{payment.account_name}</td><td className="py-3 pr-3 tabular-nums">{money(payment.cash_amount)}</td><td className="py-3 pr-3 tabular-nums">{money(payment.principal)}</td><td className="py-3 pr-3 tabular-nums">{money(payment.extra_principal)}</td><td className="py-3 pr-3 tabular-nums">{money(Number(payment.interest) + Number(payment.fees))}</td><td className="py-3 pr-3 tabular-nums">{Number(payment.advance_reserved) > 0 ? "+" + money(payment.advance_reserved) : Number(payment.advance_applied) > 0 ? "-" + money(payment.advance_applied) : "None"}</td><td className="py-3">{payment.historical ? "Earlier history" : "Recorded"}</td></tr>
+                    <tr key={payment.id}><th scope="row" className="py-3 pr-3 font-medium">{dateLabel(payment.date)}</th><td className="py-3 pr-3">{payment.account_name}</td><td className="py-3 pr-3 tabular-nums"><MoneyFlowAmount amount={payment.cash_amount} direction="out" /></td><td className="py-3 pr-3 tabular-nums">{money(payment.principal)}</td><td className="py-3 pr-3 tabular-nums">{money(payment.extra_principal)}</td><td className="py-3 pr-3 tabular-nums">{money(Number(payment.interest) + Number(payment.fees))}</td><td className="py-3 pr-3 tabular-nums">{Number(payment.advance_reserved) > 0 ? "+" + money(payment.advance_reserved) : Number(payment.advance_applied) > 0 ? "-" + money(payment.advance_applied) : "None"}</td><td className="py-3">{payment.historical ? "Earlier history" : "Recorded"}</td></tr>
                   ))}</tbody>
                 </table></div> : <EmptyState title="No payments recorded" message="Select an installment above or use Record payment in Loan outlook for a principal-only payment." />}
               </Panel>

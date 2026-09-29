@@ -36,11 +36,26 @@ export function useDashboardData(month) {
           signal: controller.signal,
         });
         token.current = session.csrfToken;
-        const [overview, accounts, categories, settings] = await Promise.all([
+        const loadContacts = async () => {
+          const contacts = [];
+          let page = 1;
+          let hasNext = true;
+          while (hasNext) {
+            const response = await request("contacts/?page_size=100&page=" + page, {
+              signal: controller.signal,
+            });
+            contacts.push(...response.results);
+            hasNext = Boolean(response.next);
+            page += 1;
+          }
+          return contacts;
+        };
+        const [overview, accounts, categories, settings, contacts] = await Promise.all([
           request("overview/?month=" + month, { signal: controller.signal }),
           request("accounts/?page_size=100", { signal: controller.signal }),
           request("categories/?page_size=100", { signal: controller.signal }),
           request("settings/", { signal: controller.signal }),
+          loadContacts(),
         ]);
         if (!controller.signal.aborted)
           setState({
@@ -49,6 +64,7 @@ export function useDashboardData(month) {
               overview,
               accounts: accounts.results,
               categories: categories.results,
+              contacts,
               settings,
               user: session.user,
             },

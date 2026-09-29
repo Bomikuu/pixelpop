@@ -19,6 +19,7 @@ import {
 import { useRecords } from "../hooks/useDashboardData";
 import { dateLabel, money, words } from "../lib/format";
 import { EmptyState, ErrorState } from "./Panel";
+import MoneyFlowAmount from "./MoneyFlowAmount";
 
 export function DeleteDialog({ target, mutate, close, notify, restoreFocus }) {
   const [busy, setBusy] = useState(false);
@@ -134,7 +135,11 @@ export function HistoryDialog({
                   <p className="font-medium">{row.name || words(row.kind)}</p>
                   <p className="mt-1 text-slate-600">{dateLabel(row.date)}</p>
                 </div>
-                <span className="tabular-nums">{money(row.amount)}</span>
+                <span className="tabular-nums">
+                  {["income", "expense", "asset_financing_payment"].includes(row.kind) ? (
+                    <MoneyFlowAmount amount={row.amount} direction={row.kind === "income" ? "in" : "out"} />
+                  ) : money(row.amount)}
+                </span>
               </li>
             ))}
           </ul>

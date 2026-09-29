@@ -34,12 +34,31 @@ import {
 } from "lucide-react";
 
 export const cashKinds = ["cash", "bank", "ewallet"];
+export const cardNetworks = [
+  { value: "", label: "None / unknown", icon: CircleHelp },
+  { value: "mastercard", label: "Mastercard", icon: CreditCard },
+  { value: "visa", label: "Visa", icon: CreditCard },
+  { value: "amex", label: "American Express", icon: CreditCard },
+  { value: "jcb", label: "JCB", icon: CreditCard },
+  { value: "unionpay", label: "UnionPay", icon: CreditCard },
+  { value: "discover", label: "Discover", icon: CreditCard },
+  { value: "maestro", label: "Maestro", icon: CreditCard },
+];
 export const fundTypes = [
   { value: "pag_ibig", label: "Pag-IBIG", icon: House },
   { value: "mp2", label: "Pag-IBIG MP2", icon: PiggyBank },
+  { value: "sss", label: "SSS", icon: Landmark },
+  { value: "gsis", label: "GSIS", icon: Landmark },
+  { value: "retirement", label: "Retirement fund", icon: PiggyBank },
+  { value: "mutual_fund", label: "Mutual fund", icon: TrendingUp },
+  { value: "time_deposit", label: "Time deposit", icon: Landmark },
   { value: "investment", label: "Investment", icon: TrendingUp },
   { value: "other", label: "Other fund", icon: Wallet },
+  { value: "insurance", label: "Insurance coverage", icon: HeartPulse },
+  { value: "hmo", label: "HMO", icon: HeartPulse },
+  { value: "philhealth", label: "PhilHealth", icon: HeartPulse },
 ];
+export const coverageTypes = ["insurance", "hmo", "philhealth"];
 
 export const assetTypes = [
   ["house", "House", House],
@@ -72,6 +91,11 @@ export const institutions = [
     logo: "/dashboard-banks/securitybank.svg",
   },
   { value: "RCBC", label: "RCBC", logo: "/dashboard-banks/rcbc.svg" },
+  {
+    value: "GoTyme",
+    label: "GoTyme Bank",
+    logo: "/dashboard-banks/gotyme.svg",
+  },
   { value: "GCash", label: "GCash", logo: "/dashboard-banks/gcash.svg" },
   { value: "Maya", label: "Maya", logo: "/dashboard-banks/maya.ico" },
   { value: "__other", label: "Other institution", icon: Landmark },
@@ -92,6 +116,14 @@ const choiceIcons = {
   fund: PiggyBank,
   pag_ibig: House,
   mp2: PiggyBank,
+  sss: Landmark,
+  gsis: Landmark,
+  retirement: PiggyBank,
+  mutual_fund: TrendingUp,
+  time_deposit: Landmark,
+  insurance: HeartPulse,
+  hmo: HeartPulse,
+  philhealth: HeartPulse,
   fund_contribution: PiggyBank,
   fund_withdrawal: Wallet,
   giving: HeartHandshake,

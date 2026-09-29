@@ -1,5 +1,6 @@
 import { Progress } from "../ui/progress";
 import { money } from "../lib/format";
+import MoneyFlowAmount from "./MoneyFlowAmount";
 
 export default function BudgetProgress({ label, used, limit, credit = false }) {
   if (limit == null)
@@ -27,7 +28,7 @@ export default function BudgetProgress({ label, used, limit, credit = false }) {
       <div className="flex flex-wrap justify-between gap-2 text-sm">
         <span className="font-medium">{label}</span>
         <span className="tabular-nums">
-          {money(used)} / {money(limit)}
+          {credit ? money(used) : <MoneyFlowAmount amount={used} direction="out" />} / {money(limit)}
         </span>
       </div>
       <Progress

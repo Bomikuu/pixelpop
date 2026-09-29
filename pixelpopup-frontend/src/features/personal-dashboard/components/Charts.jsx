@@ -4,6 +4,9 @@ import {
   LineChart,
   Bar,
   BarChart,
+  PieChart,
+  Pie,
+  Cell,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -13,6 +16,24 @@ import { Button } from "../ui/button";
 import { money, dateLabel } from "../lib/format";
 import { EmptyState, Panel } from "./Panel";
 import RecordIdentity from "./RecordIdentity";
+import MoneyFlowAmount from "./MoneyFlowAmount";
+
+const fieldDirections = {
+  contributions: "out",
+  withdrawals: "in",
+  given: "out",
+  lent: "out",
+  repaid: "in",
+  expenses: "out",
+  paid: "out",
+};
+
+function chartAmount(value, field, amountDirection) {
+  const direction = field === "amount" ? amountDirection : fieldDirections[field];
+  return direction ? (
+    <MoneyFlowAmount amount={value} direction={direction} />
+  ) : money(value);
+}
 
 const config = {
   amount: { label: "Amount", color: "var(--chart-1)" },
@@ -32,7 +53,15 @@ const config = {
   unpriced: { label: "Needs amount", color: "var(--chart-2)" },
 };
 
-function ChartTable({ rows, fields, monetary = true, chartConfig = config }) {
+const assetColors = [
+  "var(--chart-1)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-2)",
+  "var(--chart-5)",
+];
+
+function ChartTable({ rows, fields, monetary = true, chartConfig = config, amountDirection }) {
   return (
     <details className="mt-4 text-sm">
       <summary className="cursor-pointer font-medium text-slate-600 hover:text-slate-950">
@@ -63,7 +92,7 @@ function ChartTable({ rows, fields, monetary = true, chartConfig = config }) {
                 {fields.map((field) => (
                   <td key={field} className="p-2 tabular-nums">
                     {monetary
-                      ? money(row[field])
+                      ? chartAmount(row[field], field, amountDirection)
                       : Number(row[field] || 0).toLocaleString("en-PH")}
                   </td>
                 ))}
@@ -139,7 +168,7 @@ export function SpendingChart({ charts }) {
                     }
                     formatter={(value, _, item) => (
                       <div className="grid gap-1">
-                        <span>{money(value)}</span>
+                        <MoneyFlowAmount amount={value} direction="out" />
                         <span className="text-xs text-slate-600">
                           {item.payload.count} expenses
                         </span>
@@ -158,7 +187,7 @@ export function SpendingChart({ charts }) {
               />
             </LineChart>
           </ChartContainer>
-          <ChartTable rows={rows} fields={["amount"]} />
+          <ChartTable rows={rows} fields={["amount"]} amountDirection="out" />
         </>
       ) : (
         <EmptyState
@@ -177,6 +206,7 @@ export function ComparisonChart({
   fields = ["income", "expenses"],
   monetary = true,
   amountLabel = "Amount",
+  amountDirection,
   incomeLabel = "Received income",
   comparisonMonth,
 }) {
@@ -200,6 +230,7 @@ export function ComparisonChart({
               monetary={monetary}
               chartConfig={chartConfig}
               preferredMonth={comparisonMonth}
+              amountDirection={amountDirection}
             />
           )}
           <div className="mb-3 flex flex-wrap gap-4 text-xs text-slate-600">
@@ -239,7 +270,7 @@ export function ComparisonChart({
                       <span>
                         {chartConfig[name]?.label}:{" "}
                         {monetary
-                          ? money(value)
+                          ? chartAmount(value, name, amountDirection)
                           : Number(value).toLocaleString("en-PH")}
                       </span>
                     )}
@@ -262,6 +293,7 @@ export function ComparisonChart({
             fields={fields}
             monetary={monetary}
             chartConfig={chartConfig}
+            amountDirection={amountDirection}
           />
         </>
       ) : (
@@ -280,6 +312,7 @@ function MonthComparison({
   monetary,
   chartConfig,
   preferredMonth,
+  amountDirection,
 }) {
   const [first, setFirst] = useState("");
   const [second, setSecond] = useState("");
@@ -327,7 +360,13 @@ function MonthComparison({
                 {chartConfig[field].label}
               </dt>
               <dd className="mt-1 text-sm font-medium tabular-nums">
-                {format(previous)} → {format(current)}
+                {monetary
+                  ? chartAmount(previous, field, amountDirection)
+                  : format(previous)}{" "}
+                →{" "}
+                {monetary
+                  ? chartAmount(current, field, amountDirection)
+                  : format(current)}
               </dd>
               <dd className="mt-1 text-xs tabular-nums text-slate-600">
                 {delta > 0 ? "+" : ""}
@@ -347,10 +386,100 @@ function MonthComparison({
   );
 }
 
-export function RecordCharts({ charts, month }) {
-  if (!charts) return null;
+function AssetCompositionTooltip({ active, payload }) {
+  const asset = payload?.[0]?.payload;
+  if (!active || !asset) return null;
   return (
-    <div className="space-y-4">
+    <div className="rounded-md border border-[var(--pd-border)] bg-white px-3 py-2 text-sm text-slate-950 shadow-sm">
+      <p className="font-medium">{asset.label}</p>
+      <p className="mt-1 tabular-nums">{money(asset.amount)} · {asset.percent.toFixed(1)}%</p>
+    </div>
+  );
+}
+
+function AssetComposition({ breakdown }) {
+  const amounts = breakdown
+    .map((item) => ({ label: item.label, amount: Number(item.amount) }))
+    .filter((item) => Number.isFinite(item.amount) && item.amount > 0);
+  const total = amounts.reduce((sum, item) => sum + item.amount, 0);
+  const rows = amounts.map((item) => ({
+    ...item,
+    percent: (item.amount / total) * 100,
+  }));
+
+  return (
+    <Panel
+      title="Asset composition"
+      description="Share of current recorded asset value by type."
+    >
+      {rows.length ? (
+        <div className="grid min-w-0 items-center gap-4 sm:grid-cols-[minmax(0,45fr)_minmax(0,55fr)]">
+          <div className="relative mx-auto aspect-square w-full max-w-64" aria-hidden="true">
+            <ChartContainer config={config} className="size-full">
+              <PieChart>
+                <Pie
+                  data={rows}
+                  dataKey="amount"
+                  nameKey="label"
+                  innerRadius="58%"
+                  outerRadius="93%"
+                  stroke="white"
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                >
+                  {rows.map((item, index) => (
+                    <Cell
+                      key={item.label}
+                      fill={assetColors[index % assetColors.length]}
+                      className="cursor-pointer transition-[filter] hover:brightness-110 motion-reduce:transition-none"
+                    />
+                  ))}
+                </Pie>
+                <ChartTooltip content={<AssetCompositionTooltip />} />
+              </PieChart>
+            </ChartContainer>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span className="text-xs text-slate-600">Asset value</span>
+              <span className="mt-1 text-sm font-semibold tabular-nums text-slate-950">
+                {new Intl.NumberFormat("en-PH", {
+                  style: "currency",
+                  currency: "PHP",
+                  notation: "compact",
+                  maximumFractionDigits: 1,
+                }).format(total)}
+              </span>
+            </div>
+          </div>
+          <dl className="min-w-0 space-y-1.5">
+            {rows.map((item, index) => (
+              <div key={item.label} className="flex items-start justify-between gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-[var(--pd-soft)] motion-reduce:transition-none">
+                <dt className="flex min-w-0 items-center gap-2 text-sm text-slate-700">
+                  <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: assetColors[index % assetColors.length] }} aria-hidden="true" />
+                  <span className="break-words">{item.label}</span>
+                </dt>
+                <dd className="shrink-0 text-right text-sm tabular-nums text-slate-950">
+                  <span className="font-medium">{item.percent.toFixed(1)}%</span>
+                  <span className="block text-xs text-slate-600">{money(item.amount)}</span>
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : (
+        <EmptyState
+          title="No asset value to chart"
+          message="Add an active asset with a recorded value to see the composition."
+        />
+      )}
+    </Panel>
+  );
+}
+
+export function RecordCharts({ charts, month, amountDirection, sideBySide = false, assetComposition = false }) {
+  if (!charts) return null;
+  const pairedCharts = sideBySide && charts.monthly && !charts.cards;
+  return (
+    <div className={pairedCharts ? "grid gap-4 xl:grid-cols-2" : "space-y-4"}>
       {charts.monthly && (
         <ComparisonChart
           title="Month-to-month comparison"
@@ -365,7 +494,7 @@ export function RecordCharts({ charts, month }) {
           comparisonMonth={month}
         />
       )}
-      <div className={charts.cards ? "grid gap-4 xl:grid-cols-2" : ""}>
+      <div className={charts.cards || assetComposition ? "grid gap-4 xl:grid-cols-2" : "min-w-0 [&>*]:h-full"}>
         <ComparisonChart
           title={charts.breakdown_title}
           description={
@@ -377,7 +506,9 @@ export function RecordCharts({ charts, month }) {
           fields={["amount"]}
           monetary={charts.monetary}
           amountLabel={charts.monetary ? "Amount" : "Records"}
+          amountDirection={amountDirection}
         />
+        {assetComposition && <AssetComposition breakdown={charts.breakdown || []} />}
         {charts.cards && (
           <ComparisonChart
             title="Current credit-card debt"
@@ -388,7 +519,7 @@ export function RecordCharts({ charts, month }) {
         )}
       </div>
       {Number(charts.unpriced) > 0 && (
-        <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <p className={(pairedCharts ? "xl:col-span-2 " : "") + "rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"}>
           {Number(charts.unpriced)} bill occurrence(s) in this comparison still
           need an amount. Their unknown amounts are excluded from monetary bars.
         </p>

@@ -40,6 +40,7 @@ import {
   TableRow,
 } from "../ui/table";
 import SummaryTiles from "./SummaryTiles";
+import MoneyFlowAmount from "./MoneyFlowAmount";
 import UrgencyBadge from "./UrgencyBadge";
 import { EmptyState, ErrorState, Panel } from "./Panel";
 import { dateLabel, money, today, words } from "../lib/format";
@@ -53,14 +54,18 @@ const entityMap = {
   schedules: "schedule",
 };
 function summaries(resource, values = {}, kind, bills) {
-  const f = (label, value, icon, monetary = true) => ({
+  const f = (label, value, icon, monetary = true, direction) => ({
     label,
-    value: monetary ? money(value) : (value ?? 0),
+    value: monetary
+      ? direction
+        ? <MoneyFlowAmount amount={value} direction={direction} />
+        : money(value)
+      : (value ?? 0),
     icon,
   });
   if (resource === "transactions" && kind === "income")
     return [
-      f("Received income", values.income, "income"),
+      f("Received income", values.income, "income", true, "in"),
       f("Expected income", values.expected, "income"),
       f("Total income", values.total_income, "income"),
       f(
@@ -73,8 +78,8 @@ function summaries(resource, values = {}, kind, bills) {
     ];
   if (resource === "transactions" && kind === "expense")
     return [
-      f("Total spent", values.expenses, "expenses"),
-      f("Spent today in filter", values.today_spent, "expenses"),
+      f("Total spent", values.expenses, "expenses", true, "out"),
+      f("Spent today in filter", values.today_spent, "expenses", true, "out"),
       f(
         "Largest category",
         values.largest_category || "No expenses",
@@ -85,16 +90,16 @@ function summaries(resource, values = {}, kind, bills) {
     ];
   if (resource === "transactions")
     return [
-      f("Received income", values.income, "income"),
+      f("Received income", values.income, "income", true, "in"),
       f("Expected income", values.expected, "income"),
-      f("Expenses", values.expenses, "expenses"),
+      f("Expenses", values.expenses, "expenses", true, "out"),
       f("Net income less expenses", values.net, "balance"),
       f("Records", values.count, "count", false),
     ];
   if (resource === "deadlines" && bills)
     return [
       f("Priced bill total", values.total, "debt"),
-      f("Paid", values.paid, "completed"),
+      f("Paid", values.paid, "completed", true, "out"),
       f("Unpaid", values.unpaid, "debt"),
       f("Overdue", values.overdue, "deadline", false),
       f("Unpriced bills", values.unpriced, "count", false),
@@ -108,21 +113,29 @@ function summaries(resource, values = {}, kind, bills) {
       f("Overdue", values.overdue, "deadline", false),
       f("Next deadline", values.next || "None scheduled", "deadline", false),
     ];
-  if (resource === "assets")
+  if (resource === "assets") {
+    const assetValue = Number(values.value);
+    const ratio = (amount) =>
+      assetValue > 0
+        ? ((Number(amount || 0) / assetValue) * 100).toFixed(1) + "%"
+        : "N/A";
     return [
-      f("Estimated asset value", values.value, "assets"),
-      f("Financing principal", values.financing_debt, "debt"),
-      f("Estimated equity", values.estimated_equity, "balance"),
-      f("Real estate", values.house, "assets"),
-      f("Vehicles", values.car, "assets"),
-      f("Other assets", values.other, "assets"),
+      f("Estimated asset value", values.value, "assetValue"),
+      f("Financing principal", values.financing_debt, "financing"),
+      f("Estimated equity", values.estimated_equity, "assetEquity"),
+      f("Equity ratio", ratio(values.estimated_equity), "equityRatio", false),
+      f("Debt ratio", ratio(values.financing_debt), "debtRatio", false),
+      f("Real estate", values.house, "realEstate"),
+      f("Vehicles", values.car, "vehicle"),
+      f("Other assets", values.other, "otherAsset"),
       f("Assets", values.count, "count", false),
     ];
+  }
   if (resource === "loans")
     return [
       f("Outstanding", values.outstanding, "loans"),
-      f("Principal lent", values.lent, "loans"),
-      f("Repaid", values.repaid, "income"),
+      f("Principal lent", values.lent, "loans", true, "out"),
+      f("Repaid", values.repaid, "income", true, "in"),
       f("Overdue principal", values.overdue, "deadline"),
       f("People", values.people, "count", false),
       f(
@@ -137,8 +150,8 @@ function summaries(resource, values = {}, kind, bills) {
   if (resource === "accounts" && kind === "fund")
     return [
       f("Current recorded value", values.funds, "funds"),
-      f("Contributed · selected month", values.contributions, "income"),
-      f("Withdrawn · selected month", values.withdrawals, "expenses"),
+      f("Contributed · selected month", values.contributions, "income", true, "out"),
+      f("Withdrawn · selected month", values.withdrawals, "expenses", true, "in"),
       f("Funds", values.count, "funds", false),
     ];
   if (resource === "accounts")
@@ -158,11 +171,11 @@ function summaries(resource, values = {}, kind, bills) {
   if (resource === "movements")
     return [
       f("Net cash movement", values.net_cash, "balance"),
-      f("Card repayments", values.card_payments, "debt"),
-      f("Loan disbursements", values.lent, "loans"),
-      f("Loan collections", values.collected, "income"),
-      f("Fund contributions", values.contributions, "funds"),
-      f("Fund withdrawals", values.withdrawals, "balance"),
+      f("Card repayments", values.card_payments, "debt", true, "out"),
+      f("Loan disbursements", values.lent, "loans", true, "out"),
+      f("Loan collections", values.collected, "income", true, "in"),
+      f("Fund contributions", values.contributions, "funds", true, "out"),
+      f("Fund withdrawals", values.withdrawals, "balance", true, "in"),
       f("Movements", values.count, "count", false),
     ];
   return [f("Records", values.count, "count", false)];
@@ -212,7 +225,7 @@ function RecentTransactionsChart({ rows = [] }) {
             <CartesianGrid vertical={false} />
             <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={18} tickFormatter={(label) => label.slice(0, 3)} />
             <YAxis tickFormatter={(value) => "₱" + new Intl.NumberFormat("en-PH", { notation: "compact" }).format(value)} tickLine={false} axisLine={false} width={58} />
-            <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => <span>{recentChartConfig[name]?.label}: {money(value)}</span>} />} />
+            <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => <span>{recentChartConfig[name]?.label}: <MoneyFlowAmount amount={value} direction={name === "income" ? "in" : "out"} /></span>} />} />
             <Bar dataKey="income" fill="var(--color-income)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
             <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
           </BarChart>
@@ -240,6 +253,10 @@ export default function RecordList({
   addEntity: addEntityOverride,
   addRecord,
   hideAdd = false,
+  headerActions,
+  accountScoped = false,
+  hideAnalytics = false,
+  initialTransactionKind = "",
 }) {
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -249,7 +266,7 @@ export default function RecordList({
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [page, setPage] = useState(1);
-  const [transactionKind, setTransactionKind] = useState("");
+  const [transactionKind, setTransactionKind] = useState(initialTransactionKind);
   const [acting, setActing] = useState(null);
   const [actionError, setActionError] = useState("");
   useEffect(() => {
@@ -262,6 +279,11 @@ export default function RecordList({
   }, [search, composing]);
   const dated = ["transactions", "deadlines", "movements"].includes(resource);
   const recent = compact && resource === "transactions";
+  const showsTransactionTypeFilter =
+    resource === "transactions" && !kind && (recent || accountScoped || !compact);
+  const displayedKind =
+    kind || (resource === "transactions" && !compact && !accountScoped ? transactionKind : "");
+  const searchId = resource + (fixedParams?.coverage ? "-coverage-" + fixedParams.coverage : "") + "-search";
   const params = new URLSearchParams({
     page: String(page),
     page_size: recent ? "10" : compact ? "100" : "20",
@@ -272,7 +294,7 @@ export default function RecordList({
   if (query) params.set("q", query);
   if (category) params.set("category", category);
   if (kind) params.set("kind", kind);
-  if (recent && transactionKind) params.set("kind", transactionKind);
+  if (showsTransactionTypeFilter && transactionKind) params.set("kind", transactionKind);
   if (bills) params.set("bills", "1");
   const state = useRecords(
     resource + "/?" + params.toString(),
@@ -296,16 +318,16 @@ export default function RecordList({
                 : resource === "deadlines"
                   ? ["title", "amount", "due_date", "urgency"]
                   : [
-                      "date",
-                      "name",
-                      ...(!compact && kind !== "income" ? ["recipient"] : []),
-                      "category_name",
-                      "amount",
-                      "account_name",
-                      ...(!recent ? ["payment_method"] : []),
-                      ...(kind === "income" ? ["receipt_state"] : []),
-                      ...(!compact ? ["notes"] : []),
-                    ];
+                    "date",
+                    "name",
+                    ...(!compact && displayedKind !== "income" ? ["recipient"] : []),
+                    "category_name",
+                    "amount",
+                    ...(!accountScoped ? ["account_name"] : []),
+                    ...(!recent ? ["payment_method"] : []),
+                    ...(displayedKind === "income" ? ["receipt_state"] : []),
+                    ...(!compact ? ["notes"] : []),
+                  ];
   const entity = (row) =>
     resource === "transactions"
       ? row.recipient
@@ -314,11 +336,7 @@ export default function RecordList({
       : entityMap[resource];
   if (resource === "loans") fields.push("collection_state", "notes");
   async function complete(row) {
-    if (
-      row.amount != null ||
-      ["bill", "subscription", "payment"].includes(row.kind) ||
-      row.settlement_kind !== "expense"
-    ) {
+    if (!["task", "reminder"].includes(row.kind)) {
       openForm("settlement", row);
       return;
     }
@@ -365,14 +383,7 @@ export default function RecordList({
       );
     }
     if (recent && field === "amount") {
-      const Icon = row.kind === "income" ? ArrowDownLeft : ArrowUpRight;
-      return (
-        <span className={"inline-flex items-center gap-1 font-semibold tabular-nums " + (row.kind === "income" ? "text-emerald-700" : "text-rose-700")}>
-          <Icon size={15} aria-hidden="true" />
-          <span className="sr-only">{row.kind === "income" ? "Income" : "Expense"}: </span>
-          {money(row.amount)}
-        </span>
-      );
+      return <MoneyFlowAmount amount={row.amount} direction={row.kind === "income" ? "in" : "out"} />;
     }
     if (resource === "assets" && field === "name")
       return (
@@ -397,11 +408,16 @@ export default function RecordList({
       (resource === "movements" && field === "kind")
     )
       return (
-        <RecordIdentity
-          resource={resource}
-          row={row}
-          label={(field === "kind" ? words(row[field]) : row[field]) || "—"}
-        />
+        <span>
+          <RecordIdentity
+            resource={resource}
+            row={row}
+            label={(field === "kind" ? words(row[field]) : row[field]) || "—"}
+          />
+          {accountScoped && field === "name" && row.kind === "income" && row.receipt_state === "expected" && (
+            <span className="mt-1 block text-xs font-medium text-amber-800">Expected · not yet in balance</span>
+          )}
+        </span>
       );
     if (field === "urgency")
       return (
@@ -430,7 +446,9 @@ export default function RecordList({
     )
       return (
         <span className="tabular-nums">
-          {field === "amount" && row.asset_financing && row.status === "pending" ? (
+          {field === "amount" && ["task", "reminder"].includes(row.kind) && resource === "deadlines" ? (
+            <span className="text-slate-500">—</span>
+          ) : field === "amount" && row.asset_financing && row.status === "pending" ? (
             <>
               {money(row.remaining_due)}
               <span className="block text-xs text-slate-600">of {money(row.amount)} due</span>
@@ -446,7 +464,15 @@ export default function RecordList({
               "Not set"
             )
           ) : (
-            money(row[field])
+            field === "amount" && resource === "transactions" ? (
+              <MoneyFlowAmount amount={row[field]} direction={row.kind === "income" ? "in" : "out"} />
+            ) : field === "amount" && resource === "movements" && row.kind !== "transfer" ? (
+              <MoneyFlowAmount amount={row[field]} direction={["loan_repayment", "fund_withdrawal"].includes(row.kind) ? "in" : "out"} />
+            ) : field === "principal" && resource === "loans" ? (
+              <MoneyFlowAmount amount={row[field]} direction="out" />
+            ) : (
+              money(row[field])
+            )
           )}
         </span>
       );
@@ -466,41 +492,75 @@ export default function RecordList({
   }
   const addEntity =
     addEntityOverride ||
-    (resource === "transactions" ? kind || "expense" : entityMap[resource]);
+    (resource === "transactions" ? displayedKind || "expense" : entityMap[resource]);
   return (
     <div className="min-w-0 space-y-4">
-      {!compact && state.data?.summary && (
+      {!compact && !accountScoped && !hideAnalytics && state.data?.summary && (
         <SummaryTiles
-          items={summaries(resource, state.data.summary, kind, bills)}
+          items={fixedParams?.coverage === "1"
+            ? [{ label: "Coverage records", value: state.data.summary.count, icon: "count" }]
+            : summaries(resource, state.data.summary, displayedKind, bills)}
         />
       )}
-      {!compact && state.data?.charts && (
-        <RecordCharts charts={state.data.charts} month={month} />
+      {!compact && !accountScoped && !hideAnalytics && fixedParams?.coverage !== "1" && state.data?.charts && (
+        <RecordCharts
+          charts={state.data.charts}
+          month={month}
+          amountDirection={resource === "transactions" && displayedKind === "expense" ? "out" : undefined}
+          sideBySide={
+            (resource === "transactions" && !kind) ||
+            resource === "deadlines" ||
+            (resource === "accounts" && kind === "fund" && fixedParams?.coverage === "0")
+          }
+          assetComposition={resource === "assets"}
+        />
       )}
       <Panel
         title={title}
         description={
-          recent
-            ? "Your latest income and expenses, with the selected period applied to the list and totals."
-            : compact
-            ? undefined
-            : dated
-              ? "Summary and records follow this period and filters."
-              : "Current recorded values. Open history for dated movements."
+          accountScoped
+            ? "Income and expenses recorded against this account."
+            : recent
+              ? "Your latest income and expenses, with the selected period applied to the list and totals."
+              : compact
+                ? undefined
+                : resource === "accounts" && fixedParams?.coverage === "1"
+                  ? "Keep coverage details here. Premiums belong in Expenses, and coverage does not count toward net worth."
+                  : fixedParams?.coverage
+                    ? "Expenses linked to this coverage. Change the period to see earlier payments."
+                    : dated
+                      ? "Summary and records follow this period and filters."
+                      : "Current recorded values. Open history for dated movements."
         }
         action={
-          !compact && !hideAdd && addEntity && resource !== "schedules" ? (
+          headerActions ?? (!compact && !hideAdd && resource === "deadlines" ? (
+            <div className="flex flex-wrap gap-2">
+              {!bills && (
+                <Button onClick={() => openForm("deadline", { kind: "task" })}>
+                  <Plus aria-hidden="true" />
+                  Add Task
+                </Button>
+              )}
+              {bills && (
+                <Button onClick={() => openForm("deadline", { kind: "bill" })}>
+                  <Plus aria-hidden="true" />
+                  Add Bill
+                </Button>
+              )}
+
+            </div>
+          ) : !compact && !hideAdd && addEntity && resource !== "schedules" ? (
             <Button onClick={() => openForm(addEntity, addRecord)}>
               <Plus aria-hidden="true" />
               Add {words(addEntity).toLowerCase()}
             </Button>
-          ) : undefined
+          ) : undefined)
         }
       >
         {(!compact || recent) && (
           <div className={recent ? "mb-5 flex flex-wrap items-end justify-end gap-3" : "mb-4 flex flex-wrap items-end gap-3"}>
             <div className={recent ? "w-full min-w-44 sm:w-64" : "min-w-40 flex-1"}>
-              <Label htmlFor={resource + "-search"} className={recent ? "sr-only" : "mb-2 block"}>
+              <Label htmlFor={searchId} className={recent ? "sr-only" : "mb-2 block"}>
                 {recent ? "Search transactions" : "Search records"}
               </Label>
               <div className="relative">
@@ -510,7 +570,7 @@ export default function RecordList({
                   aria-hidden="true"
                 />
                 <Input
-                  id={resource + "-search"}
+                  id={searchId}
                   value={search}
                   onCompositionStart={() => setComposing(true)}
                   onCompositionEnd={() => setComposing(false)}
@@ -533,7 +593,7 @@ export default function RecordList({
                     onClick={() => {
                       setSearch("");
                       setQuery("");
-                      document.getElementById(resource + "-search")?.focus();
+                      document.getElementById(searchId)?.focus();
                     }}
                   >
                     <X />
@@ -648,8 +708,8 @@ export default function RecordList({
               <RecentTransactionsChart rows={state.data.charts?.monthly} />
               {[
                 { label: "Transactions", value: state.data.summary?.count ?? 0, icon: ListChecks, tone: "bg-blue-50 text-blue-700", surface: "bg-blue-50/30" },
-                { label: "Money in", value: money(state.data.summary?.income ?? 0), icon: ArrowDownLeft, tone: "bg-emerald-50 text-emerald-700", surface: "bg-emerald-50/30" },
-                { label: "Money out", value: money(state.data.summary?.expenses ?? 0), icon: ArrowUpRight, tone: "bg-rose-50 text-rose-700", surface: "bg-rose-50/30" },
+                { label: "Money in", value: <MoneyFlowAmount amount={state.data.summary?.income ?? 0} direction="in" />, icon: ArrowDownLeft, tone: "bg-emerald-50 text-emerald-700", surface: "bg-emerald-50/30" },
+                { label: "Money out", value: <MoneyFlowAmount amount={state.data.summary?.expenses ?? 0} direction="out" />, icon: ArrowUpRight, tone: "bg-rose-50 text-rose-700", surface: "bg-rose-50/30" },
               ].map(({ label, value, icon: Icon, tone, surface }) => (
                 <div key={label} className={"min-w-0 rounded-lg border border-[var(--pd-border)] p-4 transition-colors hover:border-blue-200 motion-reduce:transition-none lg:col-span-1 xl:col-span-2 " + surface}>
                   <span className={"grid size-9 place-items-center rounded-full " + tone}><Icon size={18} aria-hidden="true" /></span>
@@ -659,7 +719,7 @@ export default function RecordList({
               ))}
             </div>
             <p className="mt-2 text-xs text-slate-600">Search, category and type apply to the chart. Period selection applies to the list and totals.</p>
-            <div className="my-4 flex flex-wrap gap-2" aria-label="Transaction type">
+            <div className="my-4 flex flex-wrap gap-2" role="group" aria-label="Transaction type">
               {[["", "All"], ["income", "Income"], ["expense", "Expenses"]].map(([value, label]) => (
                 <Button
                   key={label}
@@ -675,6 +735,22 @@ export default function RecordList({
             </div>
           </>
         )}
+        {!recent && showsTransactionTypeFilter && state.data && !state.error && (
+          <div className="my-4 flex flex-wrap gap-2" role="group" aria-label="Transaction type">
+            {[["", "All"], ["income", "Income"], ["expense", "Expenses"]].map(([value, label]) => (
+              <Button
+                key={label}
+                size="sm"
+                variant={transactionKind === value ? "secondary" : "ghost"}
+                aria-pressed={transactionKind === value}
+                onClick={() => { setTransactionKind(value); setPage(1); }}
+              >
+                {value === "income" ? <ArrowDownLeft aria-hidden="true" /> : value === "expense" ? <ArrowUpRight aria-hidden="true" /> : <ArrowLeftRight aria-hidden="true" />}
+                {label}
+              </Button>
+            ))}
+          </div>
+        )}
         {(state.error || actionError) && (
           <ErrorState
             message={state.error || actionError}
@@ -687,11 +763,15 @@ export default function RecordList({
           </p>
         ) : !rows.length ? (
           <EmptyState
-            title={query || category || (recent && (transactionKind || period !== "month")) ? "No matching records" : "No records yet"}
+            title={query || category || (showsTransactionTypeFilter && transactionKind) || (dated && period !== "month") ? "No matching records" : "No records yet"}
             message={
-              query || category || (recent && (transactionKind || period !== "month"))
+              query || category || (showsTransactionTypeFilter && transactionKind) || (dated && period !== "month")
                 ? "Try clearing the search or changing your filters."
-                : "Add a record when you're ready. No sample balances are included."
+                : fixedParams?.coverage
+                  ? "No premium payments are recorded for this coverage in this period."
+                  : accountScoped
+                    ? "No income or expenses are recorded for this account in this period."
+                    : "Add a record when you're ready. No sample balances are included."
             }
           />
         ) : (
@@ -699,6 +779,7 @@ export default function RecordList({
             {resource === "accounts" ? (
               <AccountCards
                 rows={rows}
+                month={month}
                 openForm={openForm}
                 showHistory={showHistory}
                 confirmDelete={confirmDelete}
@@ -722,7 +803,7 @@ export default function RecordList({
                         key={row.id}
                         className={
                           (row.status && row.status !== "pending") ||
-                          row.active === false
+                            row.active === false
                             ? "text-slate-500"
                             : row.urgency === "overdue"
                               ? "bg-red-50/70"
@@ -793,7 +874,15 @@ export default function RecordList({
                                   <Button
                                     size="icon"
                                     variant="ghost"
-                                    aria-label={"Complete or pay " + row.title}
+                                    aria-label={
+                                      (["task", "reminder"].includes(row.kind)
+                                        ? "Complete "
+                                        : row.financing_asset_id
+                                          ? "Open asset to record payment for "
+                                          : row.settlement_kind === "loan_collection"
+                                            ? "Record collection for "
+                                            : "Pay bill ") + row.title
+                                    }
                                     disabled={acting === row.id}
                                     onClick={() => complete(row)}
                                   >

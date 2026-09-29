@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowUpRight,
   ArrowLeftRight,
@@ -10,14 +11,15 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
-import RecordIdentity from "../components/RecordIdentity";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import SummaryTiles from "../components/SummaryTiles";
+import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import { ComparisonChart, SpendingChart } from "../components/Charts";
 import BudgetProgress from "../components/BudgetProgress";
 import RecordList from "../components/RecordList";
 import { Panel, EmptyState } from "../components/Panel";
-import { money, monthLabel, today } from "../lib/format";
+import { money, monthLabel, today, words } from "../lib/format";
 import { useRecords } from "../hooks/useDashboardData";
 import UrgencyBadge from "../components/UrgencyBadge";
 import { dateLabel } from "../lib/format";
@@ -32,6 +34,17 @@ function deadlineGroup(row) {
   return days <= 7 - (now.getUTCDay() || 7) ? "This week" : "Later";
 }
 
+function deadlineNeedsAttention(row) {
+  return ["overdue", "today", "soon"].includes(row.urgency);
+}
+
+function deadlineAction(row) {
+  if (["task", "reminder"].includes(row.kind)) return "Complete task";
+  if (row.financing_asset_id) return "Open asset to record payment";
+  if (row.settlement_kind === "loan_collection") return "Record collection";
+  return "Pay bill";
+}
+
 function monthComparison(current, previous, previousMonth, increaseIsGood) {
   if (!previousMonth || previous == null || current == null) return null;
   const value = Number(current);
@@ -39,13 +52,11 @@ function monthComparison(current, previous, previousMonth, increaseIsGood) {
   if (!Number.isFinite(value) || !Number.isFinite(baseline)) return null;
   const priorLabel = monthLabel(previousMonth);
   if (baseline === 0) {
-    return value === 0
-      ? { text: "No change from " + priorLabel, trend: "flat", tone: "neutral" }
-      : { text: "No " + priorLabel + " baseline", tone: "neutral" };
+    return { text: "No " + priorLabel + " baseline", noBaseline: true };
   }
   const difference = value - baseline;
   if (difference === 0)
-    return { text: "No change from " + priorLabel, trend: "flat", tone: "neutral" };
+    return { text: "0% change vs last month", trend: "flat", tone: "neutral" };
   const percentage = Math.abs((difference / baseline) * 100);
   const rounded = Number(percentage.toFixed(1));
   return {
@@ -53,8 +64,7 @@ function monthComparison(current, previous, previousMonth, increaseIsGood) {
       (rounded === 0 ? "<0.1" : String(rounded)) +
       "% " +
       (difference > 0 ? "more" : "less") +
-      " than " +
-      priorLabel,
+      " vs last month",
     trend: difference > 0 ? "up" : "down",
     tone: (difference > 0) === increaseIsGood ? "positive" : "negative",
   };
@@ -66,7 +76,20 @@ export default function OverviewView({
   navigate,
   ...actions
 }) {
+  const [settlingId, setSettlingId] = useState(null);
   const o = dashboard.data.overview;
+  async function settle(row) {
+    if (!["task", "reminder"].includes(row.kind)) {
+      await actions.settleDeadline(row);
+      return;
+    }
+    setSettlingId(row.id);
+    try {
+      await actions.settleDeadline(row);
+    } finally {
+      setSettlingId(null);
+    }
+  }
   const upcoming = useRecords(
     "deadlines/?status=pending&page_size=8",
     dashboard.request,
@@ -80,12 +103,22 @@ export default function OverviewView({
       ),
     }),
   );
+  const availableOkay = Number(o.position.available) >= 0;
+  const projectedOkay = Number(o.month.remaining) >= 0;
+  const monthlyBudgetOkay = o.budget.limit == null
+    ? null
+    : Number(o.month.expenses) <= Number(o.budget.limit);
+  const dailyGuideOkay = o.budget.daily == null
+    ? null
+    : Number(o.today.spent) <= Number(o.budget.daily);
   const tiles = [
     {
       label: "Current balance",
       value: money(o.position.available),
       hint: "Available cash and bank balances",
       icon: "balance",
+      statusTone: availableOkay ? "positive" : "negative",
+      statusText: availableOkay ? "Balance at or above zero" : "Balance below zero",
     },
     {
       label: "Tracked net worth",
@@ -110,11 +143,12 @@ export default function OverviewView({
       value: money(o.month.income),
       hint: money(o.month.expected) + " still expected",
       icon: "income",
+      comparisonExpected: true,
       comparison: monthComparison(o.month.income, o.previous_month?.income, o.previous_month?.month, true),
     },
     {
       label: "Monthly expenses",
-      value: money(o.month.expenses),
+      value: <MoneyFlowAmount amount={o.month.expenses} direction="out" />,
       hint:
         o.month.income > 0
           ? ((Number(o.month.expenses) / Number(o.month.income)) * 100).toFixed(
@@ -122,13 +156,17 @@ export default function OverviewView({
             ) + "% of monthly income"
           : "No monthly income recorded",
       icon: "expenses",
+      statusTone: monthlyBudgetOkay == null ? "neutral" : monthlyBudgetOkay ? "positive" : "negative",
+      statusText: monthlyBudgetOkay == null ? undefined : monthlyBudgetOkay ? "Within monthly budget" : "Over monthly budget",
+      comparisonExpected: true,
       comparison: monthComparison(o.month.expenses, o.previous_month?.expenses, o.previous_month?.month, false),
     },
     {
       label: "Monthly cash outflow",
-      value: money(o.month.cash_outflow),
-      hint: money(o.month.financing_cash) + " paid toward financed assets; excludes transfers",
+      value: <MoneyFlowAmount amount={o.month.cash_outflow} direction="out" />,
+      hint: <><MoneyFlowAmount amount={o.month.financing_cash} direction="out" /> paid toward financed assets; excludes transfers</>,
       icon: "expenses",
+      comparisonExpected: true,
       comparison: monthComparison(o.month.cash_outflow, o.previous_month?.cash_outflow, o.previous_month?.month, false),
     },
     {
@@ -142,15 +180,19 @@ export default function OverviewView({
       value: money(o.month.remaining),
       hint: "Income less expenses and unpaid bills; financed payments include principal",
       icon: "budget",
+      statusTone: projectedOkay ? "positive" : "negative",
+      statusText: projectedOkay ? "Projected balance covered" : "Projected shortfall",
     },
     {
       label: "Spent today",
-      value: money(o.today.spent),
+      value: <MoneyFlowAmount amount={o.today.spent} direction="out" />,
       hint:
         o.budget.daily == null
           ? "Set a monthly budget for a daily guide"
           : "Daily guide: " + money(o.budget.daily),
       icon: "expenses",
+      statusTone: dailyGuideOkay == null ? "neutral" : dailyGuideOkay ? "positive" : "negative",
+      statusText: dailyGuideOkay == null ? undefined : dailyGuideOkay ? "Within daily guide" : "Above daily guide",
     },
   ];
   return (
@@ -178,7 +220,7 @@ export default function OverviewView({
           </TabsTrigger>
         </TabsList>
         <TabsContent value="summary" className="space-y-6">
-          <SummaryTiles items={tiles} />
+          <SummaryTiles items={tiles} primaryCount={4} tooltipWhenNoBaseline />
           <Panel
             title="Next deadlines"
             description="Outstanding items across all months, earliest first."
@@ -235,55 +277,59 @@ export default function OverviewView({
                           <li key={r.id} className="min-w-0">
                             <button
                               type="button"
-                              onClick={() => actions.openForm("deadline", r)}
+                              onClick={() => settle(r)}
+                              disabled={settlingId === r.id}
                               aria-label={
-                                "Review " +
+                                deadlineAction(r) + " " +
                                 r.title +
                                 ", due " +
-                                dateLabel(r.due_date)
+                                dateLabel(r.due_date) +
+                                ", " + r.urgency
                               }
                               className={
-                                "group flex h-full w-full flex-col rounded-lg border p-3 text-left text-sm text-slate-950 transition-colors hover:border-rose-300 hover:bg-rose-100/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)] motion-reduce:transition-none " +
-                                (r.urgency === "overdue"
-                                  ? "border-rose-200 bg-rose-100/50"
-                                  : "border-rose-100 bg-rose-50/60")
+                                "group relative isolate flex h-full w-full flex-col overflow-hidden rounded-lg border bg-white p-3 text-left text-sm text-slate-950 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)] motion-reduce:transition-none " +
+                                (deadlineNeedsAttention(r)
+                                  ? "border-rose-200 hover:border-rose-400"
+                                  : "border-emerald-200 hover:border-emerald-400")
                               }
                             >
-                              <span className="flex w-full items-start gap-2">
-                                <span className="min-w-0 flex-1 [&>span>span:last-child]:font-semibold">
-                                  <RecordIdentity
-                                    resource="deadlines"
-                                    row={r}
-                                    label={r.title}
-                                  />
-                                </span>
-                                <ChevronRight
-                                  size={18}
-                                  aria-hidden="true"
-                                  className="mt-2 shrink-0 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-rose-800 motion-reduce:transform-none motion-reduce:transition-none"
-                                />
+                              <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-lg">
+                                <span className={"absolute -bottom-10 -right-5 size-32 rounded-full border " + (deadlineNeedsAttention(r) ? "border-rose-200/70" : "border-emerald-200/70")} />
+                                <span className={"absolute -bottom-9 -right-7 size-24 rounded-full " + (deadlineNeedsAttention(r) ? "bg-rose-200/50" : "bg-emerald-200/50")} />
+                                <span className={"absolute bottom-2 right-14 size-10 rounded-full " + (deadlineNeedsAttention(r) ? "bg-rose-200/40" : "bg-emerald-200/40")} />
+                                <span className={"absolute bottom-11 right-28 size-3 rounded-full " + (deadlineNeedsAttention(r) ? "bg-rose-200/70" : "bg-emerald-200/70")} />
                               </span>
-                              <span className="ml-11 mt-1 flex items-start gap-1.5 text-xs leading-5 text-slate-600">
-                                <CalendarDays
-                                  size={14}
-                                  className="mt-0.5 shrink-0"
+                              {r.urgency === "overdue" && (
+                                <span
                                   aria-hidden="true"
+                                  className="pointer-events-none absolute inset-0 z-20 rounded-lg border-2 border-rose-400 motion-safe:animate-pulse"
                                 />
-                                <span>
-                                  {dateLabel(r.due_date)}
-                                  {r.due_time
-                                    ? " · " + r.due_time.slice(0, 5) + " PHT"
-                                    : ""}
-                                </span>
+                              )}
+                              <span className="relative z-10 flex w-full min-w-0 items-start justify-between gap-2">
+                                <span className="min-w-0 break-words font-semibold leading-5">{r.title}</span>
+                                <Badge variant="outline" className="rounded-md border-slate-200 bg-white/90 text-slate-600">
+                                  {words(r.kind)}
+                                </Badge>
                               </span>
-                              {r.amount != null && (
-                                <span className="ml-11 mt-1 text-xs leading-5 text-slate-600 tabular-nums">
+                              <span className="relative z-10 mt-2 text-xs leading-5 text-slate-600">
+                                {dateLabel(r.due_date)}
+                                {r.due_time
+                                  ? " · " + r.due_time.slice(0, 5) + " PHT"
+                                  : ""}
+                              </span>
+                              {r.amount != null && !["task", "reminder"].includes(r.kind) && (
+                                <span className="relative z-10 mt-1 text-xs leading-5 text-slate-600 tabular-nums">
                                   {money(r.financing_asset_id ? r.remaining_due : r.amount)}
                                   {r.financing_asset_id && " left of " + money(r.amount)}
                                 </span>
                               )}
-                              <span className="mt-auto pt-2">
+                              <span className="relative z-10 mt-auto flex w-full items-center justify-between gap-2 pt-3">
                                 <UrgencyBadge state={r.urgency} />
+                                <ChevronRight
+                                  size={18}
+                                  aria-hidden="true"
+                                  className={"shrink-0 text-slate-500 transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none motion-reduce:transition-none " + (deadlineNeedsAttention(r) ? "group-hover:text-rose-800" : "group-hover:text-emerald-800")}
+                                />
                               </span>
                             </button>
                           </li>
@@ -360,7 +406,7 @@ export default function OverviewView({
               <dl className="grid grid-cols-2 gap-4 text-sm">
                 {[
                   ["Priced bills", money(o.bills.total)],
-                  ["Paid", money(o.bills.paid)],
+                  ["Paid", <MoneyFlowAmount amount={o.bills.paid} direction="out" />],
                   ["Still to pay", money(o.bills.unpaid)],
                   ["Unpriced bills", o.bills.unpriced],
                   ["Pending items", o.bills.pending],
@@ -456,7 +502,7 @@ export default function OverviewView({
                   ))}
                   <li className="flex items-start gap-3 rounded-md border border-[var(--pd-border)] bg-[var(--pd-soft)]/40 p-3 text-sm leading-6 text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50/50 motion-reduce:transition-none">
                     <CalendarDays size={17} className="mt-1 shrink-0 text-[var(--pd-primary)]" aria-hidden="true" />
-                    <span>Average daily spending <strong className="block text-base text-slate-950 tabular-nums">{money(o.average_daily)}</strong></span>
+                    <span>Average daily spending <strong className="block text-base tabular-nums"><MoneyFlowAmount amount={o.average_daily} direction="out" /></strong></span>
                   </li>
                   <li className="flex items-start gap-3 rounded-md border border-[var(--pd-border)] bg-[var(--pd-soft)]/40 p-3 text-sm leading-6 text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50/50 motion-reduce:transition-none">
                     <TrendingUp size={17} className="mt-1 shrink-0 text-[var(--pd-primary)]" aria-hidden="true" />

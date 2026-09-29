@@ -103,8 +103,16 @@
 }
 .personal-dashboard [data-slot="select-trigger"] {
   background: white;
-  border-color: var(--pd-border);
+  border-color: #94a3b8;
+  border-style: solid;
   padding: 0.5rem 0.75rem;
+}
+.personal-dashboard [data-slot="select-trigger"]:focus-visible,
+.personal-dashboard [data-slot="select-trigger"][data-state="open"] {
+  border-color: var(--pd-primary);
+}
+.personal-dashboard [data-slot="select-trigger"][aria-invalid="true"] {
+  border-color: #b91c1c;
 }
 .personal-dashboard button:focus {
   outline: none;

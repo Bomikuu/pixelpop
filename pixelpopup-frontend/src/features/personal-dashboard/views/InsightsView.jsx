@@ -1,4 +1,5 @@
 import SummaryTiles from "../components/SummaryTiles";
+import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import { ComparisonChart, SpendingChart } from "../components/Charts";
 import { Panel, EmptyState } from "../components/Panel";
 import BudgetProgress from "../components/BudgetProgress";
@@ -23,12 +24,12 @@ export default function InsightsView({
           },
           {
             label: "Monthly spending",
-            value: money(o.month.expenses),
+            value: <MoneyFlowAmount amount={o.month.expenses} direction="out" />,
             icon: "expenses",
           },
           {
             label: "Daily average",
-            value: money(o.average_daily),
+            value: <MoneyFlowAmount amount={o.average_daily} direction="out" />,
             icon: "expenses",
           },
           {
@@ -83,7 +84,7 @@ export default function InsightsView({
                         />
                       </th>
                       <td className="p-3 tabular-nums">{money(r.income)}</td>
-                      <td className="p-3 tabular-nums">{money(r.expenses)}</td>
+                      <td className="p-3 tabular-nums"><MoneyFlowAmount amount={r.expenses} direction="out" /></td>
                       <td className="p-3 tabular-nums">{money(r.remaining)}</td>
                     </tr>
                   ))}
@@ -112,6 +113,7 @@ export default function InsightsView({
           }))}
           fields={["amount"]}
           amountLabel="Spent"
+          amountDirection="out"
         />
         <Panel
           title="Category breakdown"
@@ -124,7 +126,7 @@ export default function InsightsView({
                   <div className="mb-2 flex justify-between gap-2 text-sm">
                     <span className="font-medium">{row.name}</span>
                     <span className="tabular-nums">
-                      {money(row.amount)} · {row.percentage}%
+                      <MoneyFlowAmount amount={row.amount} direction="out" /> · {row.percentage}%
                     </span>
                   </div>
                   <div className="h-2 overflow-hidden rounded bg-slate-100">
@@ -152,9 +154,9 @@ export default function InsightsView({
         <Panel title="Month summary">
           <dl className="grid grid-cols-2 gap-5">
             {[
-              ["Received income", money(o.month.received)],
+              ["Received income", <MoneyFlowAmount amount={o.month.received} direction="in" />],
               ["Expected income", money(o.month.expected)],
-              ["Expenses", money(o.month.expenses)],
+              ["Expenses", <MoneyFlowAmount amount={o.month.expenses} direction="out" />],
               [
                 "Income less expenses",
                 money(Number(o.month.income) - Number(o.month.expenses)),

@@ -32,6 +32,7 @@ export default function ChoiceTiles({
   describedBy,
   required = false,
   compact = false,
+  accountChoices = false,
 }) {
   return (
     <fieldset
@@ -47,7 +48,9 @@ export default function ChoiceTiles({
       </legend>
       <div
         className={
-          compact
+          accountChoices
+            ? "grid max-h-64 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2"
+            : compact
             ? "flex flex-wrap gap-2"
             : "grid grid-cols-2 gap-2 sm:grid-cols-3"
         }
@@ -77,7 +80,7 @@ export default function ChoiceTiles({
                 className="sr-only"
               />
               {option.logo ? (
-                <InstitutionLogo institution={option} />
+                <InstitutionLogo institution={option} className={accountChoices ? "h-6 w-8 shrink-0" : undefined} />
               ) : (
                 <Icon
                   size={18}
@@ -86,7 +89,8 @@ export default function ChoiceTiles({
                 />
               )}
               <span className="min-w-0 flex-1 break-words leading-5">
-                {option.label}
+                <span className="block">{option.label}</span>
+                {option.description && <span className="mt-0.5 block text-xs text-slate-600">{option.description}</span>}
               </span>
               {selected && (
                 <Check
