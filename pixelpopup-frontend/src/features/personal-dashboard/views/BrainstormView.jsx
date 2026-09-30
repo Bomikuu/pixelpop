@@ -1,17 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Archive, ArrowRight, Check, ChevronLeft, ChevronRight, ClipboardList,
+  Archive, ArrowRight, ChevronLeft, ChevronRight, ClipboardList,
   FileJson2, Lightbulb, Pencil, Plus, Search, Trash2, X,
 } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import { Label } from "../ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { EmptyState, ErrorState } from "../components/Panel";
+import FormModalShell from "../components/forms/FormModalShell";
+import BrainstormFilterSelect from "../components/brainstorm/BrainstormFilterSelect";
+import BoardForm, { boardPayload } from "../components/brainstorm/forms/BoardForm";
+import GroupForm, { groupPayload } from "../components/brainstorm/forms/GroupForm";
+import IdeaForm, { ideaPayload } from "../components/brainstorm/forms/IdeaForm";
+import CarryForm, { carryPayload } from "../components/brainstorm/forms/CarryForm";
+import ImportForm from "../components/brainstorm/forms/ImportForm";
+import BrainstormConfirmDialog from "../components/brainstorm/forms/BrainstormConfirmDialog";
 
 const statuses = ["inbox", "planned", "in_progress", "carried_over", "done", "archived"];
 const urgencies = ["high", "medium", "low", "someday"];
@@ -21,15 +26,6 @@ const errorText = (error) => {
   if (!error?.fields || typeof error.fields !== "object") return error?.message || "Something went wrong. Please try again.";
   return Object.entries(error.fields).map(([field, detail]) => `${field}: ${typeof detail === "object" ? JSON.stringify(detail) : String(detail)}`).join(" · ");
 };
-
-function Choice({ id, value, onChange, items, placeholder = "All", className = "", labelText, disabled = false }) {
-  return <Select value={value} onValueChange={onChange} disabled={disabled}>
-    <SelectTrigger id={id} aria-label={labelText} className={`h-9 bg-white ${className}`}><SelectValue placeholder={placeholder} /></SelectTrigger>
-    <SelectContent className="personal-dashboard" position="popper">
-      {items.map(([key, name]) => <SelectItem key={key} value={key}>{name}</SelectItem>)}
-    </SelectContent>
-  </Select>;
-}
 
 function IdeaCard({ idea, groups, busy, onEdit, onPatch, onCarry, onDelete }) {
   return <article className="group flex h-full flex-col border border-slate-200 bg-white p-4 shadow-[0_3px_12px_-9px_rgba(15,23,42,.4)] transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_8px_22px_-13px_rgba(15,23,42,.4)] focus-within:border-blue-400 motion-reduce:transform-none motion-reduce:transition-none">
@@ -49,9 +45,9 @@ function IdeaCard({ idea, groups, busy, onEdit, onPatch, onCarry, onDelete }) {
     {idea.task_id && <Link to="/dashboard/deadlines" className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-700 underline-offset-4 hover:underline">Task {label(idea.task_status || "pending")} <ArrowRight size={13} /></Link>}
     {!idea.task_id && idea.task_status === "missing" && <p className="mt-3 text-xs text-amber-800">Linked task was deleted. You can carry this idea again.</p>}
     <div className="mt-3 grid grid-cols-2 gap-1.5 border-t border-slate-100 pt-3 sm:grid-cols-3">
-      <div className="min-w-0"><Choice id={`idea-${idea.id}-urgency-choice`} labelText={`Urgency for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={idea.urgency} onChange={(value) => onPatch({ urgency: value })} items={urgencies.map((value) => [value, label(value)])} /></div>
-      <div className="min-w-0"><Choice id={`idea-${idea.id}-status-choice`} labelText={`Status for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={idea.status} onChange={(value) => onPatch({ status: value })} items={statuses.filter((value) => value !== "carried_over" || !!idea.task_id || idea.status === "carried_over").map((value) => [value, label(value)])} /></div>
-      <div className="col-span-2 min-w-0 sm:col-span-1"><Choice id={`idea-${idea.id}-group-choice`} labelText={`Group for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={String(idea.group)} onChange={(value) => onPatch({ group: Number(value) })} items={groups.map((item) => [String(item.id), item.name])} /></div>
+      <div className="min-w-0"><BrainstormFilterSelect id={`idea-${idea.id}-urgency-choice`} labelText={`Urgency for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={idea.urgency} onChange={(value) => onPatch({ urgency: value })} items={urgencies.map((value) => [value, label(value)])} /></div>
+      <div className="min-w-0"><BrainstormFilterSelect id={`idea-${idea.id}-status-choice`} labelText={`Status for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={idea.status} onChange={(value) => onPatch({ status: value })} items={statuses.filter((value) => value !== "carried_over" || !!idea.task_id || idea.status === "carried_over").map((value) => [value, label(value)])} /></div>
+      <div className="col-span-2 min-w-0 sm:col-span-1"><BrainstormFilterSelect id={`idea-${idea.id}-group-choice`} labelText={`Group for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={String(idea.group)} onChange={(value) => onPatch({ group: Number(value) })} items={groups.map((item) => [String(item.id), item.name])} /></div>
     </div>
     <div className="mt-auto flex flex-wrap items-center gap-1 border-t border-slate-100 pt-3 text-xs sm:opacity-75 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
       <button type="button" onClick={onEdit} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1.5 font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><Pencil size={13} /> Edit</button>
@@ -77,7 +73,9 @@ export default function BrainstormView({ dashboard, notify }) {
   const [page, setPage] = useState(1);
   const [dialog, setDialog] = useState(null);
   const [draft, setDraft] = useState({});
+  const [openedDraft, setOpenedDraft] = useState({});
   const [rawJson, setRawJson] = useState("");
+  const [openedRawJson, setOpenedRawJson] = useState("");
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -105,9 +103,14 @@ export default function BrainstormView({ dashboard, notify }) {
   function open(kind, record = null) {
     launchRef.current = document.activeElement;
     setDialog({ kind, record }); setError(""); setPreview(null);
-    if (kind === "idea") setDraft(record ? { ...record, tags: record.tags.join(", "), group: String(record.group) } : { ...initialIdea, group: String(groups[0]?.id || "") });
-    else if (kind === "carry") setDraft({ title: record.title, description: record.description || "", priority: record.urgency === "someday" ? "low" : record.urgency, due_date: "", category: "none" });
-    else setDraft(record ? { ...record } : { name: "", description: "" });
+    const nextDraft = kind === "idea"
+      ? record ? { ...record, tags: record.tags.join(", "), group: String(record.group) } : { ...initialIdea, group: String(groups[0]?.id || "") }
+      : kind === "carry"
+        ? { title: record.title, description: record.description || "", priority: record.urgency === "someday" ? "low" : record.urgency, due_date: "", category: "none" }
+        : record ? { ...record } : { name: "", description: "" };
+    setDraft(nextDraft);
+    setOpenedDraft(nextDraft);
+    setOpenedRawJson(rawJson);
   }
   function close() { if (!saving) { setDialog(null); setError(""); setPreview(null); } }
   async function mutate(path, body, method, success) {
@@ -118,23 +121,24 @@ export default function BrainstormView({ dashboard, notify }) {
   }
   function closeAfterSave() { setDialog(null); setPreview(null); setError(""); }
   async function save(event) {
-    event.preventDefault();
+    event?.preventDefault();
     if (!dialog || saving) return;
     const { kind, record } = dialog;
     if (kind === "board") {
       if (!draft.name?.trim()) return setError("Enter a board name.");
-      const result = await mutate(`brainstorm/boards/${record ? `${record.id}/` : ""}`, { name: draft.name.trim(), description: draft.description || "" }, record ? "PATCH" : "POST", record ? "Board updated." : "Board added.");
+      const result = await mutate(`brainstorm/boards/${record ? `${record.id}/` : ""}`, boardPayload(draft), record ? "PATCH" : "POST", record ? "Board updated." : "Board added.");
       if (result && !record) setBoardId(String(result.id));
     } else if (kind === "group") {
       if (!draft.name?.trim()) return setError("Enter a group name.");
-      await mutate(`brainstorm/groups/${record ? `${record.id}/` : ""}`, { ...(!record ? { board: Number(boardId) } : {}), name: draft.name.trim(), description: draft.description || "" }, record ? "PATCH" : "POST", record ? "Group updated." : "Group added.");
+      await mutate(`brainstorm/groups/${record ? `${record.id}/` : ""}`, groupPayload(draft, boardId, !record), record ? "PATCH" : "POST", record ? "Group updated." : "Group added.");
     } else if (kind === "idea") {
       if (!draft.title?.trim()) return setError("Enter an idea title.");
       if (!draft.group) return setError("Choose a group for this idea.");
-      const body = { board: Number(boardId), group: Number(draft.group), title: draft.title.trim(), description: draft.description || "", source_text: draft.source_text || "", urgency: draft.urgency, status: draft.status, tags: draft.tags.split(",").map((tag) => tag.trim()).filter(Boolean), reference_url: draft.reference_url || "", notes: draft.notes || "" };
+      const body = ideaPayload(draft, boardId);
       await mutate(`brainstorm/ideas/${record ? `${record.id}/` : ""}`, body, record ? "PATCH" : "POST", record ? "Idea updated." : "Idea added.");
     } else if (kind === "carry") {
-      const body = { ...draft, category: draft.category && draft.category !== "none" ? Number(draft.category) : null, due_date: draft.due_date || null };
+      if (!draft.title?.trim()) return setError("Enter a task title.");
+      const body = carryPayload(draft);
       await mutate(`brainstorm/ideas/${record.id}/carry/`, body, "POST", "Idea carried to Tasks & deadlines.");
     } else if (kind === "delete") {
       setSaving(true); setError("");
@@ -152,6 +156,7 @@ export default function BrainstormView({ dashboard, notify }) {
     finally { setBusyId(null); }
   }
   async function importIdeas(confirm = false) {
+    if (confirm && !preview) return;
     let payload;
     try { payload = JSON.parse(rawJson); }
     catch { setError("This is not valid JSON. Check commas, quotes, and brackets, then preview again."); return; }
@@ -164,9 +169,6 @@ export default function BrainstormView({ dashboard, notify }) {
     finally { setSaving(false); }
   }
   const set = (name, value) => setDraft((current) => ({ ...current, [name]: value }));
-  const input = (name, title, props = {}) => <div className="space-y-1.5"><Label htmlFor={`brainstorm-${name}`}>{title}</Label><Input id={`brainstorm-${name}`} value={draft[name] ?? ""} onChange={(event) => set(name, event.target.value)} disabled={saving} {...props} /></div>;
-  const area = (name, title, props = {}) => <div className="space-y-1.5"><Label htmlFor={`brainstorm-${name}`}>{title}</Label><Textarea id={`brainstorm-${name}`} value={draft[name] ?? ""} onChange={(event) => set(name, event.target.value)} disabled={saving} {...props} /></div>;
-  const select = (name, title, items) => <div className="space-y-1.5"><Label htmlFor={`brainstorm-${name}`}>{title}</Label><Choice id={`brainstorm-${name}`} value={String(draft[name] || "")} onChange={(value) => set(name, value)} items={items} /></div>;
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pd-border)] pb-3">
@@ -186,10 +188,10 @@ export default function BrainstormView({ dashboard, notify }) {
       </div>}
       {selected?.is_active && <div className="flex flex-wrap items-end gap-2 border border-[var(--pd-border)] bg-white p-3">
         <div className="relative min-w-48 flex-1"><Label htmlFor="brainstorm-search" className="sr-only">Search ideas</Label><Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-500" /><Input id="brainstorm-search" className="pl-9 pr-9" placeholder="Search ideas" value={search} onCompositionStart={() => setComposing(true)} onCompositionEnd={() => setComposing(false)} onChange={(event) => setSearch(event.target.value)} />{search && <button type="button" className="absolute right-2 top-2 p-0.5 text-slate-600 hover:text-slate-950" aria-label="Clear search" onClick={() => setSearch("")}><X size={15} /></button>}</div>
-        <Choice id="brainstorm-urgency" labelText="Filter by urgency" className="w-32" value={urgency} onChange={(value) => { setUrgency(value); setPage(1); }} items={[["all", "All urgency"], ...urgencies.map((value) => [value, label(value)])]} />
-        <Choice id="brainstorm-status" labelText="Filter by status" className="w-36" value={status} onChange={(value) => { setStatus(value); setPage(1); }} items={[["all", "All status"], ...statuses.map((value) => [value, label(value)])]} />
-        <Choice id="brainstorm-group" labelText="Filter by group" className="w-36" value={group} onChange={(value) => { setGroup(value); setPage(1); }} items={[["all", "All groups"], ...groups.map((item) => [String(item.id), item.name])]} />
-        <Choice id="brainstorm-sort" labelText="Sort ideas" className="w-32" value={sort} onChange={(value) => { setSort(value); setPage(1); }} items={[["newest", "Newest"], ["urgency", "Urgency"]]} />
+        <BrainstormFilterSelect id="brainstorm-urgency" labelText="Filter by urgency" className="w-32" value={urgency} onChange={(value) => { setUrgency(value); setPage(1); }} items={[["all", "All urgency"], ...urgencies.map((value) => [value, label(value)])]} />
+        <BrainstormFilterSelect id="brainstorm-status" labelText="Filter by status" className="w-36" value={status} onChange={(value) => { setStatus(value); setPage(1); }} items={[["all", "All status"], ...statuses.map((value) => [value, label(value)])]} />
+        <BrainstormFilterSelect id="brainstorm-group" labelText="Filter by group" className="w-36" value={group} onChange={(value) => { setGroup(value); setPage(1); }} items={[["all", "All groups"], ...groups.map((item) => [String(item.id), item.name])]} />
+        <BrainstormFilterSelect id="brainstorm-sort" labelText="Sort ideas" className="w-32" value={sort} onChange={(value) => { setSort(value); setPage(1); }} items={[["newest", "Newest"], ["urgency", "Urgency"]]} />
         <label className="flex h-9 items-center gap-2 px-2 text-xs text-slate-700"><input type="checkbox" checked={unconverted} onChange={(event) => { setUnconverted(event.target.checked); setPage(1); }} className="accent-blue-600" /> Not yet tasked</label>
         <Button onClick={() => open("idea")}><Plus size={16} /> Add idea</Button>
       </div>}
@@ -207,30 +209,51 @@ export default function BrainstormView({ dashboard, notify }) {
       </div>}
       {!!data?.count && <div className="flex items-center justify-between gap-3 text-sm text-slate-600"><span>{data.count} ideas · Page {page}</span><div className="flex gap-2"><Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((value) => value - 1)}><ChevronLeft size={15} /> Previous</Button><Button size="sm" variant="outline" disabled={!data.next} onClick={() => setPage((value) => value + 1)}>Next <ChevronRight size={15} /></Button></div></div>}
     </>}
-    <Dialog open={!!dialog} onOpenChange={(value) => { if (!value) close(); }}>
-      <DialogContent className="max-h-[90vh] max-w-[calc(100%-2rem)] overflow-y-auto sm:max-w-2xl" onEscapeKeyDown={(event) => { if (saving) event.preventDefault(); }} onInteractOutside={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); const target = launchRef.current?.isConnected ? launchRef.current : document.getElementById("brainstorm-search"); target?.focus(); }}>
-        <DialogHeader><DialogTitle>{dialog?.kind === "idea" ? `${dialog.record ? "Edit" : "Add"} idea` : dialog?.kind === "board" ? `${dialog.record ? "Edit" : "Add"} board` : dialog?.kind === "group" ? `${dialog.record ? "Edit" : "Add"} group` : dialog?.kind === "carry" ? "Carry idea to task" : dialog?.kind === "import" ? "Import brainstorm" : dialog?.kind === "delete" ? "Delete idea?" : "Change board availability?"}</DialogTitle><DialogDescription>{dialog?.kind === "import" ? "Paste a board or boards JSON document. Preview it before importing." : dialog?.kind === "carry" ? "This creates one linked task. A due date is optional." : dialog?.kind === "delete" ? "This permanently deletes only the idea. A linked task will remain." : "Your changes stay private to this workspace."}</DialogDescription></DialogHeader>
-        {error && <div role="alert" className="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>}
-        {dialog?.kind === "import" ? <div className="space-y-4"><Label htmlFor="brainstorm-json">Brainstorm JSON</Label><Textarea id="brainstorm-json" className="min-h-64 font-mono text-xs" value={rawJson} onChange={(event) => { setRawJson(event.target.value); setPreview(null); }} placeholder={'{ "boards": [ ... ] }'} disabled={saving} /><p className="text-xs text-slate-600">Existing ideas are never overwritten. Matching titles on the same board are skipped.</p>{preview && <div className="border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950"><p className="font-medium">Preview: {preview.boards} board(s), {preview.groups} group(s)</p><p className="mt-1">{preview.created} new ideas · {preview.duplicates_skipped} duplicates skipped · {preview.invalid} invalid</p>{!!preview.errors?.length && <ul className="mt-2 max-h-32 list-disc overflow-y-auto pl-5 text-xs">{preview.errors.map((item, index) => <li key={index}>{item.location}: {item.reason}</li>)}</ul>}</div>}<DialogFooter><Button variant="outline" onClick={close}>Cancel</Button><Button variant="outline" disabled={saving || !rawJson.trim()} onClick={() => importIdeas(false)}><Search size={15} /> Preview</Button><Button disabled={saving || !preview} onClick={() => importIdeas(true)}><Check size={15} /> {saving ? "Importing…" : "Import ideas"}</Button></DialogFooter></div> : <form onSubmit={save} className="space-y-4">
-          {dialog?.kind === "board" || dialog?.kind === "group" ? <>{input("name", "Name", { required: true, maxLength: 120 })}{area("description", "Description", { maxLength: 4000 })}</> : null}
-          {dialog?.kind === "idea" && <>{input("title", "Idea title", { required: true, maxLength: 160 })}{area("description", "Short description", { maxLength: 4000 })}<div className="grid gap-3 sm:grid-cols-2">{select("group", "Group", groups.map((item) => [String(item.id), item.name]))}{select("urgency", "Urgency", urgencies.map((item) => [item, label(item)]))}{select("status", "Status", statuses.filter((item) => item !== "carried_over" || !!dialog.record?.task_id || dialog.record?.status === "carried_over").map((item) => [item, label(item)]))}{input("tags", "Tags, separated by commas", { maxLength: 660 })}</div>{input("reference_url", "Reference link", { type: "url", maxLength: 2048, placeholder: "https://…" })}{area("source_text", "Original thought", { maxLength: 4000 })}{area("notes", "Private notes", { maxLength: 4000 })}</>}
-          {dialog?.kind === "carry" && <>
-            {input("title", "Task title", { required: true, maxLength: 160 })}
-            {area("description", "Task description", { maxLength: 4000 })}
-            <div className="grid gap-3 sm:grid-cols-2">
-              {select("priority", "Priority", [["high", "High"], ["medium", "Medium"], ["low", "Low"]])}
-              {input("due_date", "Due date (optional)", { type: "date" })}
-            </div>
-            {select("category", "Category", [
-              ["none", "None"],
-              ...(dashboard.data?.categories || []).map((item) => [String(item.id), item.name]),
-            ])}
-          </>}
-          {dialog?.kind === "delete" && <p className="text-sm text-slate-700">“{dialog.record.title}” will be removed from this board.</p>}
-          {dialog?.kind === "deactivate" && <p className="text-sm text-slate-700">{dialog.record.is_active ? "Ideas remain saved, but this board becomes read-only until reactivated." : "You can add and change ideas on this board again."}</p>}
-          <DialogFooter><Button type="button" variant="outline" onClick={close}>Cancel</Button><Button type="submit" disabled={saving} variant={dialog?.kind === "delete" ? "destructive" : "default"}>{dialog?.kind === "delete" ? <Trash2 size={15} /> : <Check size={15} />}{saving ? "Saving…" : dialog?.kind === "delete" ? "Delete idea" : dialog?.kind === "deactivate" ? dialog.record.is_active ? "Deactivate board" : "Reactivate board" : dialog?.kind === "carry" ? "Create task" : dialog?.record ? "Save changes" : "Add"}</Button></DialogFooter>
-        </form>}
-      </DialogContent>
-    </Dialog>
+    {dialog && ["delete", "deactivate"].includes(dialog.kind) ?
+      <BrainstormConfirmDialog
+        kind={dialog.kind} record={dialog.record} busy={saving} error={error}
+        onConfirm={save} onCancel={close}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          const target = launchRef.current?.isConnected ? launchRef.current : document.getElementById("brainstorm-search");
+          target?.focus();
+        }}
+      /> : dialog && <FormModalShell
+        title={dialog.kind === "idea" ? `${dialog.record ? "Edit" : "Add"} idea`
+          : dialog.kind === "board" ? `${dialog.record ? "Edit" : "Add"} board`
+            : dialog.kind === "group" ? `${dialog.record ? "Edit" : "Add"} group`
+              : dialog.kind === "carry" ? "Carry idea to task" : "Import brainstorm"}
+        description={dialog.kind === "import"
+          ? "Paste a board or boards JSON document. Preview it before importing."
+          : dialog.kind === "carry" ? "This creates one linked task. A due date is optional."
+            : "Your changes stay private to this workspace."}
+        error={error} busy={saving} preventOutsideClose
+        dirty={dialog.kind === "import" ? rawJson !== openedRawJson : JSON.stringify(draft) !== JSON.stringify(openedDraft)}
+        onSubmit={dialog.kind === "import" ? (event) => { event.preventDefault(); importIdeas(true); } : save}
+        onCancel={close}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          const target = launchRef.current?.isConnected ? launchRef.current : document.getElementById("brainstorm-search");
+          target?.focus();
+        }}
+        saveLabel={dialog.kind === "import" ? "Import ideas"
+          : dialog.kind === "carry" ? "Create task"
+            : dialog.record ? "Save changes" : `Add ${dialog.kind}`}
+        busyLabel={dialog.kind === "import" ? "Importing…" : "Saving…"}
+        submitDisabled={dialog.kind === "import" && !preview}
+        extraActions={dialog.kind === "import" &&
+          <Button type="button" variant="outline" disabled={saving || !rawJson.trim()}
+            onClick={() => importIdeas(false)}><Search size={15} /> Preview</Button>}
+      >
+        {dialog.kind === "board" && <BoardForm draft={draft} onChange={set} busy={saving} />}
+        {dialog.kind === "group" && <GroupForm draft={draft} onChange={set} busy={saving} />}
+        {dialog.kind === "idea" && <IdeaForm draft={draft} record={dialog.record}
+          groups={groups} onChange={set} busy={saving} />}
+        {dialog.kind === "carry" && <CarryForm draft={draft}
+          categories={dashboard.data?.categories || []} onChange={set} busy={saving} />}
+        {dialog.kind === "import" && <ImportForm rawJson={rawJson}
+          onChange={(value) => { setRawJson(value); setPreview(null); }}
+          preview={preview} busy={saving} />}
+      </FormModalShell>}
   </div>;
 }
