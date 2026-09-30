@@ -22,6 +22,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from pixelpopup.api.inquiry_views import InquirySubmissionView
 
 urlpatterns = [
+    path("api/v1/finance/brainstorm/", include("brainstorm.api.urls")),
     path("api/v1/finance/", include("finance.api.urls")),
     path("api/v1/leadership/", include("leadership.api.urls")),
     path('admin/', admin.site.urls),

@@ -9,6 +9,9 @@ from finance import models
 
 
 FIELDS = {
+    "BrainstormBoard": ("name", "description", "sort_order", "is_active"),
+    "BrainstormGroup": ("board", "name", "description", "sort_order"),
+    "BrainstormIdea": ("board", "group", "title", "description", "urgency", "status", "tags", "sort_order", "task"),
     "Account": ("name", "kind", "institution", "last_four", "card_expiry", "card_network", "fund_type", "credit_limit", "active"),
     "Asset": ("name", "kind", "value", "valuation_date", "notes", "active"),
     "AssetFinancing": ("asset", "lender", "opening_principal", "balance_as_of", "next_due_date", "monthly_due", "annual_rate", "remaining_months"),
@@ -16,7 +19,7 @@ FIELDS = {
     "AssetFinancingPayment": ("date", "account", "cash_amount", "advance_applied", "principal", "extra_principal", "interest", "fees", "advance_reserved", "historical", "notes"),
     "BalanceAdjustment": ("account", "amount", "date", "reason"),
     "Category": ("name", "monthly_budget"),
-    "Deadline": ("title", "kind", "amount", "due_date", "due_time", "category", "notes", "reminder_days", "status", "credit_card", "settlement_kind"),
+    "Deadline": ("title", "kind", "priority", "amount", "due_date", "due_time", "category", "notes", "reminder_days", "status", "credit_card", "settlement_kind"),
     "LoanReceivable": ("person", "contact", "principal", "date", "due_date", "account", "existing", "notes", "active"),
     "Meal": ("date", "eaten_at", "meal_name", "items"),
     "MoneyMovement": ("kind", "amount", "date", "source", "destination", "loan", "notes"),
@@ -33,6 +36,7 @@ FIELDS = {
 }
 
 AREAS = {
+    "BrainstormBoard": "brainstorm", "BrainstormGroup": "brainstorm", "BrainstormIdea": "brainstorm",
     "Account": "accounts", "BalanceAdjustment": "accounts", "Asset": "assets",
     "AssetFinancing": "assets", "AssetFinancingTerms": "assets", "AssetFinancingPayment": "assets",
     "Category": "settings", "WorkspaceSettings": "settings", "RecurringSchedule": "bills",
@@ -43,6 +47,7 @@ AREAS = {
 }
 
 AREA_LABELS = {
+    "brainstorm": "Brainstorming",
     "accounts": "Accounts & cards", "assets": "Assets", "settings": "Settings",
     "bills": "Bills & tasks", "transactions": "Transactions", "people": "People & money",
     "nutrition": "Nutrition",
@@ -50,7 +55,7 @@ AREA_LABELS = {
 
 ACTIONS = frozenset((
     "added", "edited", "deleted", "adjusted", "settled", "paid", "closed",
-    "shared", "revoked", "archived", "restored", "reviewed", "rotated", "allocated", "reported",
+    "shared", "revoked", "archived", "restored", "reviewed", "rotated", "allocated", "reported", "imported", "carried",
 ))
 
 
@@ -85,6 +90,8 @@ def _value(value):
         return value.isoformat()
     if isinstance(value, bool) or value is None or isinstance(value, (int, float, str)):
         return value
+    if isinstance(value, list):
+        return [_value(item) for item in value]
     return str(value)
 
 
