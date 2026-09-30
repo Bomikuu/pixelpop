@@ -30,6 +30,9 @@ const IntroVideoPage = lazy(
 const WorkSetupPage = lazy(
   () => import("./pages/portfolio/application/WorkSetupPage"),
 );
+const SetupDownloadsPage = lazy(
+  () => import("./pages/portfolio/application/SetupDownloadsPage"),
+);
 const ArticleIndexPage = lazy(
   () => import("./pages/portfolio/articles/ArticleIndexPage"),
 );
@@ -141,6 +144,7 @@ export default function App() {
             />
             <Route path="/portfolio/intro-video" element={<IntroVideoPage />} />
             <Route path="/portfolio/work-setup" element={<WorkSetupPage />} />
+            <Route path="/portfolio/setup-downloads" element={<SetupDownloadsPage />} />
             <Route path="/portfolio/articles" element={<ArticleIndexPage />} />
             <Route
               path="/portfolio/articles/:articleSlug"

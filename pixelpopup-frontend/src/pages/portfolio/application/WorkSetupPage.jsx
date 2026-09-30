@@ -284,6 +284,9 @@ export default function WorkSetupPage() {
           <div className="max-w-3xl">
             <h2 className="portfolio-display text-4xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-5xl">Workstation specifications</h2>
             <p className="mt-4 text-base leading-7 text-[#536b86]">Windows hardware and display details from the supplied DxDiag file, plus an additional laptop.</p>
+            <a href="/portfolio/setup-downloads" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#2448d8] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">
+              Download Ubuntu setup files <ArrowRight size={17} aria-hidden="true" />
+            </a>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {workstationSpecs.map((spec) => <SpecTile key={spec.label} {...spec} />)}
