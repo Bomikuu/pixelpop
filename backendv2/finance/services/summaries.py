@@ -15,6 +15,8 @@ from .recurrence import materialize
 def urgency(item, now=None):
     if item.status != "pending":
         return item.status
+    if item.due_date is None:
+        return "unscheduled"
     now = (now or timezone.now()).astimezone(ZoneInfo("Asia/Manila"))
     if item.due_date < now.date() or (item.due_time and datetime.combine(item.due_date, item.due_time, tzinfo=ZoneInfo("Asia/Manila")) < now):
         return "overdue"
@@ -40,6 +42,7 @@ def deadline_summary(qs):
     priced = [r for r in bills if r.amount is not None]
     unpaid_amount = lambda item: max(ZERO, item.amount - installment_paid(item)) if item.asset_financing_id else item.amount
     pending = [r for r in rows if r.status == "pending"]
+    pending_dated = [r for r in pending if r.due_date is not None]
     return {
         "count": len(rows), "pending": len(pending), "completed": len(rows) - len(pending),
         "today": sum(r.due_date == today() for r in pending),
@@ -48,8 +51,8 @@ def deadline_summary(qs):
         "paid": sum((r.amount for r in priced if r.status != "pending"), ZERO),
         "unpaid": sum((unpaid_amount(r) for r in priced if r.status == "pending"), ZERO),
         "unpriced": sum(r.amount is None for r in bills),
-        "next": min(pending, key=lambda r: (r.due_date, r.due_time or time.max)).title if pending else None,
-        "next_date": str(min(r.due_date for r in pending)) if pending else None,
+        "next": min(pending_dated, key=lambda r: (r.due_date, r.due_time or time.max)).title if pending_dated else None,
+        "next_date": str(min(r.due_date for r in pending_dated)) if pending_dated else None,
     }
 
 
@@ -110,7 +113,7 @@ def overview(month=None):
         monthly = Transaction.objects.filter(date__range=(first, last))
         summary = transaction_summary(monthly)
         history.append({"month": first.strftime("%Y-%m"), "label": first.strftime("%b %Y"), **summary, "count": monthly.filter(kind="expense").count(), "income": summary["income"] + summary["expected"], "remaining": summary["income"] + summary["expected"] - summary["expenses"]})
-    pending_all = list(Deadline.objects.filter(status="pending").order_by("due_date", "due_time", "id"))
+    pending_all = list(Deadline.objects.filter(status="pending", due_date__isnull=False).order_by("due_date", "due_time", "id"))
     monthly_deadlines = []
     for offset in range(-2, 4):
         index = start.year * 12 + start.month - 1 + offset

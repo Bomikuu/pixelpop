@@ -355,6 +355,12 @@ class DeadlineViewSet(FinanceViewSet):
     search_fields = ("title", "notes", "category__name")
 
     def get_queryset(self):
+        if self.request.query_params.get("undated") == "1":
+            params = self.request.query_params.copy()
+            params.pop("month", None)
+            params.pop("chart_month", None)
+            qs = filtered(self.queryset.filter(due_date__isnull=True, kind__in=("task", "reminder")), params, self.date_field, self.search_fields)
+            return qs.order_by("-created_at", "-id")
         _, end = month_range(self.request.query_params.get("chart_month") or self.request.query_params.get("month"))
         materialize(end + timedelta(days=95))
         for financing in models.AssetFinancing.objects.select_related("asset"):

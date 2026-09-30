@@ -194,7 +194,7 @@ class DeadlineSerializer(StrictSerializer):
 
     class Meta:
         model = models.Deadline
-        fields = ("id", "title", "kind", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
+        fields = ("id", "title", "kind", "priority", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
         read_only_fields = ("status", "schedule", "asset_financing", "installment_index", "completed_at")
 
     def get_remaining_due(self, obj):
@@ -217,6 +217,17 @@ class DeadlineSerializer(StrictSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        item_kind = attrs.get("kind", getattr(self.instance, "kind", "task"))
+        due_date = attrs.get("due_date", getattr(self.instance, "due_date", None))
+        due_time = attrs.get("due_time", getattr(self.instance, "due_time", None))
+        if due_date is None:
+            if item_kind not in ("task", "reminder"):
+                raise serializers.ValidationError({"due_date": "Bills and payments need a due date."})
+            if due_time is not None:
+                raise serializers.ValidationError({"due_time": "Set a due date before adding a time."})
+            if attrs.get("schedule") or getattr(self.instance, "schedule_id", None):
+                raise serializers.ValidationError({"due_date": "Recurring items need a due date."})
+            attrs["reminder_days"] = 0
         if self.instance and self.instance.status != "pending":
             raise serializers.ValidationError("Settled history is read-only.")
         if self.instance and self.instance.asset_financing_id:

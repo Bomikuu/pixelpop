@@ -168,10 +168,12 @@ class RecurringSchedule(Record):
 class Deadline(Record):
     KINDS = [(v, v.title()) for v in ("task", "bill", "subscription", "payment", "reminder")]
     STATUSES = [("pending", "Pending"), ("paid", "Paid"), ("completed", "Completed")]
+    PRIORITIES = [("high", "High"), ("medium", "Medium"), ("low", "Low")]
     title = models.CharField(max_length=160)
     kind = models.CharField(max_length=20, choices=KINDS, default="task")
+    priority = models.CharField(max_length=10, choices=PRIORITIES, default="medium")
     amount = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=POSITIVE)
-    due_date = models.DateField(db_index=True)
+    due_date = models.DateField(null=True, blank=True, db_index=True)
     due_time = models.TimeField(null=True, blank=True)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
     notes = models.TextField(blank=True, max_length=4000)
@@ -189,6 +191,7 @@ class Deadline(Record):
         constraints = [
             models.UniqueConstraint(fields=["schedule", "due_date"], name="finance_deadline_occurrence"),
             models.UniqueConstraint(fields=["asset_financing", "installment_index"], name="finance_asset_installment_index"),
+            models.CheckConstraint(condition=models.Q(due_date__isnull=False) | models.Q(kind__in=["task", "reminder"]), name="finance_deadline_undated_task_only"),
         ]
 
 

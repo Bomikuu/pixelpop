@@ -183,6 +183,7 @@ function summaries(resource, values = {}, kind, bills) {
 
 function periodParams(period, month, start, end) {
   const current = today();
+  if (period === "undated") return { undated: "1" };
   if (period === "today") return { start: current, end: current };
   if (period === "week") {
     const d = new Date(current + "T12:00:00Z");
@@ -287,7 +288,7 @@ export default function RecordList({
   const params = new URLSearchParams({
     page: String(page),
     page_size: recent ? "10" : compact ? "100" : "20",
-    ...(dated || kind === "fund" ? { chart_month: month } : {}),
+    ...((dated && period !== "undated") || kind === "fund" ? { chart_month: month } : {}),
     ...(dated && (!compact || recent) ? periodParams(period, month, start, end) : {}),
     ...fixedParams,
   });
@@ -626,6 +627,7 @@ export default function RecordList({
                       ["week", "This week"],
                       ["custom", "Custom dates"],
                       ["all", "All records"],
+                      ...(resource === "deadlines" && !bills ? [["undated", "No date"]] : []),
                     ].map(([value, label]) => (
                       <SelectItem key={value} value={value}>
                         {label}

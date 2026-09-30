@@ -8,6 +8,7 @@ const states = {
     "border-slate-200 bg-slate-50 text-slate-700",
     CalendarClock,
   ],
+  unscheduled: ["No date", "border-slate-200 bg-slate-50 text-slate-700", CalendarClock],
   soon: ["Due soon", "border-amber-200 bg-amber-50 text-amber-900", Clock],
   today: ["Due today", "border-amber-300 bg-amber-100 text-amber-950", Clock],
   overdue: ["Overdue", "border-red-300 bg-red-50 text-red-900", AlertCircle],

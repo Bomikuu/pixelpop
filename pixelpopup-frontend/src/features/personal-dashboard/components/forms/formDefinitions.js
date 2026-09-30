@@ -294,9 +294,15 @@ export function formDefinition(entity, record) {
           when: (v) => billKinds.includes(v.kind) && (!!record?.id || v.amount_mode !== "variable"),
         },
         field("due_date", "Due date", "date", {
-          required: true,
-          default: today(),
+          required: !taskForm,
+          nullable: taskForm,
+          default: taskForm ? "" : today(),
+          hint: taskForm ? "Optional. Leave blank to keep this task in No date." : undefined,
         }),
+        ...(taskForm ? [field("priority", "Priority", "select", {
+          default: "medium",
+          options: choices(["high", "medium", "low"]),
+        })] : []),
         field("due_time", "Due time", "time"),
         ...(!record?.id ? [repeats, interval] : []),
         category,

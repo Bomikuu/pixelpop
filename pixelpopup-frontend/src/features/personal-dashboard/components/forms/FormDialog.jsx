@@ -222,6 +222,10 @@ export default function FormDialog({
     for (const field of fields.filter((item) => accountSources.has(item.source))) {
       if (accountState(field).blocked) invalid[field.name] = "Choose an account with enough balance or available credit.";
     }
+    if (entity === "deadline" && !values.due_date && values.repeat && values.repeat !== "never")
+      invalid.due_date = "Choose a due date to repeat this task.";
+    if (entity === "deadline" && !values.due_date && values.due_time)
+      invalid.due_date = "Choose a due date when setting a time.";
     if (Object.keys(invalid).length) {
       setErrors(invalid);
       document.getElementById("finance-" + Object.keys(invalid)[0])?.focus();
