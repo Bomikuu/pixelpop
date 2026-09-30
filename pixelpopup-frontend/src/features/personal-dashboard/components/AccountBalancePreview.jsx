@@ -7,6 +7,7 @@ export function accountChoiceOption(account) {
   const limit = account.credit_limit == null ? null : Number(account.credit_limit);
   return {
     value: String(account.id),
+    account,
     label: accountLabel(account) + (account.active ? "" : " · Archived"),
     description: account.kind === "credit_card"
       ? limit == null

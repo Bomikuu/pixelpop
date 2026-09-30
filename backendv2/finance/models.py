@@ -350,3 +350,44 @@ class MealItem(models.Model):
     class Meta:
         ordering = ["position", "id"]
         constraints = [models.UniqueConstraint(fields=["meal", "position"], name="finance_nutrition_item_position")]
+
+
+class NutritionActivity(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="nutrition_activities")
+    date = models.DateField(db_index=True)
+    activity_type = models.CharField(max_length=24)
+    name = models.CharField(max_length=120)
+    steps = models.PositiveIntegerField(null=True, blank=True)
+    duration_minutes = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    duration_assumed = models.BooleanField(default=False)
+    active_kcal = models.DecimalField(max_digits=9, decimal_places=2, validators=POSITIVE)
+    source = models.CharField(max_length=12, choices=[("estimated", "Estimated"), ("manual", "Manual")])
+    manual_override = models.BooleanField(default=False)
+    weight_kg_used = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    met_used = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    estimate_version = models.CharField(max_length=24, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at", "-id"]
+
+
+class AuditEvent(models.Model):
+    """Forward-only history of meaningful personal workspace actions."""
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    actor_label = models.CharField(max_length=150)
+    source = models.CharField(max_length=24, default="dashboard")
+    action = models.CharField(max_length=32, db_index=True)
+    area = models.CharField(max_length=32, db_index=True)
+    subject_type = models.CharField(max_length=48)
+    subject_id = models.CharField(max_length=64)
+    label = models.CharField(max_length=200)
+    changes = models.JSONField(default=list)
+    operation_key = models.CharField(max_length=180, unique=True, null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [models.Index(fields=["area", "created_at"], name="finance_audit_area_date")]

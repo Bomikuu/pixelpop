@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from finance import models
 from finance.services.queries import filtered
+from finance.services.audit import log_record, snapshot_record
 from finance.services.shared_bills import breakdown, create_bill, pay_bill, share_bill, strict, generate_pin, verify_pin, add_participant, decide_payment, edit_bill, accept_ledger_allocation, management_token, verify_management, mark_all_paid
 from .views import FinancePagination, PrivateMixin, json_money
 
@@ -27,8 +28,11 @@ class SharedBillsView(PrivateMixin, APIView):
         response.data["summary"] = {"count": qs.count()}
         return response
 
+    @transaction.atomic
     def post(self, request):
         bill = create_bill(request.data, request.user)
+        log_record(bill, actor=request.user, action="added", after=snapshot_record(bill),
+                   operation_key=f"shared-bill:{bill.request_id}")
         return Response(json_money(breakdown(bill)), status=201)
 
 
@@ -36,59 +40,95 @@ class SharedBillView(PrivateMixin, APIView):
     def get(self, request, pk):
         return Response(json_money(breakdown(get_object_or_404(models.SharedBill, pk=pk))))
 
+    @transaction.atomic
     def patch(self, request, pk):
-        get_object_or_404(models.SharedBill, pk=pk)
-        return Response(json_money(breakdown(edit_bill(pk, request.data))))
+        bill = get_object_or_404(models.SharedBill, pk=pk)
+        before = snapshot_record(bill)
+        bill = edit_bill(pk, request.data)
+        log_record(bill, actor=request.user, action="edited", before=before, after=snapshot_record(bill))
+        return Response(json_money(breakdown(bill)))
 
 
 class SharedBillLedgerAllocationView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
-        get_object_or_404(models.SharedBill, pk=pk)
-        return Response(json_money(breakdown(accept_ledger_allocation(pk, request.data, request.user))))
+        bill = get_object_or_404(models.SharedBill, pk=pk)
+        before = snapshot_record(bill)
+        bill = accept_ledger_allocation(pk, request.data, request.user)
+        after = snapshot_record(bill)
+        if before != after:
+            log_record(bill, actor=request.user, action="allocated", before=before, after=after)
+        return Response(json_money(breakdown(bill)))
 
 
 class SharedBillPayView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
         get_object_or_404(models.SharedBill, pk=pk)
         bill = pay_bill(pk, request.data, request.user)
+        payment = (bill.payments.filter(request_id=request.data["request_id"]).first()
+                   if request.data.get("request_id") else bill.payments.order_by("-pk").first())
+        log_record(payment, actor=request.user, action="paid", after=snapshot_record(payment),
+                   operation_key=f"shared-payment:{payment.request_id}", label=bill.title)
         return Response(json_money(breakdown(bill)))
 
 
 class SharedBillCloseView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
-        get_object_or_404(models.SharedBill, pk=pk)
-        return Response(json_money(breakdown(mark_all_paid(pk, request.data, request.user))))
+        bill = get_object_or_404(models.SharedBill, pk=pk)
+        before = snapshot_record(bill)
+        bill = mark_all_paid(pk, request.data, request.user)
+        after = snapshot_record(bill)
+        if before != after:
+            closure = bill.closures.order_by("-pk").first()
+            log_record(bill, actor=request.user, action="closed", before=before, after=after,
+                       operation_key=f"shared-close:{closure.request_id}")
+        return Response(json_money(breakdown(bill)))
 
 
 class SharedBillShareView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
         strict(request.data, ())
         get_object_or_404(models.SharedBill, pk=pk)
-        return Response(json_money(breakdown(share_bill(pk))))
+        bill = share_bill(pk)
+        log_record(bill, actor=request.user, action="shared")
+        return Response(json_money(breakdown(bill)))
 
 
 class SharedBillRevokeView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
         strict(request.data, ())
         bill = get_object_or_404(models.SharedBill, pk=pk)
+        had_share = bool(bill.share_token or bill.edit_pin_hash)
         # A single update makes revocation race-safe against link rotation.
         models.SharedBill.objects.filter(pk=bill.pk).update(share_token=None, share_expires_at=None, edit_pin_hash="", updated_at=timezone.now())
         bill.refresh_from_db()
+        if had_share:
+            log_record(bill, actor=request.user, action="revoked")
         return Response(json_money(breakdown(bill)))
 
 
 class SharedBillArchiveView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
         strict(request.data, ("archived",))
         archived = request.data.get("archived", True)
         if not isinstance(archived, bool):
             raise ValidationError({"archived": "Choose true or false."})
         bill = get_object_or_404(models.SharedBill, pk=pk)
+        before = snapshot_record(bill)
         values = {"archived": archived, "updated_at": timezone.now()}
         if archived:
             values.update(share_token=None, share_expires_at=None, edit_pin_hash="")
         models.SharedBill.objects.filter(pk=bill.pk).update(**values)
         bill.refresh_from_db()
+        after = snapshot_record(bill)
+        if before != after:
+            log_record(bill, actor=request.user, action="archived" if archived else "restored",
+                       before=before, after=after)
         return Response(json_money(breakdown(bill)))
 
 
@@ -171,21 +211,40 @@ class PublicSharedBillMutationView(PublicSharedBillView):
                 verify_pin(bill, request.data.get("pin"), SharedMutationThrottle().get_ident(request))
         if self.action == "unlock":
             return Response({"unlocked": True, "management_token": management_token(bill)})
+        before = snapshot_record(bill)
         payload = {key: value for key, value in request.data.items() if key not in ("pin", "management_token")}
         if self.action == "close":
-            return Response(json_money(breakdown(mark_all_paid(bill.pk, payload), public=True)))
+            bill = mark_all_paid(bill.pk, payload)
+            after = snapshot_record(bill)
+            if before != after:
+                log_record(bill, actor=None, source="shared_link", actor_label="Shared link", action="closed",
+                           before=before, after=after, operation_key=f"shared-close:{payload['request_id']}")
+            return Response(json_money(breakdown(bill, public=True)))
         if self.action in ("approve", "reject"):
             from uuid import UUID
             try:
                 payment_id = UUID(str(payload.get("payment_id", "")))
             except (ValueError, TypeError):
                 raise ValidationError({"payment_id": "Choose a report from this event."})
+            payment = models.SharedBillPayment.objects.filter(bill=bill, public_id=payment_id).first()
+            if not payment:
+                raise ValidationError("Choose a payment belonging to this bill.")
+            payment_before = snapshot_record(payment)
             bill = decide_payment(bill.pk, payment_id, {}, None, self.action == "approve", public=True)
+            payment.refresh_from_db()
+            payment_after = snapshot_record(payment)
+            if payment_before != payment_after:
+                log_record(payment, actor=None, source="shared_link", actor_label="Shared link", action="reviewed",
+                           before=payment_before, after=payment_after, label=bill.title)
             return Response(json_money(breakdown(bill, public=True)))
         if not payload.get("request_id"):
             raise ValidationError({"request_id": "Provide a unique request identifier."})
         if self.action == "participants":
             bill = add_participant(bill.pk, payload)
+            after = snapshot_record(bill)
+            if before != after:
+                log_record(bill, actor=None, source="shared_link", actor_label="Shared link", action="added",
+                           before=before, after=after, operation_key=f"shared-participant:{payload['request_id']}")
         else:
             people = list(bill.participants.order_by("id"))
             def private_id(value, field, optional=False):
@@ -206,27 +265,48 @@ class PublicSharedBillMutationView(PublicSharedBillView):
                 raise ValidationError({"kind": "Report a contribution to the event receiver, or unlock management for a refund."})
             payload["kind"] = payment_kind
             bill = pay_bill(bill.pk, payload, None, pending=True)
+            payment = models.SharedBillPayment.objects.get(request_id=payload["request_id"])
+            log_record(payment, actor=None, source="shared_link", actor_label="Shared link", action="reported",
+                       after=snapshot_record(payment), operation_key=f"shared-payment:{payment.request_id}", label=bill.title)
         return Response(json_money(breakdown(bill, public=True)))
 
 
 class SharedBillPinView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
         get_object_or_404(models.SharedBill, pk=pk)
         bill, pin = generate_pin(pk, request.data)
+        log_record(bill, actor=request.user, action="rotated")
         response = Response(json_money({**breakdown(bill), "edit_pin": pin}))
         response["Cache-Control"] = "no-store"
         return response
 
 
 class SharedBillParticipantView(PrivateMixin, APIView):
+    @transaction.atomic
     def post(self, request, pk):
-        get_object_or_404(models.SharedBill, pk=pk)
-        return Response(json_money(breakdown(add_participant(pk, request.data, request.user))))
+        bill = get_object_or_404(models.SharedBill, pk=pk)
+        before = snapshot_record(bill)
+        bill = add_participant(pk, request.data, request.user)
+        after = snapshot_record(bill)
+        if before != after:
+            participant = bill.participants.order_by("-pk").first()
+            log_record(bill, actor=request.user, action="added", before=before, after=after,
+                       operation_key=f"shared-participant:{participant.membership_request_id}")
+        return Response(json_money(breakdown(bill)))
 
 
 class SharedBillPaymentDecisionView(PrivateMixin, APIView):
     approve = True
 
+    @transaction.atomic
     def post(self, request, pk, payment_id):
-        get_object_or_404(models.SharedBill, pk=pk)
-        return Response(json_money(breakdown(decide_payment(pk, payment_id, request.data, request.user, self.approve))))
+        bill = get_object_or_404(models.SharedBill, pk=pk)
+        payment = get_object_or_404(models.SharedBillPayment, bill=bill, pk=payment_id)
+        before = snapshot_record(payment)
+        bill = decide_payment(pk, payment_id, request.data, request.user, self.approve)
+        payment.refresh_from_db()
+        after = snapshot_record(payment)
+        if before != after:
+            log_record(payment, actor=request.user, action="reviewed", before=before, after=after, label=bill.title)
+        return Response(json_money(breakdown(bill)))

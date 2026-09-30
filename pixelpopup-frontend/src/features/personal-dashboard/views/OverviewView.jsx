@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   ArrowLeftRight,
@@ -45,6 +45,48 @@ function deadlineAction(row) {
   return "Pay bill";
 }
 
+function timeUnit(value, unit) {
+  return `${value} ${unit}${value === 1 ? "" : "s"}`;
+}
+
+function longerDuration(days) {
+  if (days >= 365) {
+    const years = Math.floor(days / 365);
+    const months = Math.floor((days % 365) / 30);
+    return [timeUnit(years, "year"), months ? timeUnit(months, "month") : null].filter(Boolean).join(", ");
+  }
+  if (days >= 60) {
+    const months = Math.floor(days / 30);
+    const weeks = Math.floor((days % 30) / 7);
+    return [timeUnit(months, "month"), weeks ? timeUnit(weeks, "week") : null].filter(Boolean).join(", ");
+  }
+  if (days >= 7) {
+    const weeks = Math.floor(days / 7);
+    const rest = days % 7;
+    return [timeUnit(weeks, "week"), rest ? timeUnit(rest, "day") : null].filter(Boolean).join(", ");
+  }
+  return timeUnit(days, "day");
+}
+
+function deadlineTimeLeft(row, now) {
+  if (!row.due_time) {
+    const days = Math.round((Date.parse(`${row.due_date}T12:00:00Z`) - Date.parse(`${today()}T12:00:00Z`)) / 86400000);
+    if (days === 0) return "Due today";
+    return `${longerDuration(Math.abs(days))} ${days < 0 ? "overdue" : "left"}`;
+  }
+
+  const due = Date.parse(`${row.due_date}T${row.due_time.slice(0, 5)}:00+08:00`);
+  const remaining = due - now;
+  if (Math.abs(remaining) < 60000) return remaining < 0 ? "Just overdue" : "Due now";
+  const minutes = Math.ceil(Math.abs(remaining) / 60000);
+  const duration = minutes < 60
+    ? timeUnit(minutes, "minute")
+    : minutes < 1440
+      ? timeUnit(Math.floor(minutes / 60), "hour")
+      : longerDuration(Math.floor(minutes / 1440));
+  return `${duration} ${remaining < 0 ? "overdue" : "left"}`;
+}
+
 function monthComparison(current, previous, previousMonth, increaseIsGood) {
   if (!previousMonth || previous == null || current == null) return null;
   const value = Number(current);
@@ -77,6 +119,11 @@ export default function OverviewView({
   ...actions
 }) {
   const [settlingId, setSettlingId] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
   const o = dashboard.data.overview;
   async function settle(row) {
     if (!["task", "reminder"].includes(row.kind)) {
@@ -282,7 +329,7 @@ export default function OverviewView({
                               aria-label={
                                 deadlineAction(r) + " " +
                                 r.title +
-                                ", due " +
+                                ", " + deadlineTimeLeft(r, now) + ", due " +
                                 dateLabel(r.due_date) +
                                 ", " + r.urgency
                               }
@@ -311,11 +358,8 @@ export default function OverviewView({
                                   {words(r.kind)}
                                 </Badge>
                               </span>
-                              <span className="relative z-10 mt-2 text-xs leading-5 text-slate-600">
-                                {dateLabel(r.due_date)}
-                                {r.due_time
-                                  ? " · " + r.due_time.slice(0, 5) + " PHT"
-                                  : ""}
+                              <span className="relative z-10 mt-2 text-xs leading-5 text-slate-600" title={`${dateLabel(r.due_date)}${r.due_time ? ` · ${r.due_time.slice(0, 5)} PHT` : ""}`}>
+                                {deadlineTimeLeft(r, now)}
                               </span>
                               {r.amount != null && !["task", "reminder"].includes(r.kind) && (
                                 <span className="relative z-10 mt-1 text-xs leading-5 text-slate-600 tabular-nums">

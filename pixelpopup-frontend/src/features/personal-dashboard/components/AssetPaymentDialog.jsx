@@ -168,7 +168,7 @@ export default function AssetPaymentDialog({ asset, financing, accounts, initial
           </div>
           {!historical && <div className="space-y-2">
             <Label htmlFor="asset-payment-mode">Apply amount above this installment to</Label>
-            <SelectableField id="asset-payment-mode" label="Apply excess to" options={[{ value: "principal", label: "Extra principal", icon: Landmark }, { value: "advance", label: "Future installments", icon: CalendarClock }]} value={values.mode} onChange={(value) => change("mode", value)} disabled={busy} />
+            <SelectableField id="asset-payment-mode" label="Apply excess to" options={[{ value: "principal", label: "Extra principal", description: "Reduce the remaining loan balance.", icon: Landmark }, { value: "advance", label: "Future installments", description: "Reserve it for upcoming dues.", icon: CalendarClock }]} value={values.mode} onChange={(value) => change("mode", value)} disabled={busy} />
           </div>}
           <div className="border-t pt-4">
             <h3 className="font-semibold text-slate-950">Payment breakdown</h3>

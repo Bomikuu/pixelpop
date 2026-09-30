@@ -31,6 +31,15 @@ import {
   PawPrint,
   PiggyBank,
   HeartHandshake,
+  Bot,
+  Cloud,
+  Dumbbell,
+  Film,
+  Flame,
+  Music2,
+  ShieldCheck,
+  Smartphone,
+  Tv,
 } from "lucide-react";
 
 export const cashKinds = ["cash", "bank", "ewallet"];
@@ -101,15 +110,29 @@ export const institutions = [
   { value: "__other", label: "Other institution", icon: Landmark },
 ];
 export const utilityPresets = [
-  { value: "water", label: "Water", icon: Droplets, title: "Water bill" },
+  { value: "water", label: "Water", icon: Droplets, title: "Water bill", amountMode: "variable" },
   {
     value: "electricity",
     label: "Electricity",
     icon: Zap,
     title: "Electricity bill",
+    amountMode: "variable",
   },
   { value: "internet", label: "Internet", icon: Wifi, title: "Internet bill" },
-  { value: "custom", label: "Custom bill / task", icon: Receipt },
+  { value: "mobile", label: "Mobile plan", icon: Smartphone, title: "Mobile plan" },
+  { value: "gas", label: "Gas / LPG", icon: Flame, title: "Gas / LPG", amountMode: "variable" },
+  { value: "rent", label: "Rent", icon: House, title: "Rent" },
+  { value: "condo", label: "Condo dues", icon: Building2, title: "Condo dues" },
+  { value: "insurance", label: "Insurance premium", icon: ShieldCheck, title: "Insurance premium" },
+  { value: "hmo", label: "HMO premium", icon: HeartPulse, title: "HMO premium" },
+  { value: "netflix", label: "Netflix", icon: Tv, title: "Netflix", kind: "subscription" },
+  { value: "chatgpt", label: "ChatGPT", icon: Bot, title: "ChatGPT", kind: "subscription" },
+  { value: "spotify", label: "Spotify", icon: Music2, title: "Spotify", kind: "subscription" },
+  { value: "youtube", label: "YouTube Premium", icon: Film, title: "YouTube Premium", kind: "subscription" },
+  { value: "disney", label: "Disney+", icon: Tv, title: "Disney+", kind: "subscription" },
+  { value: "cloud", label: "Cloud storage", icon: Cloud, title: "Cloud storage", kind: "subscription" },
+  { value: "gym", label: "Gym membership", icon: Dumbbell, title: "Gym membership", kind: "subscription" },
+  { value: "custom", label: "Custom bill", icon: Receipt },
 ];
 const choiceIcons = {
   bank: Landmark,

@@ -26,6 +26,7 @@ import {
   Utensils,
   TriangleAlert,
   BriefcaseBusiness,
+  FileClock,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { Button } from "./ui/button";
@@ -57,6 +58,7 @@ import SharedBillView from "./views/SharedBillView";
 import AssetDetailView from "./views/AssetDetailView";
 import AccountDetailView from "./views/AccountDetailView";
 import NutritionView from "./views/NutritionView";
+import EventsView from "./views/EventsView";
 import NutritionDateControls from "./components/nutrition/NutritionDateControls";
 import { dateLabel, money, today, words } from "./lib/format";
 import "./styles/theme.css";
@@ -76,6 +78,7 @@ const tabs = [
   ["spending", "Spending", ChartNoAxesCombined, "Insights"],
   ["reports", "Monthly reports", FileChartColumn, "Insights"],
   ["settings", "Settings", Settings, "Workspace"],
+  ["events", "Events log", FileClock, "Workspace"],
 ];
 
 export default function Dashboard() {
@@ -531,6 +534,8 @@ export default function Dashboard() {
                   <p className="mt-1 text-xs leading-5 text-slate-600">
                     {tab === "nutrition"
                       ? "Meals, macros, weight readings, and your own daily target."
+                      : tab === "events"
+                        ? "A read-only history of changes across your personal workspace."
                       : "Your money, expenses, bills, and deadlines in one place."}
                     <span className="inline-block whitespace-nowrap">
                       <span className="mx-2 text-slate-400" aria-hidden="true">·</span>
@@ -549,7 +554,7 @@ export default function Dashboard() {
               </div>
               {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                 <label htmlFor="workspace-month" className="sr-only">
-                  Summary month
+                  {tab === "events" ? "Events month" : "Summary month"}
                 </label>
                 <input
                   id="workspace-month"
@@ -616,7 +621,7 @@ export default function Dashboard() {
               </div>
             )}
           </header>
-          {tab !== "nutrition" && dashboard.data.overview.attention.overdue > 0 && (
+          {tab !== "nutrition" && tab !== "events" && dashboard.data.overview.attention.overdue > 0 && (
             <div
               role="status"
               className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900"
@@ -681,6 +686,8 @@ export default function Dashboard() {
             />
           ) : tab === "nutrition" ? (
             <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onLeave={() => navigate("")} />
+          ) : tab === "events" ? (
+            <EventsView dashboard={dashboard} month={selectedMonth} />
           ) : tab === "funds" ? (
             <FundsView {...shared} />
           ) : tab === "accounts" && accountId ? (

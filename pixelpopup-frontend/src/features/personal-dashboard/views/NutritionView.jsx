@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
 import { ErrorState, Panel } from "../components/Panel";
 import MealDialog from "../components/nutrition/MealDialog";
+import ActivityDialog from "../components/nutrition/ActivityDialog";
 import NutritionDay from "../components/nutrition/NutritionDay";
 import NutritionInsights from "../components/nutrition/NutritionInsights";
 import NutritionSettings from "../components/nutrition/NutritionSettings";
@@ -14,7 +15,9 @@ export default function NutritionView({ request, notify, date, onLeave }) {
   const [periodRetry, setPeriodRetry] = useState(0);
   const [periodState, setPeriodState] = useState({ key: "", loading: false, data: null, error: "" });
   const [editing, setEditing] = useState(null);
+  const [editingActivity, setEditingActivity] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [deletingActivity, setDeletingActivity] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const focusReturn = useRef(null);
@@ -27,9 +30,10 @@ export default function NutritionView({ request, notify, date, onLeave }) {
     Promise.all([
       request("nutrition/profile/", { signal: controller.signal }),
       request(`nutrition/meals/?date=${date}`, { signal: controller.signal }),
+      request(`nutrition/activities/?date=${date}`, { signal: controller.signal }),
       request(`nutrition/summary/?date=${date}`, { signal: controller.signal }),
-    ]).then(([profile, meals, summary]) => {
-      if (!controller.signal.aborted) setState({ loading: false, data: { profile, meals, summary }, error: "", date });
+    ]).then(([profile, meals, activities, summary]) => {
+      if (!controller.signal.aborted) setState({ loading: false, data: { profile, meals, activities, summary }, error: "", date });
     }).catch((error) => {
       if (!controller.signal.aborted) setState({ loading: false, data: null, error: error.message, date });
     });
@@ -61,6 +65,29 @@ export default function NutritionView({ request, notify, date, onLeave }) {
     await request(id ? `nutrition/meals/${id}/` : "nutrition/meals/", { method: id ? "PATCH" : "POST", body });
     setVersion((value) => value + 1);
     notify(id ? "Meal updated." : "Meal added.", { action: id ? "edited" : "added", entity: "meal" });
+  }
+
+  async function saveActivity(body, id) {
+    await request(id ? `nutrition/activities/${id}/` : "nutrition/activities/", { method: id ? "PATCH" : "POST", body });
+    setVersion((value) => value + 1);
+    notify(id ? "Activity updated." : "Activity added.", { action: id ? "edited" : "added", entity: "activity" });
+  }
+
+  async function deleteActivity(event) {
+    event.preventDefault();
+    if (deleteBusy || !deletingActivity) return;
+    setDeleteBusy(true);
+    setDeleteError("");
+    try {
+      await request(`nutrition/activities/${deletingActivity.id}/`, { method: "DELETE" });
+      setDeletingActivity(null);
+      setVersion((value) => value + 1);
+      notify("Activity deleted.", { action: "deleted", entity: "activity" });
+    } catch (error) {
+      setDeleteError(error.message);
+    } finally {
+      setDeleteBusy(false);
+    }
   }
 
   async function saveProfile(body) {
@@ -118,7 +145,7 @@ export default function NutritionView({ request, notify, date, onLeave }) {
     {state.loading && state.date === date && state.data && <p role="status" className="text-xs text-slate-600">Refreshing nutrition…</p>}
     {state.loading && (!state.data || state.date !== date) ? <Panel title="Nutrition"><p role="status" className="py-8 text-sm text-slate-600">Loading meals and insights…</p></Panel> : state.error ? <ErrorState message={state.error} retry={() => setVersion((value) => value + 1)} /> : state.data ? <>
       <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,1fr)]">
-        <NutritionDay date={date} meals={state.data.meals} profile={state.data.profile} summary={state.data.summary} onAdd={() => openMeal()} onEdit={openMeal} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} />
+        <NutritionDay date={date} meals={state.data.meals} activities={state.data.activities} profile={state.data.profile} summary={state.data.summary} onAdd={() => openMeal()} onEdit={openMeal} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} onAddActivity={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEditActivity={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDeleteActivity={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} />
         <NutritionSettings profile={state.data.profile} date={date} weights={state.data.summary.weights} onSaveProfile={saveProfile} onSaveWeight={saveWeight} onDeleteWeight={deleteWeight} />
       </div>
       <NutritionInsights summary={state.data.summary} profile={state.data.profile} period={period} onPeriodChange={setPeriod} periodState={periodState.key === periodKey ? periodState : { loading: true, data: null, error: "" }} onRetry={() => setPeriodRetry((value) => value + 1)} />
@@ -126,8 +153,12 @@ export default function NutritionView({ request, notify, date, onLeave }) {
     </> : null}
 
     {editing && <MealDialog key={editing === "new" ? `new-${date}` : editing.id} meal={editing === "new" ? null : editing} date={date} onClose={() => setEditing(null)} onSave={saveMeal} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
+    {editingActivity && <ActivityDialog key={editingActivity === "new" ? `activity-new-${date}` : editingActivity.id} activity={editingActivity === "new" ? null : editingActivity} date={date} weights={state.data?.summary?.weights || []} onClose={() => setEditingActivity(null)} onSave={saveActivity} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
     <AlertDialog open={Boolean(deleting)} onOpenChange={(open) => { if (!open && !deleteBusy) setDeleting(null); }}>
       <AlertDialogContent className="personal-dashboard" onCloseAutoFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }}><AlertDialogHeader><AlertDialogTitle>Delete {deleting?.meal_name}?</AlertDialogTitle><AlertDialogDescription>This removes the meal and its food items from your log. Your daily totals will be recalculated.</AlertDialogDescription></AlertDialogHeader>{deleteError && <p role="alert" className="text-sm text-red-700">{deleteError}</p>}<AlertDialogFooter><AlertDialogCancel disabled={deleteBusy}>Keep meal</AlertDialogCancel><AlertDialogAction disabled={deleteBusy} onClick={deleteMeal} className="bg-red-700 text-white hover:bg-red-800">{deleteBusy ? "Deleting…" : "Delete meal"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+    </AlertDialog>
+    <AlertDialog open={Boolean(deletingActivity)} onOpenChange={(open) => { if (!open && !deleteBusy) setDeletingActivity(null); }}>
+      <AlertDialogContent className="personal-dashboard" onCloseAutoFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }}><AlertDialogHeader><AlertDialogTitle>Delete {deletingActivity?.name}?</AlertDialogTitle><AlertDialogDescription>This removes the activity and recalculates estimated net calories. Meals remain unchanged.</AlertDialogDescription></AlertDialogHeader>{deleteError && <p role="alert" className="text-sm text-red-700">{deleteError}</p>}<AlertDialogFooter><AlertDialogCancel disabled={deleteBusy}>Keep activity</AlertDialogCancel><AlertDialogAction disabled={deleteBusy} onClick={deleteActivity} className="bg-red-700 text-white hover:bg-red-800">{deleteBusy ? "Deleting…" : "Delete activity"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
     </AlertDialog>
   </div>;
 }

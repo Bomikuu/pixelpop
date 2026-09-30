@@ -88,8 +88,8 @@ const reminder = field("reminder_days", "Reminder", "select", {
 const amountMode = field("amount_mode", "Bill amount", "select", {
   default: "fixed",
   options: [
-    { value: "fixed", label: "Fixed amount" },
-    { value: "variable", label: "Enter each month" },
+    { value: "fixed", label: "Fixed amount", description: "Use the same amount for each bill." },
+    { value: "variable", label: "Enter each month", description: "Enter the actual amount when each bill arrives." },
   ],
   hint: "Variable bills start unpriced each month. Enter that month's actual amount when the bill arrives.",
 });
@@ -120,8 +120,8 @@ export function formDefinition(entity, record) {
       fields: [
         { ...contact, label: "Who received it?" },
         amount,
-        account,
         date,
+        account,
         category,
         field("name", "Description", "text", {
           required: true,
@@ -269,8 +269,8 @@ export function formDefinition(entity, record) {
         field("settlement_kind", "Payment type", "select", {
           default: "expense",
           options: [
-            { value: "expense", label: "Ordinary bill" },
-            { value: "credit_card_payment", label: "Credit-card repayment" },
+            { value: "expense", label: "Ordinary bill", description: "Pay a bill as an expense." },
+            { value: "credit_card_payment", label: "Credit-card repayment", description: "Pay down an existing card balance." },
           ],
           when: (v) => billKinds.includes(v.kind),
         }),
@@ -379,8 +379,8 @@ export function formDefinition(entity, record) {
           label: "Principal lent (₱)",
           disabled: !!record?.id,
         },
-        { ...account, cashOnly: true, disabled: !!record?.id },
         { ...date, label: "Date lent", disabled: !!record?.id },
+        { ...account, cashOnly: true, disabled: !!record?.id },
         field("existing", "Loan record", "select", {
           default: "false",
           disabled: !!record?.id,
@@ -410,6 +410,7 @@ export function formDefinition(entity, record) {
           ]),
         }),
         amount,
+        date,
         field("source", "From account", "select", {
           source: "cashAccounts",
           required: true,
@@ -424,7 +425,6 @@ export function formDefinition(entity, record) {
           disabled: !!record?.loan,
           when: (v) => v.kind === "loan_repayment",
         }),
-        date,
         notes,
       ],
     };
@@ -437,6 +437,7 @@ export function formDefinition(entity, record) {
       endpoint: "deadlines/" + record.id + "/settle/",
       fields: [
         { ...amount, default: record.amount || "" },
+        date,
         {
           ...account,
           cashOnly: record.settlement_kind !== "expense",
@@ -445,7 +446,6 @@ export function formDefinition(entity, record) {
               ? "Receive into"
               : "Pay from",
         },
-        date,
         field(
           "transaction",
           "Or link an already-recorded expense ID",
@@ -511,6 +511,10 @@ export function formDefinition(entity, record) {
         {
           ...amountMode,
           label: "Premium amount",
+          options: [
+            { value: "fixed", label: "Fixed amount", description: "Use the same premium each payment." },
+            { value: "variable", label: "Enter each time", description: "Enter the premium when each payment is due." },
+          ],
           hint: "For a variable premium, enter the actual amount when you pay each bill.",
           default: record?.variable_amount ? "variable" : "fixed",
         },
@@ -519,15 +523,18 @@ export function formDefinition(entity, record) {
         field("frequency", "Payment frequency", "select", {
           required: true,
           default: "monthly",
-          options: choices(["monthly", "quarterly"]),
+          options: [
+            { value: "monthly", label: "Monthly", description: "Due every month." },
+            { value: "quarterly", label: "Quarterly", description: "Due every three months." },
+          ],
         }),
         category,
         reminder,
         notes,
         ...(record?.id ? [field("active", "Schedule status", "select", {
           options: [
-            { value: "true", label: "Active" },
-            { value: "false", label: "Stopped" },
+            { value: "true", label: "Active", description: "Keep scheduling future payments." },
+            { value: "false", label: "Stopped", description: "Stop scheduling future payments." },
           ],
         })] : []),
       ],
@@ -568,8 +575,8 @@ export function formDefinition(entity, record) {
       notes,
       field("active", "Schedule status", "select", {
         options: [
-          { value: "true", label: "Active" },
-          { value: "false", label: "Stopped" },
+          { value: "true", label: "Active", description: "Keep scheduling future items." },
+          { value: "false", label: "Stopped", description: "Stop scheduling future items." },
         ],
       }),
     ],

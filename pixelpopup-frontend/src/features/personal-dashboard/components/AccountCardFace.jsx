@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Card from "card";
 import "card/lib/card.css";
-import { InstitutionLogo } from "./ChoiceTiles";
+import InstitutionLogo from "./InstitutionLogo";
 import { cardNetworks, choiceIcon, coverageTypes, fundTypes, institutionFor } from "../lib/presets";
 import "./AccountCardFace.css";
 
@@ -12,7 +12,7 @@ const kindLabels = {
   credit_card: "Credit card",
 };
 
-export default function AccountCardFace({ account, align = "center" }) {
+export default function AccountCardFace({ account, align = "center", size = "default" }) {
   const containerRef = useRef(null);
   const kind = account.kind || "bank";
   const coverage = kind === "fund" && coverageTypes.includes(account.fund_type);
@@ -97,7 +97,7 @@ export default function AccountCardFace({ account, align = "center" }) {
       aria-label={description.join(", ")}
       data-kind={kind}
       data-network={network || undefined}
-      className={"pd-card-preview relative aspect-[7/4] w-full max-w-[350px] " + (align === "left" ? "ml-0 mr-auto" : "mx-auto")}
+      className={"pd-card-preview relative aspect-[7/4] w-full " + (size === "small" ? "max-w-[250px] " : "max-w-[350px] ") + (align === "left" ? "ml-0 mr-auto" : "mx-auto")}
     >
       <div ref={containerRef} className="absolute inset-0" aria-hidden="true" />
       <div

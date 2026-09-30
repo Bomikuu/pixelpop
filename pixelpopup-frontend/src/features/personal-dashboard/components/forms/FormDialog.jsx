@@ -176,13 +176,18 @@ export default function FormDialog({
   function chooseUtility(value) {
     setUtility(value);
     const preset = utilityPresets.find((p) => p.value === value);
+    if (value === "custom") {
+      setValues((v) => ({ ...v, title: "", kind: "bill", amount_mode: "fixed", amount: "" }));
+      setErrors({});
+      return;
+    }
     if (preset?.title) {
       setValues((v) => ({
         ...v,
         title: preset.title,
-        kind: "bill",
+        kind: preset.kind || "bill",
         repeat: "monthly",
-        amount_mode: value === "internet" ? "fixed" : "variable",
+        amount_mode: preset.amountMode || "fixed",
         amount: "",
         settlement_kind: "expense",
       }));
@@ -266,14 +271,14 @@ export default function FormDialog({
       method =
         definition.method ||
         (record?.id &&
-        ![
-          "settlement",
-          "adjustment",
-          "movement",
-          "budget",
-          "fund_contribution",
-          "fund_withdrawal",
-        ].includes(entity)
+          ![
+            "settlement",
+            "adjustment",
+            "movement",
+            "budget",
+            "fund_contribution",
+            "fund_withdrawal",
+          ].includes(entity)
           ? "PATCH"
           : "POST");
     if (method === "PATCH" && record?.id && entity !== "budget")
@@ -320,7 +325,7 @@ export default function FormDialog({
         entity: path === "schedules/" ? "schedule" : entity,
         action:
           entity === "settlement" &&
-          record?.settlement_kind === "loan_collection"
+            record?.settlement_kind === "loan_collection"
             ? "collected"
             : entity === "movement" && values.kind === "loan_repayment"
               ? "repaid"
@@ -340,14 +345,14 @@ export default function FormDialog({
     } catch (error) {
       const mapped =
         error.fields &&
-        typeof error.fields === "object" &&
-        !Array.isArray(error.fields)
+          typeof error.fields === "object" &&
+          !Array.isArray(error.fields)
           ? Object.fromEntries(
-              Object.entries(error.fields).map(([k, v]) => [
-                k,
-                Array.isArray(v) ? v.join(" ") : String(v),
-              ]),
-            )
+            Object.entries(error.fields).map(([k, v]) => [
+              k,
+              Array.isArray(v) ? v.join(" ") : String(v),
+            ]),
+          )
           : {};
       setErrors({
         ...mapped,
@@ -392,7 +397,7 @@ export default function FormDialog({
                   ? "Save this person once, then select them for giving or loans."
                   : entity === "schedule" && record?.coverage
                     ? "Premium bills appear on your deadlines. Paying one records an expense linked to this coverage."
-                  : "Manual tracking in Philippine pesos. Your records stay in Django."}
+                    : "Manual tracking in Philippine pesos. Your records stay in Django."}
             </DialogDescription>
           </DialogHeader>
           <form noValidate onSubmit={save} className="space-y-4">
@@ -442,6 +447,7 @@ export default function FormDialog({
               <div
                 className={
                   "grid gap-4 sm:grid-cols-2 " +
+                  (entity === "account" ? "" : "lg:grid-cols-6 ") +
                   (entity === "account" ? "xl:order-1" : "")
                 }
               >
@@ -458,14 +464,26 @@ export default function FormDialog({
                       values.kind === "credit_card_payment"
                         ? sources.cards
                         : sources.cashAccounts;
+                  const fullWidth = ["textarea", "institution"].includes(f.type) ||
+                    accountSources.has(f.source) ||
+                    f.source === "contacts" ||
+                    f.name === "existing" ||
+                    (f.type === "select" && options.length < 3);
+                  const compactSelect = f.type === "select" && !fullWidth;
                   return (
                     <div
                       key={f.name}
                       className={
-                        ["textarea", "select", "institution"].includes(f.type) ||
-                        f.name === "existing"
-                          ? "sm:col-span-2"
-                          : ""
+                        "min-w-0 " +
+                        (fullWidth
+                          ? entity === "account"
+                            ? "sm:col-span-2"
+                            : "sm:col-span-2 lg:col-span-6"
+                          : entity === "account"
+                            ? ""
+                            : compactSelect
+                              ? "lg:col-span-2"
+                              : "lg:col-span-3")
                       }
                     >
                       <Label htmlFor={id} className="mb-2 block">

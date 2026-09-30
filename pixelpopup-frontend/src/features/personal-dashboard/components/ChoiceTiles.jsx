@@ -1,25 +1,9 @@
-import { useState } from "react";
-import { Check, Landmark } from "lucide-react";
+import { Check } from "lucide-react";
 import { choiceIcon } from "../lib/presets";
+import AccountCardFace from "./AccountCardFace";
+import InstitutionLogo from "./InstitutionLogo";
 
-export function InstitutionLogo({ institution, className = "h-7 w-16" }) {
-  const [failed, setFailed] = useState(false);
-  return institution?.logo && !failed ? (
-    <img
-      src={institution.logo}
-      alt=""
-      className={className + " object-contain"}
-      width="64"
-      height="28"
-      onError={() => setFailed(true)}
-    />
-  ) : (
-    <Landmark
-      className="size-6 shrink-0 text-[var(--pd-primary)]"
-      aria-hidden="true"
-    />
-  );
-}
+export { InstitutionLogo };
 
 export default function ChoiceTiles({
   id,
@@ -49,10 +33,10 @@ export default function ChoiceTiles({
       <div
         className={
           accountChoices
-            ? "grid max-h-64 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2"
+            ? "grid max-h-72 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3"
             : compact
-            ? "flex flex-wrap gap-2"
-            : "grid grid-cols-2 gap-2 sm:grid-cols-3"
+              ? "flex flex-wrap gap-2"
+              : "grid grid-cols-2 gap-2 sm:grid-cols-3"
         }
       >
         {options.map((option) => {
@@ -62,7 +46,8 @@ export default function ChoiceTiles({
             <label
               key={option.value}
               className={
-                "pd-choice relative flex min-w-0 cursor-pointer items-center gap-2 rounded-md border p-3 text-sm transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--pd-primary)] " +
+                "pd-choice relative flex min-w-0 cursor-pointer items-center gap-2 rounded-md border text-sm transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--pd-primary)] " +
+                (accountChoices ? "p-2.5 " : "p-3 ") +
                 (disabled ? "pointer-events-none opacity-60" : "") +
                 (compact ? " px-3 py-2" : "")
               }
@@ -79,26 +64,23 @@ export default function ChoiceTiles({
                 aria-describedby={describedBy}
                 className="sr-only"
               />
-              {option.logo ? (
-                <InstitutionLogo institution={option} className={accountChoices ? "h-6 w-8 shrink-0" : undefined} />
+              {accountChoices && option.account ? (
+                <div aria-hidden="true" className="relative h-14 w-[98px] shrink-0 overflow-hidden rounded-md">
+                  <div className="pointer-events-none absolute left-0 top-0 w-[350px] origin-top-left scale-[0.28]">
+                    <AccountCardFace account={option.account} align="left" />
+                  </div>
+                </div>
               ) : (
-                <Icon
-                  size={18}
-                  className="shrink-0 text-[var(--pd-primary)]"
-                  aria-hidden="true"
-                />
+                <span aria-hidden="true" className={"grid shrink-0 place-items-center rounded-full bg-blue-50 " + (compact ? "size-8" : "size-10")}>
+                  {option.logo ? <InstitutionLogo institution={option} className="h-6 w-8" /> : <Icon size={compact ? 16 : 20} className="text-[var(--pd-primary)]" />}
+                </span>
               )}
               <span className="min-w-0 flex-1 break-words leading-5">
-                <span className="block">{option.label}</span>
-                {option.description && <span className="mt-0.5 block text-xs text-slate-600">{option.description}</span>}
+                <span className="block font-medium text-slate-950">{accountChoices && option.account ? option.account.name : option.label}</span>
+                {accountChoices && option.account?.last_four && <span className="block text-xs text-slate-600">•••• {option.account.last_four}{option.account.card_expiry ? ` · Exp ${option.account.card_expiry}` : ""}</span>}
+                {option.description && <span className="mt-0.5 block text-xs leading-snug text-slate-600">{option.description}</span>}
               </span>
-              {selected && (
-                <Check
-                  size={14}
-                  className="shrink-0 text-[var(--pd-primary)]"
-                  aria-hidden="true"
-                />
-              )}
+              <span aria-hidden="true" className={"grid size-4 shrink-0 self-start place-items-center rounded-full border " + (selected ? "border-[var(--pd-primary)] bg-[var(--pd-primary)] text-white" : "border-slate-400 bg-white")}>{selected && <Check size={11} strokeWidth={3} />}</span>
             </label>
           );
         })}

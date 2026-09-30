@@ -54,8 +54,20 @@ const dotClusters = [
   [112, 110, 3, 3],
 ];
 const crosses = [[118, 35], [46, 86], [132, 94], [92, 137]];
+const clusterDrift = [
+  "motion-safe:group-hover:-translate-x-2 motion-safe:group-hover:-translate-y-1.5",
+  "motion-safe:group-hover:translate-x-2 motion-safe:group-hover:-translate-y-2",
+  "motion-safe:group-hover:-translate-x-1.5 motion-safe:group-hover:translate-y-2",
+  "motion-safe:group-hover:translate-x-2 motion-safe:group-hover:translate-y-1.5",
+];
+const crossDrift = [
+  "motion-safe:group-hover:translate-x-1.5 motion-safe:group-hover:-translate-y-1",
+  "motion-safe:group-hover:-translate-x-2 motion-safe:group-hover:translate-y-1.5",
+  "motion-safe:group-hover:translate-x-2 motion-safe:group-hover:translate-y-1",
+  "motion-safe:group-hover:-translate-x-1 motion-safe:group-hover:translate-y-2",
+];
 
-function SummaryTilePattern({ tone }) {
+export function SummaryTilePattern({ tone }) {
   const color = tone === "positive"
     ? "text-emerald-300"
     : tone === "negative"
@@ -69,20 +81,23 @@ function SummaryTilePattern({ tone }) {
       preserveAspectRatio="xMidYMid slice"
       className={"pointer-events-none absolute inset-y-0 right-0 h-full w-[36%] opacity-[0.35] " + color}
     >
-      {dotClusters.flatMap(([x, y, columns, rows], cluster) =>
-        Array.from({ length: columns * rows }, (_, index) => (
+      {dotClusters.map(([x, y, columns, rows], cluster) => (
+        <g key={cluster} className={`motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out ${clusterDrift[cluster]}`}>
+          {Array.from({ length: columns * rows }, (_, index) => (
           <circle
-            key={cluster + "-" + index}
+            key={index}
             cx={x + (index % columns) * 8}
             cy={y + Math.floor(index / columns) * 8}
             r="1.8"
             fill="currentColor"
           />
-        )),
-      )}
-      {crosses.map(([x, y]) => (
+          ))}
+        </g>
+      ))}
+      {crosses.map(([x, y], index) => (
         <path
           key={x + "-" + y}
+          className={`motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out ${crossDrift[index]}`}
           d={`M ${x - 3} ${y - 3} L ${x + 3} ${y + 3} M ${x + 3} ${y - 3} L ${x - 3} ${y + 3}`}
           fill="none"
           stroke="currentColor"

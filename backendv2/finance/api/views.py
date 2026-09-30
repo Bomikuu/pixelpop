@@ -22,6 +22,7 @@ from finance.services.summaries import overview, transaction_summary, deadline_s
 from finance.services.charts import record_charts
 from finance.services.account_detail import account_ledger, account_summary
 from finance.services.asset_financing import financing_balance, financing_projection, installment_paid, materialize_installments, record_payment, terms_on
+from finance.services.audit import log_record, snapshot_record, record_label
 from .serializers import AccountSerializer, AssetFinancingPaymentSerializer, AssetFinancingSerializer, AssetFinancingTermsSerializer, AssetSerializer, CategorySerializer, DeadlineSerializer, LoanSerializer, MovementSerializer, PersonSerializer, ScheduleSerializer, SettingsSerializer, TransactionSerializer
 
 
@@ -59,7 +60,43 @@ class FinancePagination(PageNumberPagination):
             return number
 
 
-class FinanceViewSet(PrivateMixin, viewsets.ModelViewSet):
+class AuditCrudMixin:
+    """One semantic event for each successful standard CRUD request."""
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            instance = self.queryset.model.objects.get(pk=response.data["id"])
+            log_record(instance, actor=request.user, action="added", after=snapshot_record(instance))
+        return response
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        before = snapshot_record(instance)
+        response = super().update(request, *args, **kwargs)
+        instance.refresh_from_db()
+        log_record(instance, actor=request.user, action="edited", before=before, after=snapshot_record(instance))
+        return response
+
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        before = snapshot_record(instance)
+        subject_id, label = instance.pk, record_label(instance)
+        response = super().destroy(request, *args, **kwargs)
+        still_exists = self.queryset.model.objects.filter(pk=subject_id).exists()
+        if still_exists:
+            instance.refresh_from_db()
+        after = snapshot_record(instance) if still_exists else None
+        if before != after:
+            log_record(instance, actor=request.user, action="deleted", before=before,
+                       after=after, subject_id=subject_id, label=label)
+        return response
+
+
+class FinanceViewSet(AuditCrudMixin, PrivateMixin, viewsets.ModelViewSet):
     pagination_class = FinancePagination
     filter_backends = []
     date_field = None
@@ -120,7 +157,7 @@ class FinanceViewSet(PrivateMixin, viewsets.ModelViewSet):
             raise ValidationError("This record has financial history and cannot be deleted.")
 
 
-class PersonViewSet(PrivateMixin, viewsets.ModelViewSet):
+class PersonViewSet(AuditCrudMixin, PrivateMixin, viewsets.ModelViewSet):
     queryset = models.Person.objects.all().order_by("name", "id")
     serializer_class = PersonSerializer
     pagination_class = FinancePagination
@@ -233,9 +270,11 @@ class AccountViewSet(FinanceViewSet):
             if (existing.account_id, existing.amount, existing.date, existing.reason) != (account.pk, value, day, reason):
                 raise ValidationError("This request identifier was already used for a different correction.")
         else:
-            models.BalanceAdjustment.objects.create(request_id=key, account=account, amount=value, date=day, reason=reason, created_by=request.user)
+            adjustment = models.BalanceAdjustment.objects.create(request_id=key, account=account, amount=value, date=day, reason=reason, created_by=request.user)
             if account.kind == "fund":
                 validate_fund_history(account, day)
+            log_record(adjustment, actor=request.user, action="adjusted",
+                       after=snapshot_record(adjustment), operation_key=f"adjustment:{key}")
         return Response(self.get_serializer(account).data)
 
     @action(detail=True, methods=["get"])
@@ -332,12 +371,16 @@ class DeadlineViewSet(FinanceViewSet):
         return deadline_summary(qs)
 
     @action(detail=True, methods=["post"])
+    @transaction.atomic
     def settle(self, request, pk=None):
         item = self.get_object()
+        before = snapshot_record(item)
         try:
             result = settle_deadline(item.pk, request.data, request.user)
         except (ValueError, TypeError):
             raise ValidationError("Choose a valid account, amount and date.")
+        log_record(result, actor=request.user, action="settled", before=before,
+                   after=snapshot_record(result), operation_key=f"deadline-settled:{item.pk}")
         return Response(self.get_serializer(result).data)
 
     def perform_destroy(self, instance):
@@ -436,7 +479,8 @@ class AssetViewSet(FinanceViewSet):
             raise ValidationError({"asset": "Choose an active asset without financing. Update existing terms from its detail page."})
         serializer = AssetFinancingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(asset=asset, created_by=request.user)
+        financing = serializer.save(asset=asset, created_by=request.user)
+        log_record(financing, actor=request.user, action="added", after=snapshot_record(financing))
         return Response(self.financing_response(models.Asset.objects.get(pk=asset.pk)), status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"], url_path="financing/terms")
@@ -456,13 +500,14 @@ class AssetViewSet(FinanceViewSet):
                 return Response(self.financing_response(financing.asset))
             raise ValidationError({"effective_date": "A different terms update already exists for this date."})
         pending = financing.installments.filter(status="pending", due_date__gte=effective)
-        serializer.save(financing=financing, created_by=request.user)
+        terms = serializer.save(financing=financing, created_by=request.user)
         for item in pending:
             next_due = terms_on(financing, item.due_date)[1]
             if installment_paid(item) > next_due:
                 raise ValidationError({"monthly_due": "The new due cannot be below an amount already paid toward an installment."})
             item.amount = next_due
             item.save(update_fields=["amount", "updated_at"])
+        log_record(terms, actor=request.user, action="added", after=snapshot_record(terms))
         return Response(self.financing_response(financing.asset))
 
     @action(detail=True, methods=["post"], url_path="financing/payments")
@@ -474,6 +519,8 @@ class AssetViewSet(FinanceViewSet):
         serializer = AssetFinancingPaymentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         payment = record_payment(financing, serializer.validated_data, request.user)
+        log_record(payment, actor=request.user, action="paid", after=snapshot_record(payment),
+                   operation_key=f"asset-payment:{payment.request_id}")
         return Response({"payment": AssetFinancingPaymentSerializer(payment).data, **self.financing_response(financing.asset)})
 
 
@@ -536,6 +583,7 @@ class MovementViewSet(PrivateMixin, viewsets.ReadOnlyModelViewSet):
         response.data["summary"] = json_money(summary)
         return response
 
+    @transaction.atomic
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         # Identifier uniqueness is checked by the atomic service to support safe retry.
@@ -543,6 +591,8 @@ class MovementViewSet(PrivateMixin, viewsets.ReadOnlyModelViewSet):
         serializer.is_valid(raise_exception=True)
         values = {k: v.pk if isinstance(v, (models.Account, models.LoanReceivable)) else v for k, v in serializer.validated_data.items()}
         result = move_money(values, request.user)
+        log_record(result, actor=request.user, action="added", after=snapshot_record(result),
+                   operation_key=f"movement:{result.request_id}")
         return Response(self.get_serializer(result).data, status=status.HTTP_201_CREATED)
 
 
@@ -581,11 +631,14 @@ class SettingsView(PrivateMixin, APIView):
         obj, _ = models.WorkspaceSettings.objects.get_or_create(pk=1)
         return Response(SettingsSerializer(obj).data)
 
+    @transaction.atomic
     def patch(self, request):
         obj, _ = models.WorkspaceSettings.objects.get_or_create(pk=1)
+        before = snapshot_record(obj)
         serializer = SettingsSerializer(obj, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        log_record(obj, actor=request.user, action="edited", before=before, after=snapshot_record(obj))
         return Response(serializer.data)
 
 

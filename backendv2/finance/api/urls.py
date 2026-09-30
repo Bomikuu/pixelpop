@@ -3,6 +3,8 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from . import shared_bills
 from . import nutrition
+from . import activity
+from . import events
 
 router = DefaultRouter()
 for prefix, view in (
@@ -15,12 +17,15 @@ for prefix, view in (
     router.register(prefix, view, basename="finance-" + prefix)
 
 urlpatterns = [
+    path("events/", events.AuditEventsView.as_view()),
     path("nutrition/profile/", nutrition.NutritionProfileView.as_view()),
     path("nutrition/setup/", nutrition.NutritionSetupView.as_view()),
     path("nutrition/weights/", nutrition.NutritionWeightListView.as_view()),
     path("nutrition/weights/<str:day>/", nutrition.NutritionWeightDetailView.as_view()),
     path("nutrition/meals/", nutrition.NutritionMealListView.as_view()),
     path("nutrition/meals/<int:pk>/", nutrition.NutritionMealDetailView.as_view()),
+    path("nutrition/activities/", activity.NutritionActivityListView.as_view()),
+    path("nutrition/activities/<int:pk>/", activity.NutritionActivityDetailView.as_view()),
     path("nutrition/summary/", nutrition.NutritionSummaryView.as_view()),
     path("nutrition/period-summary/", nutrition.NutritionPeriodSummaryView.as_view()),
     path("session/", views.SessionView.as_view()),

@@ -23,7 +23,7 @@ export default function AccountCards({
   confirmDelete,
 }) {
   return (
-    <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-4">
       {rows.map((account) => {
         const card = account.kind === "credit_card",
           fund = account.kind === "fund",
@@ -41,21 +41,21 @@ export default function AccountCards({
               (account.active ? "" : "opacity-60")
             }
           >
-            <div className="p-4 sm:p-5">
+            <div className="p-3">
               <Link
                 to={"/dashboard/accounts/" + account.id + "?month=" + month}
                 aria-label={"View " + account.name + " account details"}
                 className="group block rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)]"
               >
-                <AccountCardFace account={account} align="left" />
-                <div className="mt-4 flex min-w-0 items-center gap-3">
+                <AccountCardFace account={account} align="left" size="small" />
+                <div className="mt-3 flex min-w-0 items-center gap-2">
                   {showInstitution && (
-                    <span className="grid h-10 w-16 shrink-0 place-items-center rounded-md border border-[var(--pd-border)] bg-white p-1" aria-hidden="true">
-                      <InstitutionLogo institution={institution} className="h-7 w-full" />
+                    <span className="grid h-8 w-12 shrink-0 place-items-center rounded-md border border-[var(--pd-border)] bg-white p-1" aria-hidden="true">
+                      <InstitutionLogo institution={institution} className="h-6 w-full" />
                     </span>
                   )}
                   <div className="min-w-0">
-                    <h3 className="break-words text-base font-semibold text-[var(--pd-ink)] group-hover:text-[var(--pd-primary)] group-hover:underline">
+                    <h3 className="break-words text-sm font-semibold text-[var(--pd-ink)] group-hover:text-[var(--pd-primary)] group-hover:underline">
                       {account.name}
                     </h3>
                     <p className="mt-1 text-xs text-slate-600">
@@ -65,7 +65,7 @@ export default function AccountCards({
                   </div>
                 </div>
               </Link>
-              <div className="mt-4">
+              <div className="mt-3">
                 <p className="text-xs text-slate-600">
                   {coverage
                     ? "Coverage record"
@@ -75,12 +75,12 @@ export default function AccountCards({
                       ? "Outstanding debt"
                       : "Available balance"}
                 </p>
-                <p className={"mt-1 break-words font-semibold text-[var(--pd-ink)] " + (coverage ? "text-sm" : "text-2xl tabular-nums")}>
+                <p className={"mt-1 break-words font-semibold text-[var(--pd-ink)] " + (coverage ? "text-sm" : "text-xl tabular-nums")}>
                   {coverage ? "Not included in net worth" : money(account.balance)}
                 </p>
               </div>
             </div>
-            <div className="space-y-4 border-t border-[var(--pd-border)] bg-white p-4">
+            <div className="space-y-3 border-t border-[var(--pd-border)] bg-white p-3">
               {card && (
                 <div>
                   <div className="flex flex-wrap justify-between gap-2 text-xs text-slate-600">
