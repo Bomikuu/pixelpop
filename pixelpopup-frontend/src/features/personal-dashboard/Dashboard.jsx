@@ -27,6 +27,7 @@ import {
   TriangleAlert,
   BriefcaseBusiness,
   FileClock,
+  Lightbulb,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { Button } from "./ui/button";
@@ -59,6 +60,7 @@ import AssetDetailView from "./views/AssetDetailView";
 import AccountDetailView from "./views/AccountDetailView";
 import NutritionView from "./views/NutritionView";
 import EventsView from "./views/EventsView";
+import BrainstormView from "./views/BrainstormView";
 import NutritionDateControls from "./components/nutrition/NutritionDateControls";
 import { dateLabel, money, today, words } from "./lib/format";
 import "./styles/theme.css";
@@ -74,6 +76,7 @@ const tabs = [
   ["deadlines", "Tasks & deadlines", ListChecks, "Planning"],
   ["bills", "Bills", Receipt, "Planning"],
   ["calendar", "Calendar", CalendarDays, "Planning"],
+  ["brainstorm", "Brainstorming", Lightbulb, "Planning"],
   ["nutrition", "Nutrition", Utensils, "Wellbeing"],
   ["spending", "Spending", ChartNoAxesCombined, "Insights"],
   ["reports", "Monthly reports", FileChartColumn, "Insights"],
@@ -536,6 +539,8 @@ export default function Dashboard() {
                       ? "Meals, macros, weight readings, and your own daily target."
                       : tab === "events"
                         ? "A read-only history of changes across your personal workspace."
+                      : tab === "brainstorm"
+                        ? "Capture, shape, and carry ideas into tasks when they are ready."
                       : "Your money, expenses, bills, and deadlines in one place."}
                     <span className="inline-block whitespace-nowrap">
                       <span className="mx-2 text-slate-400" aria-hidden="true">·</span>
@@ -552,7 +557,7 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+              {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : tab === "brainstorm" ? null : <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
                 <label htmlFor="workspace-month" className="sr-only">
                   {tab === "events" ? "Events month" : "Summary month"}
                 </label>
@@ -688,6 +693,8 @@ export default function Dashboard() {
             <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onLeave={() => navigate("")} />
           ) : tab === "events" ? (
             <EventsView dashboard={dashboard} month={selectedMonth} />
+          ) : tab === "brainstorm" ? (
+            <BrainstormView dashboard={dashboard} notify={notify} />
           ) : tab === "funds" ? (
             <FundsView {...shared} />
           ) : tab === "accounts" && accountId ? (

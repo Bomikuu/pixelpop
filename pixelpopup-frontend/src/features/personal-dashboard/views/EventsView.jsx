@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Activity, Archive, CheckCheck, ChevronDown, ChevronLeft, ChevronRight, CreditCard,
-  FileClock, Link2, LockKeyhole, Pencil, Plus, Send, Trash2,
+  FileClock, FileJson2, Lightbulb, Link2, LockKeyhole, Pencil, Plus, Send, Trash2,
 } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { Button } from "../ui/button";
@@ -33,6 +33,8 @@ const eventConfig = {
   reviewed: { icon: CheckCheck, tone: "bg-blue-50 text-blue-700" },
   rotated: { icon: LockKeyhole, tone: "bg-amber-50 text-amber-700" },
   allocated: { icon: Activity, tone: "bg-blue-50 text-blue-700" },
+  imported: { icon: FileJson2, tone: "bg-blue-50 text-blue-700" },
+  carried: { icon: Lightbulb, tone: "bg-blue-50 text-blue-700" },
 };
 
 const actions = [
@@ -41,12 +43,13 @@ const actions = [
   ["paid", "Paid"], ["reported", "Payment reported"], ["closed", "Closed"], ["shared", "Shared"],
   ["revoked", "Revoked"], ["archived", "Archived"], ["restored", "Restored"],
   ["reviewed", "Reviewed"], ["rotated", "PIN rotated"], ["allocated", "Allocation accepted"],
+  ["imported", "Imported"], ["carried", "Carried to task"],
 ];
 
 const areas = [
   ["all", "All areas"], ["accounts", "Accounts & cards"], ["assets", "Assets"],
   ["bills", "Bills & tasks"], ["transactions", "Transactions"],
-  ["people", "People & money"], ["nutrition", "Nutrition"], ["settings", "Settings"],
+  ["people", "People & money"], ["nutrition", "Nutrition"], ["brainstorm", "Brainstorming"], ["settings", "Settings"],
 ];
 
 const chartConfig = Object.fromEntries(
