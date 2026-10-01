@@ -142,6 +142,17 @@ class IdeaSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class MoveIdeaSerializer(serializers.Serializer):
+    group = serializers.IntegerField(min_value=1)
+    before_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    after_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+
+    def validate(self, attrs):
+        if attrs.get("before_id") is not None and attrs.get("after_id") is not None:
+            raise serializers.ValidationError({"before_id": "Choose either before or after, not both."})
+        return attrs
+
+
 class CarrySerializer(serializers.Serializer):
     title = serializers.CharField(max_length=160, required=False, allow_blank=False)
     description = serializers.CharField(max_length=4000, required=False, allow_blank=True)

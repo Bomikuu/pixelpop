@@ -51,6 +51,56 @@ class BrainstormTests(TestCase):
         self.assertNotIn("private note", changes)
         self.assertNotIn("example.com", changes)
 
+    def test_manual_move_reorders_within_group_and_is_idempotent(self):
+        first = BrainstormIdea.objects.create(board=self.board, group=self.group, title="First", sort_order=0)
+        second = BrainstormIdea.objects.create(board=self.board, group=self.group, title="Second", sort_order=1)
+        third = BrainstormIdea.objects.create(board=self.board, group=self.group, title="Third", sort_order=2)
+        path = f"/api/v1/finance/brainstorm/ideas/{third.pk}/move/"
+
+        moved = self.client.post(path, {"group": self.group.pk, "before_id": second.pk}, format="json")
+        self.assertEqual(moved.status_code, 200)
+        ordered = list(BrainstormIdea.objects.filter(group=self.group).order_by("sort_order").values_list("pk", flat=True))
+        self.assertEqual(ordered, [first.pk, third.pk, second.pk])
+        listed = self.client.get("/api/v1/finance/brainstorm/ideas/", {"board": self.board.pk, "sort": "manual"})
+        self.assertEqual([item["id"] for item in listed.data["results"]], ordered)
+
+        count = AuditEvent.objects.filter(area="brainstorm").count()
+        repeated = self.client.post(path, {"group": self.group.pk, "before_id": second.pk}, format="json")
+        self.assertEqual(repeated.status_code, 200)
+        self.assertEqual(AuditEvent.objects.filter(area="brainstorm").count(), count)
+
+    def test_move_between_groups_and_append_to_empty_group(self):
+        first = BrainstormIdea.objects.create(board=self.board, group=self.group, title="First", sort_order=0)
+        second = BrainstormIdea.objects.create(board=self.board, group=self.group, title="Second", sort_order=1)
+        destination = BrainstormGroup.objects.create(board=self.board, name="Launch")
+        path = f"/api/v1/finance/brainstorm/ideas/{first.pk}/move/"
+
+        response = self.client.post(path, {"group": destination.pk}, format="json")
+        self.assertEqual(response.status_code, 200)
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertEqual((first.group_id, first.sort_order, second.sort_order), (destination.pk, 0, 0))
+        self.assertEqual(AuditEvent.objects.filter(area="brainstorm", action="edited").count(), 1)
+
+    def test_move_rejects_conflicting_or_foreign_targets_and_inactive_board(self):
+        idea = BrainstormIdea.objects.create(board=self.board, group=self.group, title="Move me")
+        target = BrainstormIdea.objects.create(board=self.board, group=self.group, title="Target")
+        other_board = BrainstormBoard.objects.create(name="Other board")
+        foreign_group = BrainstormGroup.objects.create(board=other_board, name="Ideas")
+        path = f"/api/v1/finance/brainstorm/ideas/{idea.pk}/move/"
+
+        conflicting = self.client.post(path, {
+            "group": self.group.pk, "before_id": target.pk, "after_id": target.pk,
+        }, format="json")
+        foreign = self.client.post(path, {"group": foreign_group.pk}, format="json")
+        self.board.is_active = False
+        self.board.save(update_fields=["is_active"])
+        inactive = self.client.post(path, {"group": self.group.pk, "after_id": target.pk}, format="json")
+
+        self.assertEqual((conflicting.status_code, foreign.status_code, inactive.status_code), (400, 400, 400))
+        idea.refresh_from_db()
+        self.assertEqual((idea.group_id, idea.sort_order), (self.group.pk, 0))
+
     def test_preview_and_confirm_are_idempotent_with_invalid_ideas(self):
         payload = {"boards": [{"name": "Event Platform", "groups": [{"name": "Guest Experience", "ideas": [
             {"title": "Arrival flow", "tags": ["guest"]},

@@ -10,6 +10,7 @@ urlpatterns = [
     path("groups/<int:pk>/", views.GroupDetailView.as_view()),
     path("ideas/", views.IdeaListView.as_view()),
     path("ideas/<int:pk>/", views.IdeaDetailView.as_view()),
+    path("ideas/<int:pk>/move/", views.MoveIdeaView.as_view()),
     path("ideas/<int:pk>/carry/", views.CarryIdeaView.as_view()),
     path("import/preview/", views.ImportPreviewView.as_view()),
     path("import/", views.ImportCommitView.as_view()),

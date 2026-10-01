@@ -1,5 +1,5 @@
 from django.db import IntegrityError, transaction
-from django.db.models import Case, Count, IntegerField, Q, Value, When
+from django.db.models import Case, Count, IntegerField, Max, Q, Value, When
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
@@ -9,9 +9,10 @@ from rest_framework.views import APIView
 from brainstorm.models import BrainstormBoard, BrainstormGroup, BrainstormIdea
 from brainstorm.services.imports import apply_import, preview_import
 from brainstorm.services.carry import carry_idea
+from brainstorm.services.move import move_idea
 from finance.api.views import PrivateMixin
 from finance.services.audit import log_record, record_label, snapshot_record
-from .serializers import BoardSerializer, CarrySerializer, GroupSerializer, IdeaSerializer
+from .serializers import BoardSerializer, CarrySerializer, GroupSerializer, IdeaSerializer, MoveIdeaSerializer
 
 
 class IdeaPagination(PageNumberPagination):
@@ -20,9 +21,9 @@ class IdeaPagination(PageNumberPagination):
     max_page_size = 100
 
 
-def _save(serializer):
+def _save(serializer, **kwargs):
     try:
-        return serializer.save()
+        return serializer.save(**kwargs)
     except IntegrityError as error:
         raise ValidationError("A board, group, or idea with this name already exists.") from error
 
@@ -116,10 +117,12 @@ class IdeaListView(PrivateMixin, APIView):
                 When(urgency="high", then=Value(0)), When(urgency="medium", then=Value(1)),
                 When(urgency="low", then=Value(2)), default=Value(3), output_field=IntegerField(),
             )).order_by("urgency_rank", "-created_at", "-id")
+        elif sort == "manual":
+            rows = rows.order_by("group__sort_order", "group_id", "sort_order", "-created_at", "-id")
         elif sort == "newest":
             rows = rows.order_by("-created_at", "-id")
         else:
-            raise ValidationError({"sort": "Choose newest or urgency."})
+            raise ValidationError({"sort": "Choose manual, newest, or urgency."})
         paginator = IdeaPagination()
         page = paginator.paginate_queryset(rows, request, view=self)
         response = paginator.get_paginated_response(IdeaSerializer(page, many=True).data)
@@ -131,7 +134,9 @@ class IdeaListView(PrivateMixin, APIView):
     def post(self, request):
         serializer = IdeaSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        idea = _save(serializer)
+        group = serializer.validated_data["group"]
+        last_rank = BrainstormIdea.objects.filter(group=group).aggregate(last=Max("sort_order"))["last"]
+        idea = _save(serializer, sort_order=(last_rank if last_rank is not None else -1) + 1)
         log_record(idea, actor=request.user, action="added", after=snapshot_record(idea))
         return Response(IdeaSerializer(idea).data, status=201)
 
@@ -157,6 +162,20 @@ class IdeaDetailView(PrivateMixin, APIView):
         idea.delete()
         log_record(idea, actor=request.user, action="deleted", before=before, label=label, subject_id=pk)
         return Response(status=204)
+
+
+class MoveIdeaView(PrivateMixin, APIView):
+    def post(self, request, pk):
+        serializer = MoveIdeaSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        idea = move_idea(
+            pk,
+            serializer.validated_data["group"],
+            before_id=serializer.validated_data.get("before_id"),
+            after_id=serializer.validated_data.get("after_id"),
+            actor=request.user,
+        )
+        return Response(IdeaSerializer(idea).data)
 
 
 class ImportPreviewView(PrivateMixin, APIView):
