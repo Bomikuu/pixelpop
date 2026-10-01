@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'pixelpopup',
     'finance',
     'brainstorm',
+    'end_of_day',
     'leadership',
     'django_json_widget',
 ]

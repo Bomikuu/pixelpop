@@ -9,6 +9,8 @@ from finance import models
 
 
 FIELDS = {
+    "EndOfDayGroup": ("name",),
+    "EndOfDayEntry": ("group", "date", "type", "title"),
     "BrainstormBoard": ("name", "description", "sort_order", "is_active"),
     "BrainstormGroup": ("board", "name", "description", "sort_order"),
     "BrainstormIdea": ("board", "group", "title", "description", "urgency", "status", "tags", "sort_order", "task"),
@@ -36,6 +38,7 @@ FIELDS = {
 }
 
 AREAS = {
+    "EndOfDayGroup": "eod", "EndOfDayEntry": "eod",
     "BrainstormBoard": "brainstorm", "BrainstormGroup": "brainstorm", "BrainstormIdea": "brainstorm",
     "Account": "accounts", "BalanceAdjustment": "accounts", "Asset": "assets",
     "AssetFinancing": "assets", "AssetFinancingTerms": "assets", "AssetFinancingPayment": "assets",
@@ -47,6 +50,7 @@ AREAS = {
 }
 
 AREA_LABELS = {
+    "eod": "EOD",
     "brainstorm": "Brainstorming",
     "accounts": "Accounts & cards", "assets": "Assets", "settings": "Settings",
     "bills": "Bills & tasks", "transactions": "Transactions", "people": "People & money",
