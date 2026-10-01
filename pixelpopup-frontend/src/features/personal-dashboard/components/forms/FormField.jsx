@@ -9,7 +9,7 @@ import { accountSources } from "./accountFlow";
 export default function FormField({
   field, values, options = [], error, disabled, onChange, entity, accountState,
   amountValue, institutionChoice, onInstitutionChoice, children, idPrefix = "finance",
-  layout = "dashboard",
+  layout = "dashboard", labelAction,
 }) {
   const id = `${idPrefix}-${field.name}`;
   const selectedAccount = accountSources.has(field.source) ? accountState?.(field) : null;
@@ -22,7 +22,7 @@ export default function FormField({
     : entity === "account" ? "" : compactSelect ? "lg:col-span-2" : "lg:col-span-3";
 
   return <div className={`min-w-0 ${placement}`}>
-    <Label htmlFor={id} className="mb-2 block">{field.label}{field.required && " *"}</Label>
+    {labelAction ? <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><Label htmlFor={id}>{field.label}{field.required && " *"}</Label>{labelAction}</div> : <Label htmlFor={id} className="mb-2 block">{field.label}{field.required && " *"}</Label>}
     {field.type === "select" ? <>
       <SelectableField
         id={id} label={field.label} required={field.required}

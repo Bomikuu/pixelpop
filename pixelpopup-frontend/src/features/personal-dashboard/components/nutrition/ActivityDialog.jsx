@@ -6,6 +6,8 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Textarea } from "../../ui/textarea";
 import SelectableField from "../SelectableField";
+import CopyAiFormatButton from "../forms/CopyAiFormatButton";
+import { activityAiFormat } from "../../lib/aiJsonFormats";
 import { today } from "../../lib/format";
 
 const activities = [
@@ -138,7 +140,7 @@ export default function ActivityDialog({ activity, date, weights = [], onSave, o
           </div>
         </div>
         {entryMode === "json" ? <div className="space-y-3">
-          <div className="space-y-1.5"><Label htmlFor="nutrition-activity-json">Activity JSON</Label><Textarea id="nutrition-activity-json" value={jsonText} onChange={(event) => { setJsonText(event.target.value); setError(""); }} placeholder={JSON.stringify({ date: draft.date, activity_type: "walking", source: "estimated", steps: 3000, duration_minutes: 30 }, null, 2)} className="min-h-44 resize-y font-mono text-xs" aria-invalid={Boolean(error)} aria-describedby={error ? "nutrition-activity-error" : undefined} /></div>
+          <div className="space-y-1.5"><div className="flex flex-wrap items-center justify-between gap-2"><Label htmlFor="nutrition-activity-json">Activity JSON</Label><CopyAiFormatButton prompt={activityAiFormat(draft.date)} disabled={saving} /></div><Textarea id="nutrition-activity-json" value={jsonText} onChange={(event) => { setJsonText(event.target.value); setError(""); }} placeholder={JSON.stringify({ date: draft.date, activity_type: "walking", source: "estimated", steps: 3000, duration_minutes: 30 }, null, 2)} className="min-h-44 resize-y font-mono text-xs" aria-invalid={Boolean(error)} aria-describedby={error ? "nutrition-activity-error" : undefined} /></div>
           <p className="text-xs text-slate-600">The JSON date replaces the selected date. If omitted, the date above is used. Apply the JSON, review the populated fields, then save.</p>
           <Button type="button" variant="outline" onClick={applyJson} disabled={!jsonText.trim()}><FileJson className="size-4" aria-hidden="true" />Use JSON in form</Button>
         </div> : <>

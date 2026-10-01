@@ -12,7 +12,9 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Textarea } from "../../ui/textarea";
 import { calculateTotals, parseMealJson } from "../../nutrition/model";
+import { mealAiFormat } from "../../lib/aiJsonFormats";
 import { today } from "../../lib/format";
+import CopyAiFormatButton from "../forms/CopyAiFormatButton";
 
 const emptyItem = () => ({ name: "", amount: "", unit: "g", calories: "", protein: "", carbs: "", fat: "" });
 const fields = [
@@ -188,7 +190,7 @@ export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }
               </div>
             ) : (
               <div className="space-y-3">
-                <Label htmlFor="nutrition-meal-json">Meal JSON</Label>
+                <div className="flex flex-wrap items-center justify-between gap-2"><Label htmlFor="nutrition-meal-json">Meal JSON</Label><CopyAiFormatButton prompt={mealAiFormat(manilaNowDateTime())} disabled={saving} /></div>
                 <Textarea ref={jsonRef} id="nutrition-meal-json" className="min-h-48 resize-none font-mono text-xs" value={jsonText} placeholder={JSON.stringify({ datetime: `${today()}T${manilaClock()}:00+08:00`, meal_name: "Dinner", items: [{ name: "Rice", amount: 250, unit: "g", calories: 325, protein: 6, carbs: 71, fat: 1 }], totals: { calories: 325, protein: 6, carbs: 71, fat: 1 } })} onChange={(event) => { setJsonText(event.target.value); setPreview(null); setError(""); }} aria-invalid={Boolean(error)} aria-describedby={error ? "nutrition-meal-error" : undefined} />
                 <p className="text-xs text-slate-600">JSON datetime sets the date and time above. Future timestamps are changed to now in Asia/Manila (+08:00). If omitted, the selected date and time are used. An empty meal name is saved as “Meal.”</p>
                 <Button type="button" variant="outline" onClick={previewJson}><Eye className="size-4" aria-hidden="true" />Preview meal</Button>
