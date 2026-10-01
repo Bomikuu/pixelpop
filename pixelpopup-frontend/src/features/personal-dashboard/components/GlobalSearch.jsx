@@ -36,7 +36,7 @@ export default function GlobalSearch({ request, select }) {
   return (
     <div className="relative w-full sm:w-72">
       <label htmlFor="global-finance-search" className="sr-only">
-        Search your financial records
+        Search your workspace
       </label>
       <Search
         className="absolute left-3 top-3 text-slate-500"

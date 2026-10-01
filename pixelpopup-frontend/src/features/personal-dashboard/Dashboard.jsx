@@ -28,6 +28,7 @@ import {
   BriefcaseBusiness,
   FileClock,
   Lightbulb,
+  BookOpenText,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { Button } from "./ui/button";
@@ -61,6 +62,7 @@ import AccountDetailView from "./views/AccountDetailView";
 import NutritionView from "./views/NutritionView";
 import EventsView from "./views/EventsView";
 import BrainstormView from "./views/BrainstormView";
+import EodView from "./views/EodView";
 import NutritionDateControls from "./components/nutrition/NutritionDateControls";
 import { dateLabel, money, today, words } from "./lib/format";
 import "./styles/theme.css";
@@ -77,6 +79,7 @@ const tabs = [
   ["bills", "Bills", Receipt, "Planning"],
   ["calendar", "Calendar", CalendarDays, "Planning"],
   ["brainstorm", "Brainstorming", Lightbulb, "Planning"],
+  ["eod", "EOD", BookOpenText, "Planning"],
   ["nutrition", "Nutrition", Utensils, "Wellbeing"],
   ["spending", "Spending", ChartNoAxesCombined, "Insights"],
   ["reports", "Monthly reports", FileChartColumn, "Insights"],
@@ -541,6 +544,8 @@ export default function Dashboard() {
                         ? "A read-only history of changes across your personal workspace."
                       : tab === "brainstorm"
                         ? "Capture, shape, and carry ideas into tasks when they are ready."
+                      : tab === "eod"
+                        ? "A daily recap of work and time away, organized by group."
                       : "Your money, expenses, bills, and deadlines in one place."}
                     <span className="inline-block whitespace-nowrap">
                       <span className="mx-2 text-slate-400" aria-hidden="true">·</span>
@@ -558,18 +563,7 @@ export default function Dashboard() {
                 </div>
               </div>
               {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : tab === "brainstorm" ? null : <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-                <label htmlFor="workspace-month" className="sr-only">
-                  {tab === "events" ? "Events month" : "Summary month"}
-                </label>
-                <input
-                  id="workspace-month"
-                  type="month"
-                  className="h-9 w-[10.5rem] rounded-md border bg-white px-3 text-sm"
-                  value={selectedMonth}
-                  onChange={(e) => {
-                    if (e.target.value) setMonth(e.target.value);
-                  }}
-                />
+                <NutritionDateControls id="workspace-month" date={selectedMonth} onChange={setMonth} mode="month" label={tab === "events" ? "Events month" : tab === "eod" ? "EOD month" : "Summary month"} />
                 <GlobalSearch request={dashboard.request} select={searchSelect} />
               </div>}
             </div>
@@ -695,6 +689,8 @@ export default function Dashboard() {
             <EventsView dashboard={dashboard} month={selectedMonth} />
           ) : tab === "brainstorm" ? (
             <BrainstormView dashboard={dashboard} notify={notify} />
+          ) : tab === "eod" ? (
+            <EodView dashboard={dashboard} notify={notify} month={selectedMonth} onMonthChange={setMonth} />
           ) : tab === "funds" ? (
             <FundsView {...shared} />
           ) : tab === "accounts" && accountId ? (

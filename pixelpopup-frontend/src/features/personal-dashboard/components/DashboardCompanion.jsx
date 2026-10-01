@@ -17,6 +17,7 @@ const config = {
     ".personal-dashboard main button",
     ".personal-dashboard table",
     ".personal-dashboard .recharts-wrapper",
+    "[data-eod-detail]",
     "[data-dashboard-toast]",
   ],
 };

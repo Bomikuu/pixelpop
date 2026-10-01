@@ -49,7 +49,7 @@ const actions = [
 const areas = [
   ["all", "All areas"], ["accounts", "Accounts & cards"], ["assets", "Assets"],
   ["bills", "Bills & tasks"], ["transactions", "Transactions"],
-  ["people", "People & money"], ["nutrition", "Nutrition"], ["brainstorm", "Brainstorming"], ["settings", "Settings"],
+  ["people", "People & money"], ["nutrition", "Nutrition"], ["brainstorm", "Brainstorming"], ["eod", "EOD"], ["settings", "Settings"],
 ];
 
 const chartConfig = Object.fromEntries(
