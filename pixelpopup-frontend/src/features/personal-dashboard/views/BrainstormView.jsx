@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  Archive, ArrowRight, ChevronLeft, ChevronRight, ClipboardList,
-  FileJson2, Lightbulb, Pencil, Plus, Search, Trash2, X,
+  ChevronLeft, ChevronRight, Lightbulb, Pencil, Search, X,
 } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
@@ -11,6 +9,9 @@ import { Label } from "../ui/label";
 import { EmptyState, ErrorState } from "../components/Panel";
 import FormModalShell from "../components/forms/FormModalShell";
 import BrainstormFilterSelect from "../components/brainstorm/BrainstormFilterSelect";
+import BrainstormActionMenu from "../components/brainstorm/BrainstormActionMenu";
+import BrainstormBoardShell from "../components/brainstorm/BrainstormBoardShell";
+import IdeaCard from "../components/brainstorm/IdeaCard";
 import BoardForm, { boardPayload } from "../components/brainstorm/forms/BoardForm";
 import GroupForm, { groupPayload } from "../components/brainstorm/forms/GroupForm";
 import IdeaForm, { ideaPayload } from "../components/brainstorm/forms/IdeaForm";
@@ -27,37 +28,6 @@ const errorText = (error) => {
   return Object.entries(error.fields).map(([field, detail]) => `${field}: ${typeof detail === "object" ? JSON.stringify(detail) : String(detail)}`).join(" · ");
 };
 
-function IdeaCard({ idea, groups, busy, onEdit, onPatch, onCarry, onDelete }) {
-  return <article className="group flex h-full flex-col border border-slate-200 bg-white p-4 shadow-[0_3px_12px_-9px_rgba(15,23,42,.4)] transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-[0_8px_22px_-13px_rgba(15,23,42,.4)] focus-within:border-blue-400 motion-reduce:transform-none motion-reduce:transition-none">
-    <div className="flex items-start gap-3">
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-700"><Lightbulb size={17} aria-hidden="true" /></span>
-      <div className="min-w-0 flex-1">
-        <button type="button" onClick={onEdit} disabled={busy} className="text-left font-semibold leading-snug text-slate-950 underline-offset-4 hover:text-blue-700 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-blue-600 disabled:cursor-default">{idea.title}</button>
-        {idea.description && <p className="mt-1 line-clamp-3 text-sm leading-6 text-slate-600">{idea.description}</p>}
-      </div>
-    </div>
-    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-      <span className={`border px-2 py-0.5 font-medium ${idea.urgency === "high" ? "border-red-200 bg-red-50 text-red-800" : idea.urgency === "medium" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-700"}`}>{label(idea.urgency)}</span>
-      <span className="border border-blue-100 bg-blue-50 px-2 py-0.5 text-blue-800">{label(idea.status)}</span>
-      {idea.tags.slice(0, 3).map((tag) => <span key={tag} className="text-slate-600">#{tag}</span>)}
-      {idea.tags.length > 3 && <span className="text-slate-500">+{idea.tags.length - 3}</span>}
-    </div>
-    {idea.task_id && <Link to="/dashboard/deadlines" className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-700 underline-offset-4 hover:underline">Task {label(idea.task_status || "pending")} <ArrowRight size={13} /></Link>}
-    {!idea.task_id && idea.task_status === "missing" && <p className="mt-3 text-xs text-amber-800">Linked task was deleted. You can carry this idea again.</p>}
-    <div className="mt-3 grid grid-cols-2 gap-1.5 border-t border-slate-100 pt-3 sm:grid-cols-3">
-      <div className="min-w-0"><BrainstormFilterSelect id={`idea-${idea.id}-urgency-choice`} labelText={`Urgency for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={idea.urgency} onChange={(value) => onPatch({ urgency: value })} items={urgencies.map((value) => [value, label(value)])} /></div>
-      <div className="min-w-0"><BrainstormFilterSelect id={`idea-${idea.id}-status-choice`} labelText={`Status for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={idea.status} onChange={(value) => onPatch({ status: value })} items={statuses.filter((value) => value !== "carried_over" || !!idea.task_id || idea.status === "carried_over").map((value) => [value, label(value)])} /></div>
-      <div className="col-span-2 min-w-0 sm:col-span-1"><BrainstormFilterSelect id={`idea-${idea.id}-group-choice`} labelText={`Group for ${idea.title}`} disabled={busy} className="w-full min-w-0 text-xs" value={String(idea.group)} onChange={(value) => onPatch({ group: Number(value) })} items={groups.map((item) => [String(item.id), item.name])} /></div>
-    </div>
-    <div className="mt-auto flex flex-wrap items-center gap-1 border-t border-slate-100 pt-3 text-xs sm:opacity-75 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-      <button type="button" onClick={onEdit} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1.5 font-medium text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><Pencil size={13} /> Edit</button>
-      <button type="button" onClick={onCarry} disabled={busy || !!idea.task_id} className="inline-flex items-center gap-1 px-2 py-1.5 font-medium text-blue-700 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-blue-600 disabled:opacity-50"><ClipboardList size={13} /> Carry to task</button>
-      {idea.status !== "archived" && <button type="button" onClick={() => onPatch({ status: "archived" })} disabled={busy} className="inline-flex items-center gap-1 px-2 py-1.5 text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-blue-600"><Archive size={13} /> Archive</button>}
-      <button type="button" onClick={onDelete} disabled={busy} className="ml-auto inline-flex items-center gap-1 px-2 py-1.5 text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-600"><Trash2 size={13} /> Delete</button>
-    </div>
-  </article>;
-}
-
 export default function BrainstormView({ dashboard, notify }) {
   const boardsState = useRecords("brainstorm/boards/", dashboard.request, dashboard.version);
   const boards = boardsState.data || [];
@@ -68,7 +38,7 @@ export default function BrainstormView({ dashboard, notify }) {
   const [urgency, setUrgency] = useState("all");
   const [status, setStatus] = useState("all");
   const [group, setGroup] = useState("all");
-  const [sort, setSort] = useState("newest");
+  const [sort, setSort] = useState("manual");
   const [unconverted, setUnconverted] = useState(false);
   const [page, setPage] = useState(1);
   const [dialog, setDialog] = useState(null);
@@ -80,6 +50,9 @@ export default function BrainstormView({ dashboard, notify }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState(null);
+  const [draggedId, setDraggedId] = useState(null);
+  const [dropTarget, setDropTarget] = useState(null);
+  const [movingId, setMovingId] = useState(null);
   const launchRef = useRef(null);
   useEffect(() => {
     if (boards.length && !boards.some((board) => String(board.id) === boardId)) setBoardId(String(boards.find((board) => board.is_active)?.id || boards[0].id));
@@ -97,7 +70,8 @@ export default function BrainstormView({ dashboard, notify }) {
   const groups = data?.groups || [];
   const ideas = data?.results || [];
   const grouped = useMemo(() => groups.map((item) => ({ ...item, ideas: ideas.filter((idea) => idea.group === item.id) })), [groups, ideas]);
-  const activeFilters = Boolean(query || urgency !== "all" || status !== "all" || group !== "all" || unconverted);
+  const activeFilters = Boolean(search || query || urgency !== "all" || status !== "all" || group !== "all" || unconverted);
+  const canArrange = Boolean(selected?.is_active && sort === "manual" && !activeFilters && !movingId);
   useEffect(() => { if (data && page > 1 && data.count <= (page - 1) * 50) setPage(page - 1); }, [data, page]);
 
   function open(kind, record = null) {
@@ -155,6 +129,40 @@ export default function BrainstormView({ dashboard, notify }) {
     catch (issue) { setError(errorText(issue)); }
     finally { setBusyId(null); }
   }
+  async function moveIdea(idea, groupId, anchor = {}) {
+    if (!idea || !selected?.is_active || movingId) return;
+    if (idea.group === groupId && !Object.keys(anchor).length && grouped.find((item) => item.id === groupId)?.ideas.at(-1)?.id === idea.id) return;
+    setMovingId(idea.id);
+    setDraggedId(null);
+    setDropTarget(null);
+    setError("");
+    try {
+      await dashboard.mutate(`brainstorm/ideas/${idea.id}/move/`, { group: groupId, ...anchor }, "POST");
+      notify("Idea moved.", { action: "edited", entity: "brainstorm" });
+    } catch (issue) {
+      setError(errorText(issue));
+      dashboard.refresh();
+    } finally {
+      setMovingId(null);
+    }
+  }
+  function dropOnIdea(target, position) {
+    const source = ideas.find((idea) => idea.id === draggedId);
+    setDraggedId(null);
+    setDropTarget(null);
+    if (!source || source.id === target.id) return;
+    moveIdea(source, target.group, position === "before" ? { before_id: target.id } : { after_id: target.id });
+  }
+  function dropInGroup(groupId) {
+    const source = ideas.find((idea) => idea.id === draggedId);
+    setDraggedId(null);
+    setDropTarget(null);
+    if (source) moveIdea(source, groupId);
+  }
+  function clearArrangeFilters() {
+    setSearch(""); setQuery(""); setUrgency("all"); setStatus("all"); setGroup("all");
+    setUnconverted(false); setSort("manual"); setPage(1);
+  }
   async function importIdeas(confirm = false) {
     if (confirm && !preview) return;
     let payload;
@@ -172,42 +180,68 @@ export default function BrainstormView({ dashboard, notify }) {
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pd-border)] pb-3">
-      <p className="text-sm text-slate-600">Keep ideas loose here. Carry one to a task when it is ready.</p>
-      <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => open("import")}><FileJson2 size={16} /> Import JSON</Button><Button onClick={() => open("board")}><Plus size={16} /> Add board</Button></div>
+      {!selected && <BrainstormActionMenu activeBoard={false} onAction={open} />}
     </div>
     {boardsState.error && <ErrorState message={boardsState.error} retry={dashboard.refresh} />}
     {boardsState.loading && <p className="py-12 text-center text-sm text-slate-600">Loading your boards…</p>}
-    {!boardsState.loading && !boardsState.error && !boards.length && <div className="border border-[var(--pd-border)] bg-white"><EmptyState icon={Lightbulb} title="Your idea wall starts here" message="Add a board or import your saved brainstorm to begin." action={<Button onClick={() => open("board")}><Plus size={16} /> Add board</Button>} /></div>}
+    {!boardsState.loading && !boardsState.error && !boards.length && <div className="border border-[var(--pd-border)] bg-white"><EmptyState icon={Lightbulb} title="Your idea wall starts here" message="Use Add to create a board or import your saved brainstorm." /></div>}
     {!!boards.length && <>
       <nav className="flex flex-wrap items-center gap-2" aria-label="Brainstorm boards">
         {boards.map((board) => <button key={board.id} type="button" aria-current={boardId === String(board.id) ? "page" : undefined} onClick={() => { setBoardId(String(board.id)); setGroup("all"); setPage(1); }} className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-600 ${boardId === String(board.id) ? "border-blue-600 text-blue-700" : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-950"}`}>{board.name}<span className="ml-1 text-xs text-slate-500">{board.idea_count ?? 0}</span>{!board.is_active && <span className="ml-2 text-xs text-slate-500">Inactive</span>}</button>)}
       </nav>
-      {selected && <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-2xl text-sm text-slate-600">{selected.description || "A space for ideas worth exploring."}</p>
-        <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => open("board", selected)}><Pencil size={15} /> Edit board</Button><Button size="sm" variant="outline" onClick={() => open("deactivate", selected)}>{selected.is_active ? "Deactivate" : "Reactivate"}</Button>{selected.is_active && <Button size="sm" variant="outline" onClick={() => open("group")}><Plus size={15} /> Add group</Button>}</div>
-      </div>}
-      {selected?.is_active && <div className="flex flex-wrap items-end gap-2 border border-[var(--pd-border)] bg-white p-3">
-        <div className="relative min-w-48 flex-1"><Label htmlFor="brainstorm-search" className="sr-only">Search ideas</Label><Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-500" /><Input id="brainstorm-search" className="pl-9 pr-9" placeholder="Search ideas" value={search} onCompositionStart={() => setComposing(true)} onCompositionEnd={() => setComposing(false)} onChange={(event) => setSearch(event.target.value)} />{search && <button type="button" className="absolute right-2 top-2 p-0.5 text-slate-600 hover:text-slate-950" aria-label="Clear search" onClick={() => setSearch("")}><X size={15} /></button>}</div>
-        <BrainstormFilterSelect id="brainstorm-urgency" labelText="Filter by urgency" className="w-32" value={urgency} onChange={(value) => { setUrgency(value); setPage(1); }} items={[["all", "All urgency"], ...urgencies.map((value) => [value, label(value)])]} />
-        <BrainstormFilterSelect id="brainstorm-status" labelText="Filter by status" className="w-36" value={status} onChange={(value) => { setStatus(value); setPage(1); }} items={[["all", "All status"], ...statuses.map((value) => [value, label(value)])]} />
-        <BrainstormFilterSelect id="brainstorm-group" labelText="Filter by group" className="w-36" value={group} onChange={(value) => { setGroup(value); setPage(1); }} items={[["all", "All groups"], ...groups.map((item) => [String(item.id), item.name])]} />
-        <BrainstormFilterSelect id="brainstorm-sort" labelText="Sort ideas" className="w-32" value={sort} onChange={(value) => { setSort(value); setPage(1); }} items={[["newest", "Newest"], ["urgency", "Urgency"]]} />
-        <label className="flex h-9 items-center gap-2 px-2 text-xs text-slate-700"><input type="checkbox" checked={unconverted} onChange={(event) => { setUnconverted(event.target.checked); setPage(1); }} className="accent-blue-600" /> Not yet tasked</label>
-        <Button onClick={() => open("idea")}><Plus size={16} /> Add idea</Button>
-      </div>}
-      {!selected?.is_active && <div className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">This board is inactive. Reactivate it to add or change ideas.</div>}
-      {!dialog && error && <ErrorState message={error} retry={() => { setError(""); dashboard.refresh(); }} />}
-      {selected && ideasState.error && <ErrorState message={ideasState.error} retry={dashboard.refresh} />}
-      {selected && ideasState.loading && <p className="py-12 text-center text-sm text-slate-600">Loading ideas…</p>}
-      {selected && !ideasState.loading && !ideasState.error && <div className="min-h-64 border border-[var(--pd-border)] bg-[radial-gradient(circle_at_1px_1px,rgba(47,91,255,.08)_1px,transparent_0)] bg-[length:24px_24px] p-4 sm:p-6">
-        {!ideas.length && (activeFilters || !groups.length) && <div className="bg-white/95"><EmptyState icon={Lightbulb} title={activeFilters ? "No ideas match these filters" : "No ideas on this board yet"} message={activeFilters ? "Change the filters or search to see more ideas." : "Add a thought now, or import a brainstorm you already have."} action={!activeFilters && selected.is_active ? <Button onClick={() => open("idea")}><Plus size={16} /> Add idea</Button> : undefined} /></div>}
-        {grouped.filter((item) => !activeFilters || item.ideas.length).map((item) => <section key={item.id} className="mb-8 last:mb-0" aria-labelledby={`group-${item.id}`}>
-          <div className="mb-3 flex flex-wrap items-center gap-2"><h3 id={`group-${item.id}`} className="text-base font-semibold text-slate-950">{item.name}</h3><span className="text-xs text-slate-500">{item.ideas.length} on this page</span>{selected.is_active && <button type="button" onClick={() => open("group", item)} className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-600"><Pencil size={12} /> Rename</button>}</div>
-          {item.description && <p className="mb-3 text-sm text-slate-600">{item.description}</p>}
-          {item.ideas.length ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{item.ideas.map((idea) => <IdeaCard key={idea.id} idea={idea} groups={groups} busy={busyId === idea.id || !selected.is_active} onEdit={() => open("idea", idea)} onPatch={(body) => patchIdea(idea, body)} onCarry={() => open("carry", idea)} onDelete={() => open("delete", idea)} />)}</div> : <p className="border border-dashed border-slate-300 bg-white/80 px-4 py-6 text-sm text-slate-600">No ideas in this group yet.</p>}
-        </section>)}
-      </div>}
-      {!!data?.count && <div className="flex items-center justify-between gap-3 text-sm text-slate-600"><span>{data.count} ideas · Page {page}</span><div className="flex gap-2"><Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((value) => value - 1)}><ChevronLeft size={15} /> Previous</Button><Button size="sm" variant="outline" disabled={!data.next} onClick={() => setPage((value) => value + 1)}>Next <ChevronRight size={15} /></Button></div></div>}
+      {selected && <BrainstormBoardShell boardName={selected.name}
+        actions={<BrainstormActionMenu activeBoard={selected.is_active} onAction={open} />}
+      ><div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-2xl text-sm text-slate-600">{selected.description || "A space for ideas worth exploring."}</p>
+          <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => open("board", selected)}><Pencil size={15} /> Edit board</Button><Button size="sm" variant="outline" onClick={() => open("deactivate", selected)}>{selected.is_active ? "Deactivate" : "Reactivate"}</Button></div>
+        </div>
+        {selected.is_active && <div className="mt-4 flex flex-wrap items-end gap-2 border border-[var(--pd-border)] bg-white/95 p-3">
+          <div className="relative min-w-48 flex-1"><Label htmlFor="brainstorm-search" className="sr-only">Search ideas</Label><Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-500" /><Input id="brainstorm-search" className="pl-9 pr-9" placeholder="Search ideas" value={search} onCompositionStart={() => setComposing(true)} onCompositionEnd={() => setComposing(false)} onChange={(event) => setSearch(event.target.value)} />{search && <button type="button" className="absolute right-2 top-2 p-0.5 text-slate-600 hover:text-slate-950" aria-label="Clear search" onClick={() => setSearch("")}><X size={15} /></button>}</div>
+          <BrainstormFilterSelect id="brainstorm-urgency" labelText="Filter by urgency" className="w-32" value={urgency} onChange={(value) => { setUrgency(value); setPage(1); }} items={[["all", "All urgency"], ...urgencies.map((value) => [value, label(value)])]} />
+          <BrainstormFilterSelect id="brainstorm-status" labelText="Filter by status" className="w-36" value={status} onChange={(value) => { setStatus(value); setPage(1); }} items={[["all", "All status"], ...statuses.map((value) => [value, label(value)])]} />
+          <BrainstormFilterSelect id="brainstorm-group" labelText="Filter by group" className="w-36" value={group} onChange={(value) => { setGroup(value); setPage(1); }} items={[["all", "All groups"], ...groups.map((item) => [String(item.id), item.name])]} />
+          <BrainstormFilterSelect id="brainstorm-sort" labelText="Sort ideas" className="w-32" value={sort} onChange={(value) => { setSort(value); setPage(1); }} items={[["manual", "Manual"], ["newest", "Newest"], ["urgency", "Urgency"]]} />
+          <label className="flex h-9 items-center gap-2 px-2 text-xs text-slate-700"><input type="checkbox" checked={unconverted} onChange={(event) => { setUnconverted(event.target.checked); setPage(1); }} className="accent-blue-600" /> Not yet tasked</label>
+        </div>}
+        {selected.is_active && !canArrange && (activeFilters || sort !== "manual") && <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
+          <span>To arrange cards, use Manual sort with no filters.</span>
+          <button type="button" onClick={clearArrangeFilters} className="font-medium text-blue-700 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600">Arrange ideas</button>
+        </div>}
+        {canArrange && !!ideas.length && <p className="mt-2 text-xs text-slate-500">Drag a card's handle to move it within or between groups. Use the arrow buttons to reorder without dragging.</p>}
+        {!selected?.is_active && <div className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">This board is inactive. Reactivate it to add or change ideas.</div>}
+        {!dialog && error && <ErrorState message={error} retry={() => { setError(""); dashboard.refresh(); }} />}
+        {selected && ideasState.error && <ErrorState message={ideasState.error} retry={dashboard.refresh} />}
+        {selected && ideasState.loading && <p className="py-12 text-center text-sm text-slate-600">Loading ideas…</p>}
+        {!ideasState.loading && !ideasState.error && <div className="mt-5 min-h-32">
+          {!ideas.length && (activeFilters || !groups.length) && <div className="bg-white/95"><EmptyState icon={Lightbulb} title={activeFilters ? "No ideas match these filters" : "No ideas on this board yet"} message={activeFilters ? "Change the filters or search to see more ideas." : "Use Add to create an idea, or import a brainstorm you already have."} /></div>}
+          {grouped.filter((item) => !activeFilters || item.ideas.length).map((item) => <section key={item.id} className={`mb-8 border border-transparent p-2 transition-colors last:mb-0 ${dropTarget?.groupId === item.id && !dropTarget.ideaId ? "border-blue-400 bg-blue-50/70" : ""}`}
+            aria-labelledby={`group-${item.id}`}
+            onDragOver={(event) => {
+              if (!canArrange || !draggedId) return;
+              event.preventDefault(); event.dataTransfer.dropEffect = "move";
+              if (dropTarget?.groupId !== item.id || dropTarget.ideaId) setDropTarget({ groupId: item.id, ideaId: null });
+            }}
+            onDrop={(event) => { if (!canArrange || !draggedId) return; event.preventDefault(); dropInGroup(item.id); }}
+          >
+            <div className="mb-3 flex flex-wrap items-center gap-2"><h3 id={`group-${item.id}`} className="text-base font-semibold text-slate-950">{item.name}</h3><span className="text-xs text-slate-500">{item.ideas.length} on this page</span>{selected.is_active && <button type="button" onClick={() => open("group", item)} className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-blue-700 focus-visible:outline-2 focus-visible:outline-blue-600"><Pencil size={12} /> Rename</button>}</div>
+            {item.description && <p className="mb-3 text-sm text-slate-600">{item.description}</p>}
+            {dropTarget?.groupId === item.id && !dropTarget.ideaId && <p className="mb-3 border border-dashed border-blue-400 bg-white/90 px-3 py-2 text-xs font-medium text-blue-800">Drop here to place the idea at the end of {item.name}.</p>}
+            {item.ideas.length ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">{item.ideas.map((idea, index) => <IdeaCard key={idea.id} idea={idea} groups={groups}
+              busy={busyId === idea.id || Boolean(movingId) || !selected.is_active}
+              canArrange={canArrange} dragging={draggedId}
+              dropPosition={dropTarget?.ideaId === idea.id ? dropTarget.position : null}
+              onDragStart={(source) => { setDraggedId(source.id); setDropTarget(null); }}
+              onDragEnd={() => { setDraggedId(null); setDropTarget(null); }}
+              onDragOver={(target, position) => setDropTarget({ groupId: target.group, ideaId: target.id, position })}
+              onDrop={dropOnIdea}
+              canMoveEarlier={index > 0} canMoveLater={index < item.ideas.length - 1}
+              onMoveEarlier={() => moveIdea(idea, item.id, { before_id: item.ideas[index - 1].id })}
+              onMoveLater={() => moveIdea(idea, item.id, { after_id: item.ideas[index + 1].id })}
+              onEdit={() => open("idea", idea)} onPatch={(body) => body.group ? body.group !== idea.group && moveIdea(idea, body.group) : patchIdea(idea, body)} onCarry={() => open("carry", idea)} onDelete={() => open("delete", idea)} />)}</div> : <p className="border border-dashed border-slate-300 bg-white/80 px-4 py-6 text-sm text-slate-600">{canArrange ? "No ideas in this group yet. Drag an idea here to add it." : "No ideas in this group yet."}</p>}
+          </section>)}
+        </div>}
+        {!!data?.count && <div className="mt-4 flex items-center justify-between gap-3 text-sm text-slate-600"><span>{data.count} ideas · Page {page}</span><div className="flex gap-2"><Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage((value) => value - 1)}><ChevronLeft size={15} /> Previous</Button><Button size="sm" variant="outline" disabled={!data.next} onClick={() => setPage((value) => value + 1)}>Next <ChevronRight size={15} /></Button></div></div>}
+      </BrainstormBoardShell>}
     </>}
     {dialog && ["delete", "deactivate"].includes(dialog.kind) ?
       <BrainstormConfirmDialog

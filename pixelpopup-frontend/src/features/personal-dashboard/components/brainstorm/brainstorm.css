@@ -1,0 +1,12 @@
+@keyframes brainstorm-card-wiggle {
+  0% { transform: translateY(0) rotate(0); }
+  35% { transform: translateY(-2px) rotate(-0.7deg); }
+  70% { transform: translateY(-2px) rotate(0.5deg); }
+  100% { transform: translateY(-2px) rotate(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .brainstorm-idea-card:hover:not([data-dragging="true"]) {
+    animation: brainstorm-card-wiggle 320ms cubic-bezier(.16, 1, .3, 1) both;
+  }
+}
