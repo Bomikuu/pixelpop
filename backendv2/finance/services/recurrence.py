@@ -26,6 +26,14 @@ def materialize(until=None):
     if until > today() + timedelta(days=366 * 5):
         raise ValidationError({"month": "Choose a month within the next five years."})
     for schedule in RecurringSchedule.objects.select_for_update().filter(active=True):
+        if schedule.system_key:
+            due = today()
+            if due >= schedule.anchor_date:
+                Deadline.objects.get_or_create(
+                    schedule=schedule, due_date=due,
+                    defaults={"created_by": schedule.created_by, "title": schedule.title, "kind": "task", "important": schedule.important, "notes": schedule.notes},
+                )
+            continue
         for index in range(20000):
             due = occurrence(schedule, index)
             if due > until:

@@ -303,10 +303,15 @@ class LoanSerializer(StrictSerializer):
 class ScheduleSerializer(StrictSerializer):
     class Meta:
         model = models.RecurringSchedule
-        fields = ("id", "title", "kind", "important", "amount", "variable_amount", "category", "account", "coverage", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active")
+        fields = ("id", "title", "kind", "important", "system_key", "amount", "variable_amount", "category", "account", "coverage", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active")
+        read_only_fields = ("system_key",)
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        if self.instance and self.instance.system_key:
+            for field in ("kind", "anchor_date", "frequency", "interval"):
+                if field in attrs and attrs[field] != getattr(self.instance, field):
+                    raise serializers.ValidationError({field: "Daily reminder cadence cannot be changed."})
         merged = {field: attrs.get(field, getattr(self.instance, field, None)) for field in ("kind", "amount", "account", "coverage", "settlement_kind", "anchor_date", "frequency", "interval", "variable_amount", "active")}
         if merged["interval"] is None:
             merged["interval"] = 1

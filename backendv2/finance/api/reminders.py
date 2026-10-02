@@ -70,8 +70,11 @@ class ReminderSubscriptionView(PrivateMixin, APIView):
     def post(self, request):
         if not (os.getenv("VERCEL") and not settings.DEBUG and push_configured()):
             raise ValidationError({"notification": "Production notifications are not configured yet."})
-        endpoint = request.data.get("endpoint", "")
-        keys = request.data.get("keys") or {}
+        payload = request.data if isinstance(request.data, dict) else {}
+        endpoint = payload.get("endpoint", "")
+        keys = payload.get("keys") or {}
+        if not isinstance(keys, dict):
+            keys = {}
         p256dh, auth = keys.get("p256dh", ""), keys.get("auth", "")
         if not isinstance(endpoint, str) or not endpoint.startswith("https://") or len(endpoint) > 2048:
             raise ValidationError({"endpoint": "Choose a valid browser push endpoint."})
@@ -90,7 +93,8 @@ class ReminderSubscriptionView(PrivateMixin, APIView):
         return Response({"subscribed": True})
 
     def delete(self, request):
-        endpoint = request.data.get("endpoint", "")
+        payload = request.data if isinstance(request.data, dict) else {}
+        endpoint = payload.get("endpoint", "")
         if isinstance(endpoint, str) and endpoint:
             ReminderPushSubscription.objects.filter(user=request.user, endpoint_hash=sha256(endpoint.encode()).hexdigest()).delete()
         return Response({"subscribed": ReminderPushSubscription.objects.filter(user=request.user).exists()})

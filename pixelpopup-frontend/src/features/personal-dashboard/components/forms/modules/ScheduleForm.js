@@ -23,7 +23,7 @@ export default function definition(record) {
         required: false,
         when: (v) => !["task", "reminder"].includes(record?.kind) && v.amount_mode !== "variable",
       },
-      field("anchor_date", "Anchor date", "date", { required: true }),
+      ...(!record?.system_key ? [field("anchor_date", "Anchor date", "date", { required: true })] : []),
       ...(["task", "reminder"].includes(record?.kind) ? [field("important", "Important reminder", "select", {
         default: "false",
         options: [
@@ -31,7 +31,7 @@ export default function definition(record) {
           { value: "true", label: "Important", description: "Include each due occurrence in reminders." },
         ],
       })] : []),
-      field("frequency", "Frequency", "select", {
+      ...(!record?.system_key ? [field("frequency", "Frequency", "select", {
         options: choices([
           "weekly",
           "monthly",
@@ -42,8 +42,8 @@ export default function definition(record) {
           "months",
           "years",
         ]),
-      }),
-      interval,
+      })] : []),
+      ...(!record?.system_key ? [interval] : []),
       reminder,
       notes,
       field("active", "Schedule status", "select", {

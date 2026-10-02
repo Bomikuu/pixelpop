@@ -634,6 +634,7 @@ export default function Dashboard() {
                 </DropdownMenu.Root>
               </div>
             )}
+            {!tab && reminders.error && <p role="alert" className="mt-2 text-right text-xs text-red-700">{reminders.error}</p>}
           </header>
           {tab !== "nutrition" && tab !== "events" && dashboard.data.overview.attention.overdue > 0 && (
             <div

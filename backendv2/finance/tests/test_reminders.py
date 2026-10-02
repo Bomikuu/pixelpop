@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
@@ -9,7 +9,7 @@ from django.test import TestCase
 from end_of_day.models import EndOfDayEntry, EndOfDayGroup
 from finance.models import Deadline, Meal, MealItem, NutritionProfile, RecurringSchedule, WorkspaceSettings
 from finance.services.recurrence import materialize
-from finance.services.reminders import checklist_for, ensure_daily_reminders
+from finance.services.reminders import checklist_for, ensure_daily_reminders, manila_today
 from finance.services.reminder_delivery import due_slots
 
 
@@ -25,12 +25,13 @@ class ReminderPersistenceTests(TestCase):
         self.assertEqual(settings.reminder_end_time.isoformat(timespec="minutes"), "00:00")
 
     def test_important_schedule_passes_flag_to_daily_occurrence(self):
+        current_day = manila_today()
         schedule = RecurringSchedule.objects.create(
-            title="Have you made a PR?", kind="task", anchor_date=date(2026, 10, 2),
+            title="Have you made a PR?", kind="task", anchor_date=current_day,
             frequency="days", interval=1, important=True, created_by=self.user,
         )
-        materialize(date(2026, 10, 2))
-        self.assertTrue(Deadline.objects.get(schedule=schedule, due_date=date(2026, 10, 2)).important)
+        materialize(current_day)
+        self.assertTrue(Deadline.objects.get(schedule=schedule, due_date=current_day).important)
 
     def test_system_key_is_unique_per_user(self):
         RecurringSchedule.objects.create(
@@ -43,11 +44,19 @@ class ReminderPersistenceTests(TestCase):
                 frequency="days", system_key="eod", created_by=self.user,
             )
 
+    def test_system_schedule_materializes_only_current_day(self):
+        schedule = RecurringSchedule.objects.create(
+            title="EOD", kind="task", anchor_date=manila_today(),
+            frequency="days", interval=1, system_key="eod", important=True, created_by=self.user,
+        )
+        materialize(manila_today())
+        self.assertEqual(list(schedule.deadlines.values_list("due_date", flat=True)), [manila_today()])
+
 
 class ReminderChecklistTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="checklist-owner", password="example-password")
-        self.day = date(2026, 10, 2)
+        self.day = manila_today()
 
     def test_daily_seed_is_idempotent(self):
         ensure_daily_reminders(self.user)
@@ -57,7 +66,7 @@ class ReminderChecklistTests(TestCase):
     def test_important_due_and_undated_tasks_are_included_but_future_is_not(self):
         Deadline.objects.create(title="Undated", kind="task", important=True, created_by=self.user)
         Deadline.objects.create(title="Due", kind="task", due_date=self.day, important=True, created_by=self.user)
-        Deadline.objects.create(title="Future", kind="task", due_date=date(2026, 10, 3), important=True, created_by=self.user)
+        Deadline.objects.create(title="Future", kind="task", due_date=self.day + timedelta(days=1), important=True, created_by=self.user)
         titles = {item["title"] for item in checklist_for(self.user, self.day)["items"]}
         self.assertIn("Undated", titles)
         self.assertIn("Due", titles)

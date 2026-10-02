@@ -550,6 +550,8 @@ class ScheduleViewSet(FinanceViewSet):
     def perform_update(self, serializer):
         schedule = serializer.save()
         schedule.deadlines.filter(status="pending").update(important=schedule.important)
+        if schedule.system_key:
+            schedule.deadlines.filter(due_date=today()).update(title=schedule.title, notes=schedule.notes, important=schedule.important)
         # Pending future occurrences are projections, not settlement history.
         if schedule.coverage_id:
             schedule.deadlines.filter(status="pending", due_date__gte=today()).delete()
