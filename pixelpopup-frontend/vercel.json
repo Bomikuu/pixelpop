@@ -1,9 +1,10 @@
 {
   "headers": [{ "source": "/dashboard/:path*", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "private, no-store" }] }],
   "rewrites": [
-    { "source": "/api/v1/finance/:path*", "destination": "https://pixelpopup-backend.vercel.app/api/v1/finance/:path*" },
-    { "source": "/admin/:path*", "destination": "https://pixelpopup-backend.vercel.app/admin/:path*" },
-    { "source": "/static/admin/:path*", "destination": "https://pixelpopup-backend.vercel.app/static/admin/:path*" },
+    { "source": "^/api/v1/finance/(.*)$", "destination": "https://pixelpopup-backend.vercel.app/api/v1/finance/$1" },
+    { "source": "/admin", "destination": "https://pixelpopup-backend.vercel.app/admin/" },
+    { "source": "^/admin/(.*)$", "destination": "https://pixelpopup-backend.vercel.app/admin/$1" },
+    { "source": "^/static/admin/(.*)$", "destination": "https://pixelpopup-backend.vercel.app/static/admin/$1" },
     { "source": "/dashboard", "destination": "/dashboard/index.html" },
     { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" },
     { "source": "/", "destination": "/index.html" },
