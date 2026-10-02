@@ -29,8 +29,10 @@ import {
   FileClock,
   Lightbulb,
   BookOpenText,
+  Bell,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
+import { useReminders } from "./hooks/useReminders";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -63,6 +65,8 @@ import NutritionView from "./views/NutritionView";
 import EventsView from "./views/EventsView";
 import BrainstormView from "./views/BrainstormView";
 import EodView from "./views/EodView";
+import ReminderSettings from "./components/reminders/ReminderSettings";
+import ReminderChecklistDialog from "./components/reminders/ReminderChecklistDialog";
 import NutritionDateControls from "./components/nutrition/NutritionDateControls";
 import { dateLabel, money, today, words } from "./lib/format";
 import "./styles/theme.css";
@@ -108,6 +112,12 @@ export default function Dashboard() {
     tab === "loans" ? "people" : tab === "expenses" ? "transactions" : tab;
   const current = tabs.find((t) => t[0] === currentTab);
   const dashboard = useDashboardData(selectedMonth);
+  const reminders = useReminders({
+    request: dashboard.request,
+    ready: dashboard.status === "ready",
+    version: dashboard.version,
+    refresh: dashboard.refresh,
+  });
   const [mobileNav, setMobileNav] = useState(false);
   const [nutritionDate, setNutritionDate] = useState(today);
   const [collapsed, setCollapsed] = useState(() => {
@@ -569,6 +579,11 @@ export default function Dashboard() {
             </div>
             {!tab && (
               <div className="mt-3 flex flex-wrap justify-end gap-2">
+                <Button variant="outline" onClick={reminders.openChecklist}>
+                  <Bell aria-hidden="true" />
+                  Important tasks
+                  {reminders.checklist && <span className="text-xs text-slate-600">{reminders.checklist.items.filter((item) => !item.completed).length} left</span>}
+                </Button>
                 <Button
                   ref={calendarTrigger}
                   variant="outline"
@@ -803,6 +818,15 @@ export default function Dashboard() {
                   Categories and recurring schedules are managed below.
                 </p>
               </Panel>
+              <ReminderSettings
+                settings={dashboard.data.settings}
+                status={reminders.status}
+                error={reminders.error}
+                busy={reminders.busy}
+                onSave={reminders.saveSettings}
+                onEnable={reminders.enablePush}
+                onDisable={reminders.disablePush}
+              />
               <RecordList
                 resource="categories"
                 title="Categories & budgets"
@@ -873,6 +897,13 @@ export default function Dashboard() {
           dismiss={(id) =>
             setNotices((items) => items.filter((item) => item.id !== id))
           }
+        />
+        <ReminderChecklistDialog
+          dialog={reminders.dialog}
+          error={reminders.error}
+          busy={reminders.busy}
+          close={reminders.close}
+          toggle={reminders.toggle}
         />
         {overdueItems && (
           <Dialog
