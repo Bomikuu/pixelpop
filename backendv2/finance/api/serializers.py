@@ -194,7 +194,7 @@ class DeadlineSerializer(StrictSerializer):
 
     class Meta:
         model = models.Deadline
-        fields = ("id", "title", "kind", "priority", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
+        fields = ("id", "title", "kind", "priority", "important", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
         read_only_fields = ("status", "schedule", "asset_financing", "installment_index", "completed_at")
 
     def get_remaining_due(self, obj):
@@ -218,6 +218,8 @@ class DeadlineSerializer(StrictSerializer):
     def validate(self, attrs):
         attrs = super().validate(attrs)
         item_kind = attrs.get("kind", getattr(self.instance, "kind", "task"))
+        if attrs.get("important", getattr(self.instance, "important", False)) and item_kind not in ("task", "reminder"):
+            raise serializers.ValidationError({"important": "Only tasks and reminders can be important."})
         due_date = attrs.get("due_date", getattr(self.instance, "due_date", None))
         due_time = attrs.get("due_time", getattr(self.instance, "due_time", None))
         if due_date is None:
@@ -301,7 +303,7 @@ class LoanSerializer(StrictSerializer):
 class ScheduleSerializer(StrictSerializer):
     class Meta:
         model = models.RecurringSchedule
-        fields = ("id", "title", "kind", "amount", "variable_amount", "category", "account", "coverage", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active")
+        fields = ("id", "title", "kind", "important", "amount", "variable_amount", "category", "account", "coverage", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active")
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -312,6 +314,8 @@ class ScheduleSerializer(StrictSerializer):
             merged["active"] = True
         if merged["kind"] not in ("task", "bill", "subscription", "payment", "reminder", "income"):
             raise serializers.ValidationError({"kind": "Choose a supported recurring item type."})
+        if attrs.get("important", getattr(self.instance, "important", False)) and merged["kind"] not in ("task", "reminder"):
+            raise serializers.ValidationError({"important": "Only tasks and reminders can be important."})
         if merged["settlement_kind"] not in ("expense", "credit_card_payment"):
             raise serializers.ValidationError({"settlement_kind": "Recurring loan collections are not supported."})
         if merged["kind"] == "income" and (not merged["account"] or merged["account"].kind == "credit_card" or not merged["amount"]):
@@ -425,5 +429,5 @@ class MovementSerializer(StrictSerializer):
 class SettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.WorkspaceSettings
-        fields = ("monthly_budget", "timezone")
+        fields = ("monthly_budget", "timezone", "reminder_strict_mode", "reminder_interval_hours", "reminder_start_time", "reminder_end_time")
         read_only_fields = ("timezone",)

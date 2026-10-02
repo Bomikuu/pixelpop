@@ -35,6 +35,6 @@ def materialize(until=None):
                 if schedule.account_id and schedule.amount:
                     Transaction.objects.get_or_create(schedule=schedule, scheduled_date=due, defaults={**defaults, "date": due, "name": schedule.title, "kind": "income", "receipt_state": "expected", "account": schedule.account, "amount": schedule.amount})
             else:
-                Deadline.objects.get_or_create(schedule=schedule, due_date=due, defaults={**defaults, "title": schedule.title, "kind": schedule.kind, "amount": None if schedule.variable_amount else schedule.amount, "due_time": schedule.due_time, "reminder_days": schedule.reminder_days, "settlement_kind": schedule.settlement_kind, "credit_card": schedule.account if schedule.settlement_kind == "credit_card_payment" else None})
+                Deadline.objects.get_or_create(schedule=schedule, due_date=due, defaults={**defaults, "title": schedule.title, "kind": schedule.kind, "important": schedule.important, "amount": None if schedule.variable_amount else schedule.amount, "due_time": schedule.due_time, "reminder_days": schedule.reminder_days, "settlement_kind": schedule.settlement_kind, "credit_card": schedule.account if schedule.settlement_kind == "credit_card_payment" else None})
         else:
             raise ValidationError({"schedule": "This schedule spans too many occurrences. Use a more recent anchor date."})

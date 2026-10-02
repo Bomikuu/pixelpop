@@ -6,7 +6,7 @@ export function buildSubmission({ entity, record, definition, fields, values, re
         field.name,
         values[field.name] === ""
           ? field.nullable || field.type === "number" || field.type === "time" ? null : ""
-          : ["existing", "active"].includes(field.name) ? values[field.name] === "true" : values[field.name],
+          : ["existing", "active", "important"].includes(field.name) ? values[field.name] === "true" : values[field.name],
       ]),
   );
   definition.prepareBody?.({ body, values, record });
@@ -31,6 +31,7 @@ export function buildSubmission({ entity, record, definition, fields, values, re
       due_time: body.due_time || null,
       reminder_days: body.reminder_days || 0,
       notes: body.notes,
+      important: Boolean(body.important),
       variable_amount: ["bill", "subscription", "payment"].includes(body.kind) && body.amount == null,
     };
     Object.keys(body).forEach((key) => delete body[key]);

@@ -21,6 +21,13 @@ export default function definition(record) {
         default: "medium",
         options: choices(["high", "medium", "low"]),
       }),
+      field("important", "Important reminder", "select", {
+        default: "false",
+        options: [
+          { value: "false", label: "Standard", description: "Keep it in Tasks without reminder popups." },
+          { value: "true", label: "Important", description: "Include it in your reminder checklist when due." },
+        ],
+      }),
       field("due_time", "Due time", "time"),
       ...(!record?.id ? [repeats, interval] : []),
       category,

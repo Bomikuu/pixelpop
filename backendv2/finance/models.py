@@ -1,5 +1,6 @@
 import uuid
 import secrets
+from datetime import time
 from decimal import Decimal
 
 from django.conf import settings
@@ -72,6 +73,10 @@ class WorkspaceSettings(models.Model):
     id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
     monthly_budget = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=NONNEGATIVE)
     timezone = models.CharField(max_length=40, default="Asia/Manila", editable=False)
+    reminder_strict_mode = models.BooleanField(default=False)
+    reminder_interval_hours = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(24)])
+    reminder_start_time = models.TimeField(default=time(9, 0))
+    reminder_end_time = models.TimeField(default=time(0, 0))
 
     class Meta:
         constraints = [models.CheckConstraint(condition=models.Q(id=1), name="finance_single_workspace")]
@@ -149,6 +154,8 @@ class LoanReceivable(Record):
 class RecurringSchedule(Record):
     FREQUENCIES = [(v, v.title()) for v in ("weekly", "monthly", "quarterly", "yearly", "days", "weeks", "months", "years")]
     title = models.CharField(max_length=160)
+    important = models.BooleanField(default=False)
+    system_key = models.CharField(max_length=40, null=True, blank=True)
     kind = models.CharField(max_length=20, default="bill")
     amount = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=POSITIVE)
     variable_amount = models.BooleanField(default=False)
@@ -164,12 +171,16 @@ class RecurringSchedule(Record):
     notes = models.TextField(blank=True, max_length=4000)
     active = models.BooleanField(default=True)
 
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["created_by", "system_key"], condition=models.Q(system_key__isnull=False), name="finance_schedule_user_system_key")]
+
 
 class Deadline(Record):
     KINDS = [(v, v.title()) for v in ("task", "bill", "subscription", "payment", "reminder")]
     STATUSES = [("pending", "Pending"), ("paid", "Paid"), ("completed", "Completed")]
     PRIORITIES = [("high", "High"), ("medium", "Medium"), ("low", "Low")]
     title = models.CharField(max_length=160)
+    important = models.BooleanField(default=False)
     kind = models.CharField(max_length=20, choices=KINDS, default="task")
     priority = models.CharField(max_length=10, choices=PRIORITIES, default="medium")
     amount = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=POSITIVE)
