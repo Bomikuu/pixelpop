@@ -35,6 +35,8 @@ class EntrySerializer(serializers.ModelSerializer):
         model = EndOfDayEntry
         fields = ("id", "group", "group_name", "date", "type", "title", "summary", "items", "in_progress", "slack_message", "bullet_list", "outputs", "created_at", "updated_at")
         read_only_fields = ("id", "group_name", "outputs", "created_at", "updated_at")
+        # validate() enforces this pair for normal writes; imports must preview it first.
+        validators = []
         extra_kwargs = {
             "title": {"required": False, "allow_blank": True},
             "summary": {"required": False, "allow_blank": True},

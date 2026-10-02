@@ -73,10 +73,43 @@ class EndOfDayApiTests(TestCase):
     def test_import_skips_existing_pair_without_overwriting(self):
         self.client.post(BASE + "entries/", self.entry(), format="json")
         payload = {"group": "Personal", "entries": [{key: value for key, value in self.entry(title="Replacement").items() if key != "group"}]}
+        preview = self.client.post(BASE + f"import/preview/?group={self.personal.pk}", payload, format="json")
+        self.assertEqual(preview.status_code, 200)
+        self.assertEqual(preview.data["rows"][0]["action"], "skip")
+        self.assertEqual(preview.data["counts"], {"create": 0, "skip": 1, "error": 0})
         response = self.client.post(BASE + f"import/?group={self.personal.pk}", payload, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["counts"]["skipped"], 1)
         self.assertEqual(EndOfDayEntry.objects.get(group=self.personal, date=self.day).title, "Reviewed the release")
+
+    def test_import_replaces_only_selected_existing_dates(self):
+        other_day = self.day - timedelta(days=1)
+        self.client.post(BASE + "entries/", self.entry(title="Keep this"), format="json")
+        self.client.post(BASE + "entries/", self.entry(day=other_day, title="Old recap"), format="json")
+        payload = {"group": "Personal", "entries": [
+            {"date": self.day.isoformat(), "type": "workday", "title": "Not selected", "summary": "Should not replace."},
+            {"date": other_day.isoformat(), "type": "workday", "title": "New recap", "summary": "Imported replacement."},
+        ]}
+        response = self.client.post(BASE + f"import/?group={self.personal.pk}", {
+            "payload": payload, "replace_rows": [1],
+        }, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["counts"], {"created": 0, "replaced": 1, "skipped": 1})
+        retained = EndOfDayEntry.objects.get(group=self.personal, date=self.day)
+        replaced = EndOfDayEntry.objects.get(group=self.personal, date=other_day)
+        self.assertEqual(retained.title, "Keep this")
+        self.assertEqual(replaced.title, "New recap")
+        self.assertEqual(replaced.items, [])
+
+    def test_import_rejects_replace_rows_that_are_not_conflicts(self):
+        payload = {"group": "Personal", "entries": [
+            {"date": self.day.isoformat(), "type": "workday", "title": "New", "summary": "New day."},
+        ]}
+        response = self.client.post(BASE + f"import/?group={self.personal.pk}", {
+            "payload": payload, "replace_rows": [0],
+        }, format="json")
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(EndOfDayEntry.objects.filter(group=self.personal, date=self.day).exists())
 
     def test_copy_fallback_and_private_audit_snapshot(self):
         response = self.client.post(BASE + "entries/", self.entry(), format="json")

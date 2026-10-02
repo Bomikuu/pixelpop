@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, FolderPen, Info } from "lucide-react";
+import { CalendarDays, FolderPen, Info, LayoutGrid, Table2 } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { today } from "../lib/format";
 import { Button } from "../ui/button";
@@ -11,6 +11,7 @@ import EodDetail from "../components/eod/EodDetail";
 import EodEntryForm from "../components/eod/EodEntryForm";
 import EodGroupForm from "../components/eod/EodGroupForm";
 import EodImportForm from "../components/eod/EodImportForm";
+import EodTable from "../components/eod/EodTable";
 
 const emptyEntry = { group: "", date: "", type: "workday", title: "", summary: "", items: "", in_progress: "", slack_message: "", bullet_list: "" };
 const lines = (value) => value.split("\n").map((item) => item.trim().replace(/^[•*-]\s*/, "")).filter(Boolean);
@@ -27,11 +28,16 @@ const shiftDay = (date, amount) => {
 export default function EodView({ dashboard, notify, month, onMonthChange }) {
   const [groupId, setGroupId] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
+  const [viewMode, setViewMode] = useState(() => {
+    try { return localStorage.getItem("personal-dashboard-eod-view") === "table" ? "table" : "cards"; }
+    catch { return "cards"; }
+  });
   const [dialog, setDialog] = useState(null);
   const [draft, setDraft] = useState(emptyEntry);
   const [openedDraft, setOpenedDraft] = useState(emptyEntry);
   const [rawJson, setRawJson] = useState("");
   const [preview, setPreview] = useState(null);
+  const [replaceRows, setReplaceRows] = useState([]);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [pageError, setPageError] = useState("");
@@ -67,16 +73,30 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
   function changeScope(nextGroup) {
     setGroupId(String(nextGroup)); setSelectedDate(null); setCopied(""); setPageError("");
   }
+  function changeViewMode(nextMode) {
+    setViewMode(nextMode);
+    try { localStorage.setItem("personal-dashboard-eod-view", nextMode); }
+    catch { /* The switch still works if browser storage is unavailable. */ }
+  }
+  function selectDate(date) {
+    const nextDate = selectedDate === date ? null : date;
+    setSelectedDate(nextDate);
+    setCopied("");
+    if (nextDate && window.innerWidth < 1024) requestAnimationFrame(() => {
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      detailRef.current?.focus({ preventScroll: true });
+    });
+  }
   function open(kind, record = null, date = null) {
     launchRef.current = document.activeElement;
-    setError(""); setFieldErrors({}); setPreview(null); setDialog({ kind, record });
+    setError(""); setFieldErrors({}); setPreview(null); setReplaceRows([]); setDialog({ kind, record });
     if (kind === "import") setRawJson("");
     const next = kind === "entry" ? record ? {
       ...record, group: String(record.group), items: (record.items?.length ? record.items : record.bullet_list || []).join("\n"), in_progress: (record.in_progress || []).join("\n"),
     } : { ...emptyEntry, group: groupId, date: date || selectedDate || (month === today().slice(0, 7) ? today() : `${month}-01`) } : kind === "group" ? { name: record?.name || "" } : {};
     setDraft(next); setOpenedDraft(next);
   }
-  function close() { if (!saving) { setDialog(null); setError(""); setFieldErrors({}); setPreview(null); } }
+  function close() { if (!saving) { setDialog(null); setError(""); setFieldErrors({}); setPreview(null); setReplaceRows([]); } }
   function set(name, value) { setDraft((previous) => ({ ...previous, [name]: value })); setError(""); setFieldErrors((previous) => ({ ...previous, [name]: null })); }
   async function copy(text, label) {
     try { await navigator.clipboard.writeText(text); setCopied(label); notify(`${label} copied.`); }
@@ -111,9 +131,10 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
         if (!preview) {
           const result = await dashboard.request(`eod/import/preview/?group=${groupId}`, { method: "POST", body: payload });
           setPreview(result);
+          setReplaceRows([]);
         } else if (!preview.counts.error) {
-          const result = await dashboard.mutate(`eod/import/?group=${groupId}`, payload, "POST");
-          notify(`${result.counts.created} EOD ${result.counts.created === 1 ? "entry" : "entries"} imported.`);
+          const result = await dashboard.mutate(`eod/import/?group=${groupId}`, { payload, replace_rows: replaceRows }, "POST");
+          notify(`${result.counts.created} added · ${result.counts.replaced} replaced · ${result.counts.skipped} retained.`);
           setDialog(null); setPreview(null);
         }
       }
@@ -127,7 +148,13 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
       <nav className="flex min-w-0 flex-wrap items-center gap-2" aria-label="EOD groups">
         {groups.map((group) => <button key={group.id} type="button" aria-current={groupId === String(group.id) ? "page" : undefined} onClick={() => changeScope(group.id)} className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-600 ${groupId === String(group.id) ? "border-blue-600 text-blue-700" : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-950"}`}>{group.name}</button>)}
       </nav>
-      <EodActionMenu onAction={open} />
+      <div className="flex flex-wrap items-center gap-2">
+        <div role="group" aria-label="EOD view mode" className="flex items-center gap-1">
+          <Button type="button" size="sm" variant="outline" aria-pressed={viewMode === "cards"} onClick={() => changeViewMode("cards")} className={viewMode === "cards" ? "border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-50" : "border-slate-200"}><LayoutGrid size={15} aria-hidden="true" />Cards</Button>
+          <Button type="button" size="sm" variant="outline" aria-pressed={viewMode === "table"} onClick={() => changeViewMode("table")} className={viewMode === "table" ? "border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-50" : "border-slate-200"}><Table2 size={15} aria-hidden="true" />Table</Button>
+        </div>
+        <EodActionMenu onAction={open} />
+      </div>
     </div>
     {selectedGroup && selectedGroup.name.toLowerCase() !== "personal" && <div><Button type="button" size="sm" variant="outline" onClick={() => open("group", selectedGroup)}><FolderPen size={15} aria-hidden="true" />Rename group</Button></div>}
     {pageError && <ErrorState message={pageError} retry={() => setPageError("")} />}
@@ -136,15 +163,15 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
     {!groupsState.loading && !groupsState.error && !groups.length && <div className="border border-[var(--pd-border)] bg-white"><EmptyState icon={CalendarDays} title="No EOD groups yet" message="Add a group to begin recording your days." action={<Button onClick={() => open("group")}>Add group</Button>} /></div>}
     {groupId && entriesState.error && <ErrorState message={entriesState.error} retry={dashboard.refresh} />}
     {groupId && entriesState.loading && <p className="py-10 text-center text-sm text-slate-600">Loading saved days…</p>}
-    {groupId && !entriesState.loading && !entriesState.error && <div className={`grid min-w-0 gap-5 ${selectedDate ? "lg:grid-cols-[minmax(0,1.7fr)_minmax(18rem,1fr)]" : ""}`}>
+    {groupId && !entriesState.loading && !entriesState.error && <div className={`grid min-w-0 gap-5 ${selectedDate ? viewMode === "table" ? "xl:grid-cols-[minmax(0,1.7fr)_minmax(18rem,1fr)]" : "lg:grid-cols-[minmax(0,1.7fr)_minmax(18rem,1fr)]" : ""}`}>
       <div className="min-w-0">
-        <div className="grid auto-rows-min grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">{dates.map((date, index) => <EodCard key={date} date={date} entry={entriesByDate.get(date)} selected={selectedDate === date} wide={index % 5 === 0 || index % 5 === 4} onSelect={() => { const nextDate = selectedDate === date ? null : date; setSelectedDate(nextDate); setCopied(""); if (nextDate && window.innerWidth < 1024) requestAnimationFrame(() => { detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); detailRef.current?.focus({ preventScroll: true }); }); }} />)}</div>
+        {viewMode === "table" ? <EodTable dates={dates} entriesByDate={entriesByDate} selectedDate={selectedDate} onSelect={selectDate} /> : <div className="grid auto-rows-min grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">{dates.map((date, index) => <EodCard key={date} date={date} entry={entriesByDate.get(date)} selected={selectedDate === date} wide={index % 5 === 0 || index % 5 === 4} onSelect={() => selectDate(date)} />)}</div>}
         <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-500"><Info size={13} aria-hidden="true" />Unsaved dates stay visible as placeholders. Select a date to add or read its entry.</p>
       </div>
       {selectedDate && <EodDetail date={selectedDate} entry={selected} groupName={selectedGroup?.name} onEdit={() => open("entry", selected)} onAdd={() => open("entry", null, selectedDate)} onCopy={copy} copied={copied} detailRef={detailRef} onPrevious={dates.includes(shiftDay(selectedDate, -1)) ? () => setSelectedDate(shiftDay(selectedDate, -1)) : null} onNext={dates.includes(shiftDay(selectedDate, 1)) ? () => setSelectedDate(shiftDay(selectedDate, 1)) : null} />}
     </div>}
-    {dialog && <FormModalShell title={dialog.kind === "entry" ? dialog.record ? "Edit EOD entry" : "Add EOD entry" : dialog.kind === "group" ? dialog.record ? "Rename group" : "Add EOD group" : "Import EOD JSON"} description={dialog.kind === "entry" ? "Keep one recap per group and date." : dialog.kind === "group" ? "Keep work from each group separate." : "Preview first. Existing group/date entries are skipped and never overwritten."} error={error} busy={saving} dirty={dirty} onCancel={close} onCloseAutoFocus={(event) => { if (launchRef.current?.isConnected) { event.preventDefault(); launchRef.current.focus(); } }} onSubmit={submit} saveLabel={dialog.kind === "import" ? preview ? "Import entries" : "Preview JSON" : dialog.kind === "group" ? dialog.record ? "Save group" : "Add group" : "Save EOD"} submitDisabled={dialog.kind === "import" ? !rawJson.trim() || Boolean(preview?.counts.error) : false} busyLabel={dialog.kind === "import" && !preview ? "Previewing…" : "Saving…"}>
-      {dialog.kind === "entry" ? <EodEntryForm draft={draft} onChange={set} errors={fieldErrors} disabled={saving} maxDate={today()} groups={groups} /> : dialog.kind === "group" ? <EodGroupForm name={draft.name || ""} onChange={(value) => set("name", value)} error={fieldErrors.name} disabled={saving} /> : <EodImportForm rawJson={rawJson} onChange={(value) => { setRawJson(value); setPreview(null); setError(""); }} preview={preview} disabled={saving} groupName={selectedGroup?.name || "Personal"} />}
+    {dialog && <FormModalShell title={dialog.kind === "entry" ? dialog.record ? "Edit EOD entry" : "Add EOD entry" : dialog.kind === "group" ? dialog.record ? "Rename group" : "Add EOD group" : "Import EOD JSON"} description={dialog.kind === "entry" ? "Keep one recap per group and date." : dialog.kind === "group" ? "Keep work from each group separate." : "Preview first. For each existing date, choose to retain or replace the saved entry."} error={error} busy={saving} dirty={dirty} onCancel={close} onCloseAutoFocus={(event) => { if (launchRef.current?.isConnected) { event.preventDefault(); launchRef.current.focus(); } }} onSubmit={submit} saveLabel={dialog.kind === "import" ? preview ? replaceRows.length ? `Import and replace ${replaceRows.length}` : "Import entries" : "Preview JSON" : dialog.kind === "group" ? dialog.record ? "Save group" : "Add group" : "Save EOD"} submitDisabled={dialog.kind === "import" ? !rawJson.trim() || Boolean(preview?.counts.error) : false} busyLabel={dialog.kind === "import" && !preview ? "Previewing…" : "Saving…"}>
+      {dialog.kind === "entry" ? <EodEntryForm draft={draft} onChange={set} errors={fieldErrors} disabled={saving} maxDate={today()} groups={groups} /> : dialog.kind === "group" ? <EodGroupForm name={draft.name || ""} onChange={(value) => set("name", value)} error={fieldErrors.name} disabled={saving} /> : <EodImportForm rawJson={rawJson} onChange={(value) => { setRawJson(value); setPreview(null); setReplaceRows([]); setError(""); }} preview={preview} replaceRows={replaceRows} onResolutionChange={(index, replace) => setReplaceRows((current) => replace ? [...current, index] : current.filter((row) => row !== index))} disabled={saving} groupName={selectedGroup?.name || "Personal"} />}
     </FormModalShell>}
   </div>;
 }

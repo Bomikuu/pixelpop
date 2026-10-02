@@ -102,4 +102,9 @@ class ImportPreviewView(PrivateMixin, APIView):
 
 class ImportCommitView(PrivateMixin, APIView):
     def post(self, request):
-        return Response(apply_import(request.data, _group_id(request), request.user))
+        payload = request.data
+        replace_rows = None
+        if isinstance(payload, dict) and "payload" in payload:
+            replace_rows = payload.get("replace_rows")
+            payload = payload["payload"]
+        return Response(apply_import(payload, _group_id(request), request.user, replace_rows=replace_rows))
