@@ -21,6 +21,9 @@ add("/portfolio", "Mico Ang | Senior Frontend & Full-Stack Developer", "Portfoli
 add("/portfolio/work-with-me", "Work with Mico Ang | Frontend & Full-Stack Development", "Work with Mico Ang directly or engage ASTA Softwares for frontend leadership, full-stack product delivery, and coordinated software development.", "hire frontend developer, full-stack development, technical leadership, Mico Ang");
 add("/portfolio/services", "Web Product Services | Mico Ang", "Explore Mico Ang's services in web development, 3D, AI automation, content systems, performance, technical SEO, and product support.", "web development services, Three.js development, AI automation, technical SEO, Mico Ang");
 add("/portfolio/articles", "Articles on Frontend, SEO & AI | Mico Ang", "Practical notes by Mico Ang on frontend systems, web performance, technical SEO, AI, and software delivery.", "frontend engineering articles, technical SEO, web performance, AI development");
+add("/portfolio/how-tos", "How-tos | Mico Ang", "Practical guides on backend setup and client project delivery from Mico Ang.", "Django guides, backend setup, client workflow, Mico Ang");
+add("/portfolio/how-tos/backend-setup", "How I set up this backend | Mico Ang", "How this site's Django backend connects to Neon Postgres and verifies scheduled reminder calls from QStash.", "Django Neon setup, QStash reminders, Vercel backend, Mico Ang");
+add("/portfolio/how-tos/client-workflow", "A practical client project workflow | Mico Ang", "A nine-stage checklist for scoping, building, and handing over software and AI automation projects.", "client workflow, software project checklist, discovery, proposal, handover, Mico Ang");
 add("/portfolio/introduction-letter", "Introduction Letter | Mico Ang", "Read Mico Ang's introduction as a senior frontend engineer, full-stack developer, and technical lead.", "Mico Ang introduction, frontend engineer, technical lead");
 add("/portfolio/intro-video", "Intro Video | Mico Ang", "Watch Mico Ang introduce his frontend engineering, full-stack development, and technical leadership work.", "Mico Ang intro video, frontend developer, technical lead");
 add("/portfolio/work-setup", "Remote Work Setup | Mico Ang", "Explore the internet connection, workstation, camera, microphone, and peripherals in Mico Ang's remote software development setup.", "remote developer setup, workstation, internet speed, Mico Ang");
@@ -102,7 +105,7 @@ const fallbackStyles = `<style>
 for (const route of routes) {
   const url = `${origin}${route.pathname}`;
   const isAsta = route.pathname.startsWith("/asta");
-  const isArticle = route.pathname.includes("/articles/");
+  const isArticle = route.pathname.includes("/articles/") || route.pathname.startsWith("/portfolio/how-tos/");
   const structuredData = isArticle
     ? { "@context": "https://schema.org", "@type": "Article", headline: route.title.replace(/ \| Mico Ang$/, ""), description: route.description, image: route.image, url, author: { "@type": "Person", name: "Mico Ang" } }
     : isAsta

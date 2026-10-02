@@ -39,6 +39,15 @@ const ArticleIndexPage = lazy(
 const ArticleDetailPage = lazy(
   () => import("./pages/portfolio/articles/ArticleDetailPage"),
 );
+const HowTosIndexPage = lazy(
+  () => import("./pages/portfolio/how-tos/HowTosIndexPage"),
+);
+const BackendSetupGuidePage = lazy(
+  () => import("./pages/portfolio/how-tos/BackendSetupGuidePage"),
+);
+const ClientWorkflowGuidePage = lazy(
+  () => import("./pages/portfolio/how-tos/ClientWorkflowGuidePage"),
+);
 const InterviewReviewPage = lazy(
   () => import("./pages/portfolio/interview/InterviewReviewPage"),
 );
@@ -150,6 +159,9 @@ export default function App() {
               path="/portfolio/articles/:articleSlug"
               element={<ArticleDetailPage />}
             />
+            <Route path="/portfolio/how-tos" element={<HowTosIndexPage />} />
+            <Route path="/portfolio/how-tos/backend-setup" element={<BackendSetupGuidePage />} />
+            <Route path="/portfolio/how-tos/client-workflow" element={<ClientWorkflowGuidePage />} />
             <Route
               path="/portfolio/interview-review"
               element={<InterviewReviewPage />}
