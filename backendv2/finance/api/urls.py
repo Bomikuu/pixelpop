@@ -20,6 +20,11 @@ for prefix, view in (
 urlpatterns = [
     path("reminders/checklist/", reminders.ReminderChecklistView.as_view()),
     path("reminders/items/<int:pk>/toggle/", reminders.ReminderItemToggleView.as_view()),
+    path("reminders/status/", reminders.ReminderStatusView.as_view()),
+    path("reminders/subscriptions/", reminders.ReminderSubscriptionView.as_view()),
+    path("reminders/pending/", reminders.ReminderPendingView.as_view()),
+    path("reminders/deliveries/<int:pk>/claim/", reminders.ReminderClaimView.as_view()),
+    path("reminders/dispatch/", reminders.ReminderDispatchView.as_view()),
     path("events/", events.AuditEventsView.as_view()),
     path("nutrition/profile/", nutrition.NutritionProfileView.as_view()),
     path("nutrition/setup/", nutrition.NutritionSetupView.as_view()),

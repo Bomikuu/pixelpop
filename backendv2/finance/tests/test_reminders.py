@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
@@ -9,6 +10,7 @@ from end_of_day.models import EndOfDayEntry, EndOfDayGroup
 from finance.models import Deadline, Meal, MealItem, NutritionProfile, RecurringSchedule, WorkspaceSettings
 from finance.services.recurrence import materialize
 from finance.services.reminders import checklist_for, ensure_daily_reminders
+from finance.services.reminder_delivery import due_slots
 
 
 class ReminderPersistenceTests(TestCase):
@@ -78,3 +80,25 @@ class ReminderChecklistTests(TestCase):
         self.assertTrue(calories["completed"])
         self.assertEqual(Decimal(calories["calories"]), Decimal("130"))
         self.assertEqual(Decimal(calories["target_kcal"]), Decimal("1800"))
+
+
+class ReminderTimingTests(TestCase):
+    def setUp(self):
+        self.settings = WorkspaceSettings.objects.create(reminder_strict_mode=True)
+        self.manila = ZoneInfo("Asia/Manila")
+
+    def test_default_strict_window_has_start_hourly_and_previous_day_recap(self):
+        morning = due_slots(self.settings, datetime(2026, 10, 2, 9, 0, tzinfo=self.manila))
+        hourly = due_slots(self.settings, datetime(2026, 10, 2, 10, 0, tzinfo=self.manila))
+        midnight = due_slots(self.settings, datetime(2026, 10, 3, 0, 0, tzinfo=self.manila))
+        self.assertEqual([(row[0], row[1]) for row in morning], [(date(2026, 10, 2), "start")])
+        self.assertEqual([(row[0], row[1]) for row in hourly], [(date(2026, 10, 2), "strict")])
+        self.assertEqual([(row[0], row[1]) for row in midnight], [(date(2026, 10, 2), "recap")])
+
+    def test_normal_mode_has_no_intermediate_reminder(self):
+        self.settings.reminder_strict_mode = False
+        self.assertEqual(due_slots(self.settings, datetime(2026, 10, 2, 10, 0, tzinfo=self.manila)), [])
+
+    def test_dispatch_refuses_local_requests_without_configuration(self):
+        response = self.client.post("/api/v1/finance/reminders/dispatch/", data="{}", content_type="application/json")
+        self.assertEqual(response.status_code, 503)

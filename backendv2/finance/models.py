@@ -82,6 +82,28 @@ class WorkspaceSettings(models.Model):
         constraints = [models.CheckConstraint(condition=models.Q(id=1), name="finance_single_workspace")]
 
 
+class ReminderPushSubscription(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reminder_push_subscriptions")
+    endpoint = models.TextField()
+    endpoint_hash = models.CharField(max_length=64, unique=True)
+    p256dh = models.TextField()
+    auth = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class ReminderDelivery(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reminder_deliveries")
+    checklist_date = models.DateField(db_index=True)
+    phase = models.CharField(max_length=10, choices=[("start", "Start"), ("strict", "Strict"), ("recap", "Recap")])
+    slot_key = models.CharField(max_length=80)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "slot_key"], name="finance_reminder_delivery_slot")]
+
+
 class BalanceAdjustment(Record):
     account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="adjustments")
     amount = models.DecimalField(max_digits=14, decimal_places=2)

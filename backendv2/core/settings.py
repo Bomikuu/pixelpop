@@ -21,6 +21,13 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+REMINDER_VAPID_PUBLIC_KEY = os.getenv("REMINDER_VAPID_PUBLIC_KEY", "")
+REMINDER_VAPID_PRIVATE_KEY = os.getenv("REMINDER_VAPID_PRIVATE_KEY", "")
+REMINDER_VAPID_SUBJECT = os.getenv("REMINDER_VAPID_SUBJECT", "")
+REMINDER_QSTASH_DESTINATION = os.getenv("REMINDER_QSTASH_DESTINATION", "")
+REMINDER_QSTASH_CURRENT_SIGNING_KEY = os.getenv("REMINDER_QSTASH_CURRENT_SIGNING_KEY", "")
+REMINDER_QSTASH_NEXT_SIGNING_KEY = os.getenv("REMINDER_QSTASH_NEXT_SIGNING_KEY", "")
+
 
 def env_bool(name, default=False):
     return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}

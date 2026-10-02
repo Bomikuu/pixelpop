@@ -347,3 +347,20 @@ Inquiry delivery:
 ✅ Admin workflow usable
 ✅ Validation + safety in place
 ✅ Ready for frontend rendering
+
+## Personal dashboard reminders (production)
+
+Reminders use one QStash schedule and Web Push. Local development does not dispatch notifications. Add these variables to the **backend production** environment (never to the repository):
+
+| Variable | Value |
+| --- | --- |
+| `REMINDER_QSTASH_DESTINATION` | Exact public URL of `https://<backend-host>/api/v1/finance/reminders/dispatch/` |
+| `REMINDER_QSTASH_CURRENT_SIGNING_KEY` | Current QStash signing key |
+| `REMINDER_QSTASH_NEXT_SIGNING_KEY` | Next QStash signing key |
+| `REMINDER_VAPID_PUBLIC_KEY` | Base64url Web Push public key |
+| `REMINDER_VAPID_PRIVATE_KEY` | Matching private key in a format accepted by `pywebpush` |
+| `REMINDER_VAPID_SUBJECT` | Contact URI such as `mailto:mico.dahang@gmail.com` |
+
+Create **one** QStash schedule with cron `*/30 * * * *`, destination equal to `REMINDER_QSTASH_DESTINATION`, HTTP `POST`, and body `{}`. QStash verifies the exact URL, raw body, and signature at the callback. The schedule uses UTC, but Django evaluates the configured start/end window in `Asia/Manila`. Keep both signing keys configured during rotations. Deploy the finance migrations before enabling the schedule.
+
+In the personal dashboard's Settings page, enable browser notifications from a user click. A denied or unsupported permission leaves the in-app checklist available while the dashboard is open. A closed browser tab can receive Web Push; delivery after the entire browser process is quit depends on browser/OS behavior. On iOS, background Web Push requires the site to be installed as a Home Screen web app. If any required variable is missing, Settings reports notifications as unavailable and dispatch returns 503; tasks remain usable.
