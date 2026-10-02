@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'brainstorm',
     'end_of_day',
     'leadership',
+    'client_workflow',
     'django_json_widget',
 ]
 
