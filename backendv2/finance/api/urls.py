@@ -5,6 +5,7 @@ from . import shared_bills
 from . import nutrition
 from . import activity
 from . import events
+from . import reminders
 
 router = DefaultRouter()
 for prefix, view in (
@@ -17,6 +18,8 @@ for prefix, view in (
     router.register(prefix, view, basename="finance-" + prefix)
 
 urlpatterns = [
+    path("reminders/checklist/", reminders.ReminderChecklistView.as_view()),
+    path("reminders/items/<int:pk>/toggle/", reminders.ReminderItemToggleView.as_view()),
     path("events/", events.AuditEventsView.as_view()),
     path("nutrition/profile/", nutrition.NutritionProfileView.as_view()),
     path("nutrition/setup/", nutrition.NutritionSetupView.as_view()),
