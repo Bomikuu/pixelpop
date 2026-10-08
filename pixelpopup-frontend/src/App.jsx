@@ -100,6 +100,11 @@ const BusinessDashboardPage = lazy(
   () => import("./pages/BusinessDashboardPage"),
 );
 const SharedBillPage = lazy(() => import("./pages/SharedBillPage"));
+const SharedDocumentPage = lazy(() => import("./pages/SharedDocumentPage"));
+function LegacyApplicationsRedirect() {
+  const { pathname, search, hash } = useLocation();
+  return <Navigate replace to={pathname.replace(/^\/dashboard\/applications/, "/business/applications") + search + hash} />;
+}
 function PublicExtras() {
   const { pathname } = useLocation();
   if (
@@ -107,7 +112,8 @@ function PublicExtras() {
     pathname.startsWith("/dashboard/") ||
     pathname === "/business" ||
     pathname.startsWith("/business/") ||
-    pathname.startsWith("/shared-bills/")
+    pathname.startsWith("/shared-bills/") ||
+    pathname.startsWith("/documents/share/")
   )
     return null;
   return (
@@ -129,9 +135,11 @@ export default function App() {
           }
         >
           <Routes>
+            <Route path="/dashboard/applications/*" element={<LegacyApplicationsRedirect />} />
             <Route path="/dashboard/*" element={<PersonalDashboardPage />} />
             <Route path="/business/*" element={<BusinessDashboardPage />} />
             <Route path="/shared-bills/:token" element={<SharedBillPage />} />
+            <Route path="/documents/share/:token" element={<SharedDocumentPage />} />
             <Route path="/" element={<PortfolioModern />} />
             <Route path="/ui" element={<UiKitPage />} />
             <Route path="/overlay-playground" element={<OverlayPlayground />} />

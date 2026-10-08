@@ -13,6 +13,8 @@ export default defineConfig({
     proxy: {
       '/api/v1/finance': { target: process.env.DASHBOARD_BACKEND_ORIGIN || 'http://127.0.0.1:8000', changeOrigin: false },
       '/api/v1/leadership': { target: process.env.DASHBOARD_BACKEND_ORIGIN || 'http://127.0.0.1:8000', changeOrigin: false },
+      '/api/v1/client-workflow': { target: process.env.DASHBOARD_BACKEND_ORIGIN || 'http://127.0.0.1:8000', changeOrigin: false },
+      '/api/v1/job-applications': { target: process.env.DASHBOARD_BACKEND_ORIGIN || 'http://127.0.0.1:8000', changeOrigin: false },
       '/admin': { target: process.env.DASHBOARD_BACKEND_ORIGIN || 'http://127.0.0.1:8000', changeOrigin: false },
       '/static/admin': { target: process.env.DASHBOARD_BACKEND_ORIGIN || 'http://127.0.0.1:8000', changeOrigin: false },
     },
