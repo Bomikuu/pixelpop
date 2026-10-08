@@ -301,8 +301,10 @@ export default function Dashboard() {
       try {
         await dashboard.mutate("deadlines/" + record.id + "/settle/", {});
         notify("Task completed.", { action: "completed", entity: "deadline" });
+        return true;
       } catch (error) {
         notify(error.message, { tone: "error" });
+        return false;
       }
     },
     confirmDelete: (resource, record) => {

@@ -35,7 +35,7 @@ class ReminderItemToggleView(PrivateMixin, APIView):
     @transaction.atomic
     def post(self, request, pk):
         item = get_object_or_404(
-            Deadline.objects.select_for_update().select_related("schedule"),
+            Deadline.objects.select_for_update(),
             pk=pk, created_by=request.user, important=True, kind__in=("task", "reminder"),
         )
         if item.schedule and item.schedule.system_key in AUTO_KEYS:

@@ -349,7 +349,7 @@ class TransactionViewSet(FinanceViewSet):
 
 
 class DeadlineViewSet(FinanceViewSet):
-    queryset = models.Deadline.objects.select_related("category", "loan", "credit_card", "asset_financing")
+    queryset = models.Deadline.objects.select_related("category", "loan", "credit_card", "asset_financing", "schedule")
     serializer_class = DeadlineSerializer
     date_field = "due_date"
     search_fields = ("title", "notes", "category__name")

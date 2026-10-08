@@ -7,12 +7,22 @@ import {
   ChartNoAxesCombined,
   CalendarDays,
   ChevronRight,
+  CircleCheck,
   Lightbulb,
   TrendingUp,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import SummaryTiles from "../components/SummaryTiles";
 import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import { ComparisonChart, SpendingChart } from "../components/Charts";
@@ -39,7 +49,10 @@ function deadlineNeedsAttention(row) {
 }
 
 function deadlineAction(row) {
-  if (["task", "reminder"].includes(row.kind)) return "Complete task";
+  if (row.system_key === "eod") return "Open EOD to log";
+  if (row.system_key === "calories") return "Open nutrition to log";
+  if (row.system_key === "expenses") return "Open transactions to log";
+  if (["task", "reminder"].includes(row.kind)) return "Confirm completion of task";
   if (row.financing_asset_id) return "Open asset to record payment";
   if (row.settlement_kind === "loan_collection") return "Record collection";
   return "Pay bill";
@@ -87,6 +100,8 @@ function deadlineTimeLeft(row, now) {
   return `${duration} ${remaining < 0 ? "overdue" : "left"}`;
 }
 
+const dependencyTabs = { eod: "eod", calories: "nutrition", expenses: "transactions" };
+
 function monthComparison(current, previous, previousMonth, increaseIsGood) {
   if (!previousMonth || previous == null || current == null) return null;
   const value = Number(current);
@@ -119,6 +134,7 @@ export default function OverviewView({
   ...actions
 }) {
   const [settlingId, setSettlingId] = useState(null);
+  const [taskToComplete, setTaskToComplete] = useState(null);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60000);
@@ -126,13 +142,23 @@ export default function OverviewView({
   }, []);
   const o = dashboard.data.overview;
   async function settle(row) {
-    if (!["task", "reminder"].includes(row.kind)) {
-      await actions.settleDeadline(row);
+    const dependencyTab = dependencyTabs[row.system_key];
+    if (dependencyTab) {
+      navigate(dependencyTab);
       return;
     }
+    if (["task", "reminder"].includes(row.kind)) {
+      setTaskToComplete(row);
+      return;
+    }
+    await actions.settleDeadline(row);
+  }
+  async function confirmTaskCompletion() {
+    if (!taskToComplete) return;
+    const row = taskToComplete;
     setSettlingId(row.id);
     try {
-      await actions.settleDeadline(row);
+      if (await actions.settleDeadline(row)) setTaskToComplete(null);
     } finally {
       setSettlingId(null);
     }
@@ -361,6 +387,11 @@ export default function OverviewView({
                               <span className="relative z-10 mt-2 text-xs leading-5 text-slate-600" title={`${dateLabel(r.due_date)}${r.due_time ? ` · ${r.due_time.slice(0, 5)} PHT` : ""}`}>
                                 {deadlineTimeLeft(r, now)}
                               </span>
+                              {dependencyTabs[r.system_key] && (
+                                <span className="relative z-10 mt-1 text-xs leading-5 text-slate-600">
+                                  Log to complete
+                                </span>
+                              )}
                               {r.amount != null && !["task", "reminder"].includes(r.kind) && (
                                 <span className="relative z-10 mt-1 text-xs leading-5 text-slate-600 tabular-nums">
                                   {money(r.financing_asset_id ? r.remaining_due : r.amount)}
@@ -574,6 +605,25 @@ export default function OverviewView({
           />
         </TabsContent>
       </Tabs>
+      <AlertDialog open={Boolean(taskToComplete)} onOpenChange={(open) => {
+        if (!open && settlingId == null) setTaskToComplete(null);
+      }}>
+        <AlertDialogContent className="personal-dashboard bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark task as finished?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {taskToComplete?.title} will move out of your outstanding deadlines.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={settlingId != null}>Keep open</AlertDialogCancel>
+            <Button type="button" disabled={settlingId != null} onClick={confirmTaskCompletion}>
+              <CircleCheck aria-hidden="true" />
+              {settlingId != null ? "Finishing…" : "Mark finished"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

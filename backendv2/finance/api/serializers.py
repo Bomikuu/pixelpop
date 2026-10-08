@@ -189,13 +189,14 @@ class DeadlineSerializer(StrictSerializer):
     urgency = serializers.SerializerMethodField()
     overdue_duration = serializers.SerializerMethodField()
     remaining_due = serializers.SerializerMethodField()
+    system_key = serializers.CharField(source="schedule.system_key", read_only=True, default=None)
     financing_asset_id = serializers.IntegerField(source="asset_financing.asset_id", read_only=True, default=None)
     category_name = serializers.CharField(source="category.name", read_only=True, default="Other")
 
     class Meta:
         model = models.Deadline
-        fields = ("id", "title", "kind", "priority", "important", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
-        read_only_fields = ("status", "schedule", "asset_financing", "installment_index", "completed_at")
+        fields = ("id", "title", "kind", "priority", "important", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "system_key", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
+        read_only_fields = ("status", "schedule", "system_key", "asset_financing", "installment_index", "completed_at")
 
     def get_remaining_due(self, obj):
         return str(max(0, obj.amount - installment_paid(obj))) if obj.asset_financing_id and obj.amount is not None else None
