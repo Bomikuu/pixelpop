@@ -251,6 +251,14 @@ ASTA is flat by default. One-pixel dividers, tonal fields, and photographic over
 
 The delivery process is content, not decoration: it stays semantic, ordered, and readable at every breakpoint. Founder and employee records display supplied information or obvious placeholders, never invented identities. Technology cells use local icons without proficiency percentages. Section reveals rise 22px and fade over 550ms, run once through Intersection Observer, keep layout stable, and disappear under reduced-motion preferences.
 
+### Business Application Review Workspace
+
+Job application details use the existing dashboard's white surfaces, slate text, cobalt actions, Instrument Sans typography, Lucide icons, and shared shadcn/Radix controls. They do not inherit the portfolio's dark editorial section treatments.
+
+Keep five sticky primary tabs: Overview, Requirements, Checks, Files / Preview, and Activity. Overview uses a roughly 70/30 desktop split with a sticky review summary; it stacks on smaller screens. Show a short fit narrative, at most three priority findings, and three recent activities. Full evidence, original posting, recruiter checks, proposal review, documents, and usage remain available in their dedicated workspaces. Compact status shortcuts use real application data, never invented build results or reviewer metadata.
+
+Long prose and evidence use explicit expansion controls. Document previews have their own viewport-based scroll region; never constrain the entire editor or form to constrain its preview. Focus preview opens a near-screen-sized accessible dialog with a clear exit, not browser fullscreen. Preserve unsaved draft text across tab switches, confirm before leaving unsaved proposal decisions, and retain all existing source-review and AI-cost approval gates.
+
 ## Do's and Don'ts
 
 ### Do:

@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "instrument sans",
+        "createdAt": "2026-10-04T13:31:00.824Z",
+        "reason": "Project DESIGN.md explicitly specifies Instrument Sans for body copy and controls; preserve the established personal-dashboard typography."
+      },
+      {
+        "rule": "design-system-font",
+        "value": "times new roman",
+        "createdAt": "2026-10-04T15:02:29.152Z",
+        "reason": "User approved matching the existing portfolio résumé PDF layout in docs/superpowers/specs/2026-10-04-application-review-and-resume-design.md; this font is scoped to résumé documents, not dashboard controls."
+      }
+    ]
+  }
+}
