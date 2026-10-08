@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'end_of_day',
     'leadership',
     'client_workflow',
+    'job_applications',
     'django_json_widget',
 ]
 
