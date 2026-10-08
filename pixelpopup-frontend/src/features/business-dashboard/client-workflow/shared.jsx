@@ -16,14 +16,22 @@ export const STAGE_DOCUMENT = {
   access: "access", build: "update", handover: "handover",
 };
 
-export function Field({ label, name, value, onChange, textarea = false, type = "text", required = false, ...rest }) {
+export function Field({ label, name, value, onChange, textarea = false, type = "text", required = false, error, ...rest }) {
   const id = `client-workflow-${name}`;
   const Control = textarea ? Textarea : Input;
-  return <div className="min-w-0"><label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-800">{label}</label><Control id={id} name={name} type={textarea ? undefined : type} value={value ?? ""} onChange={(event) => onChange(name, event.target.value)} required={required} className="w-full bg-white" {...rest}/></div>;
+  const money = type === "money";
+  const signed = money && name === "price_impact";
+  const update = (event) => {
+    const next = event.target.value;
+    if (money && !(signed ? /^-?(?:\d+)?(?:\.\d{0,2})?$/ : /^(?:\d+)?(?:\.\d{0,2})?$/).test(next)) return;
+    onChange(name, next, event);
+  };
+  return <div className="min-w-0"><label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-800">{label}{required && <><span aria-hidden="true" className="ml-1 text-rose-700">*</span><span className="sr-only"> required</span></>}</label><Control id={id} name={name} type={textarea || money ? "text" : type} inputMode={money ? "decimal" : undefined} pattern={money ? signed ? "-?[0-9]+(\\.[0-9]{1,2})?" : "[0-9]+(\\.[0-9]{1,2})?" : undefined} title={money ? "Enter an amount using digits and up to two decimal places." : undefined} value={value ?? ""} onChange={update} required={required} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} className="w-full bg-white" {...rest}/>{error && <p id={`${id}-error`} role="alert" className="mt-1 text-xs text-rose-700">{error}</p>}</div>;
 }
 
-export function ChoiceField({ label, name, value, onChange, options }) {
-  return <div className="min-w-0"><label htmlFor={`client-workflow-${name}`} className="mb-1.5 block text-sm font-medium text-slate-800">{label}</label><Select value={value} onValueChange={(next) => onChange(name, next)}><SelectTrigger id={`client-workflow-${name}`} className="w-full bg-white"><SelectValue/></SelectTrigger><SelectContent>{options.map(([key, text]) => <SelectItem key={key} value={key}>{text}</SelectItem>)}</SelectContent></Select></div>;
+export function ChoiceField({ label, name, value, onChange, options, required = false, error }) {
+  const id = `client-workflow-${name}`;
+  return <div className="min-w-0"><label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-800">{label}{required && <><span aria-hidden="true" className="ml-1 text-rose-700">*</span><span className="sr-only"> required</span></>}</label><Select value={value} onValueChange={(next) => onChange(name, next)}><SelectTrigger id={id} aria-required={required} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} className="w-full bg-white"><SelectValue/></SelectTrigger><SelectContent>{options.map(([key, text]) => <SelectItem key={key} value={key}>{text}</SelectItem>)}</SelectContent></Select>{error && <p id={`${id}-error`} role="alert" className="mt-1 text-xs text-rose-700">{error}</p>}</div>;
 }
 
 export function StatusNotice({ error, success }) {
@@ -45,7 +53,7 @@ export async function copyDocument(text, setMessage) {
   catch { setMessage("Clipboard unavailable. Select and copy the text manually."); }
 }
 
-export function DocumentActions({ title, body, onMessage, requiresReview = false, agreement = false }) {
+export function DocumentActions({ title, body, pageRef, onMessage, requiresReview = false, agreement = false }) {
   const confirmReview = () => !requiresReview || window.confirm(agreement ? "This agreement draft has unfilled placeholders and needs professional review. Continue with this draft?" : "This draft has unfilled placeholders. Continue with this draft?");
   return <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" size="sm" onClick={() => { if (confirmReview()) copyDocument(`${title}\n\n${body}`, onMessage); }}><Copy size={15}/>Copy</Button><Button type="button" variant="outline" size="sm" onClick={() => {
     if (!confirmReview()) return;
@@ -53,7 +61,26 @@ export function DocumentActions({ title, body, onMessage, requiresReview = false
     if (!win) { onMessage("Allow pop-ups to print this draft."); return; }
     win.opener = null;
     const escape = (value) => String(value).replace(/[&<>\"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[char]);
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escape(title)}</title><style>body{font:16px/1.6 system-ui;margin:40px auto;max-width:780px;padding:0 20px;color:#111827}pre{font:inherit;white-space:pre-wrap}small{color:#6b7280}</style></head><body><h1>${escape(title)}</h1>${title.toLowerCase().includes("agreement") ? "<small>Draft for professional review. Confirm terms and applicable law before use.</small>" : ""}<pre>${escape(body)}</pre></body></html>`);
+    const content = pageRef?.current?.innerHTML || `<pre>${escape(body)}</pre>`;
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escape(title)}</title><style>
+      @page { size: A4; margin: 20mm 18mm; @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 9pt Arial, Helvetica, sans-serif; color: #555; } }
+      * { box-sizing: border-box; }
+      body { margin: 0; color: #111; background: #fff; font: 11pt/1.55 Arial, Helvetica, sans-serif; }
+      .workflow-document { max-width: 100%; }
+      h1 { margin: 0 0 28px; border-bottom: 3px solid #111; padding: 0 0 12px; text-align: center; text-transform: uppercase; font-size: 18pt; line-height: 1.2; }
+      h2 { margin: 28px 0 8px; font-size: 11pt; text-transform: uppercase; break-after: avoid; }
+      h3 { margin: 18px 0 7px; font-size: 11pt; break-after: avoid; }
+      p { margin: 0 0 13px; white-space: pre-line; }
+      ul, ol { margin: 0 0 16px; padding-left: 25px; }
+      li { margin-bottom: 4px; }
+      table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 10pt; text-align: left; }
+      th, td { padding: 7px 9px; border-bottom: 1px solid #d1d5db; vertical-align: top; }
+      th { border-bottom-color: #333; }
+      hr { border: 0; border-top: 1px solid #aaa; margin: 24px 0; }
+      pre { white-space: pre-wrap; font: inherit; }
+      code { font-family: monospace; font-size: 0.9em; }
+      tr, blockquote { break-inside: avoid; }
+    </style></head><body><article class="workflow-document">${content}</article></body></html>`);
     win.document.close();
     win.focus();
     win.print();

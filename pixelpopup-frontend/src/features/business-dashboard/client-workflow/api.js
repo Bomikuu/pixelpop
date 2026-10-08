@@ -23,6 +23,7 @@ export async function workflowApi(path, options = {}, csrf = "") {
   if (!response.ok) {
     const error = new Error(errorMessage(data));
     error.status = response.status;
+    error.data = data;
     throw error;
   }
   return data;
