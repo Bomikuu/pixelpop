@@ -17,6 +17,7 @@ export default function ChoiceTiles({
   required = false,
   compact = false,
   accountChoices = false,
+  avatarChoices = false,
 }) {
   return (
     <fieldset
@@ -47,6 +48,7 @@ export default function ChoiceTiles({
               key={option.value}
               className={
                 "pd-choice relative flex min-w-0 cursor-pointer items-center gap-2 rounded-md border text-sm transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--pd-primary)] " +
+                (avatarChoices ? "flex-col text-center " : "") +
                 (accountChoices ? "p-2.5 " : "p-3 ") +
                 (disabled ? "pointer-events-none opacity-60" : "") +
                 (compact ? " px-3 py-2" : "")
@@ -71,8 +73,8 @@ export default function ChoiceTiles({
                   </div>
                 </div>
               ) : (
-                <span aria-hidden="true" className={"grid shrink-0 place-items-center rounded-full bg-blue-50 " + (compact ? "size-8" : "size-10")}>
-                  {option.logo ? <InstitutionLogo institution={option} className="h-6 w-8" /> : <Icon size={compact ? 16 : 20} className="text-[var(--pd-primary)]" />}
+                <span aria-hidden="true" className={"grid shrink-0 place-items-center rounded-full bg-blue-50 " + (avatarChoices ? "size-14" : compact ? "size-8" : "size-10")}>
+                  {option.logo ? <InstitutionLogo institution={option} className="h-6 w-8" /> : <Icon size={avatarChoices ? 28 : compact ? 16 : 20} className="text-[var(--pd-primary)]" />}
                 </span>
               )}
               <span className="min-w-0 flex-1 break-words leading-5">
@@ -80,7 +82,7 @@ export default function ChoiceTiles({
                 {accountChoices && option.account?.last_four && <span className="block text-xs text-slate-600">•••• {option.account.last_four}{option.account.card_expiry ? ` · Exp ${option.account.card_expiry}` : ""}</span>}
                 {option.description && <span className="mt-0.5 block text-xs leading-snug text-slate-600">{option.description}</span>}
               </span>
-              <span aria-hidden="true" className={"grid size-4 shrink-0 self-start place-items-center rounded-full border " + (selected ? "border-[var(--pd-primary)] bg-[var(--pd-primary)] text-white" : "border-slate-400 bg-white")}>{selected && <Check size={11} strokeWidth={3} />}</span>
+              <span aria-hidden="true" className={"grid size-4 shrink-0 self-start place-items-center rounded-full border " + (avatarChoices ? "absolute right-3 top-3 " : "") + (selected ? "border-[var(--pd-primary)] bg-[var(--pd-primary)] text-white" : "border-slate-400 bg-white")}>{selected && <Check size={11} strokeWidth={3} />}</span>
             </label>
           );
         })}

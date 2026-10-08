@@ -1,0 +1,75 @@
+/* Dedicated résumé grammar; never inherited by Business controls or contracts. */
+.application-resume {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 210mm;
+  min-width: 0;
+  margin: 0 auto;
+  padding: 12mm 16mm 15mm;
+  background: white;
+  color: #111;
+  font: 11pt/1.35 Arial, Helvetica, sans-serif;
+  overflow-wrap: anywhere;
+}
+.application-resume * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+.application-resume .resume-header { margin-bottom: 14pt; text-align: left; }
+.application-resume .resume-header h1 { margin: 0 0 6pt; font-size: 16pt; line-height: 1.25; font-weight: 700; letter-spacing: normal; }
+.application-resume .resume-header p { margin: 0; font-size: 10pt; }
+.application-resume .resume-section { display: block; border-top: 0.5pt solid #111; padding: 8pt 0 10pt; }
+.application-resume .resume-label { margin: 0 0 7pt; font-size: 12pt; font-weight: 700; line-height: 1.35; letter-spacing: normal; break-after: avoid; }
+.application-resume .resume-content { min-width: 0; }
+.application-resume .resume-section--dated { display: block; }
+.application-resume .resume-section--dated > .resume-label { margin-bottom: 8pt; break-after: avoid; }
+.application-resume .resume-entry { display: block; padding-bottom: 10pt; }
+.application-resume .resume-date { font-size: 10pt; }
+.application-resume .resume-content h1,
+.application-resume .resume-content h2,
+.application-resume .resume-content h3,
+.application-resume .resume-content h4,
+.application-resume .resume-content h5,
+.application-resume .resume-content h6 { margin: 10pt 0 5pt; font-size: 11pt; font-weight: 700; letter-spacing: normal; break-after: avoid; }
+.application-resume .resume-content > :first-child { margin-top: 0; }
+.application-resume p { margin: 0 0 6pt; white-space: pre-line; }
+.application-resume ul,
+.application-resume ol { margin: 0 0 7pt; padding-left: 15pt; list-style-position: outside; }
+.application-resume ul { list-style-type: disc; }
+.application-resume ol { list-style-type: decimal; }
+.application-resume li { margin: 0 0 3pt; }
+.application-resume li > p { margin-bottom: 3pt; }
+.application-resume a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.application-resume blockquote { margin: 6pt 0; padding-left: 8pt; border-left: 0.5pt solid #aaa; }
+.application-resume pre { white-space: pre-wrap; margin: 6pt 0; font: inherit; }
+.application-resume code { font: inherit; }
+.application-resume hr { border: 0; border-top: 0.5pt solid #aaa; margin: 8pt 0; }
+/* Original PDF: serif typography, centered header and a 25/75 label/date rail. */
+.application-resume--original { padding-top: 10mm; color: #212121; font-family: "Times New Roman", Times, serif; font-size: 9.5pt; line-height: 1.15; }
+.application-resume--original * { font-family: "Times New Roman", Times, serif; }
+.application-resume--original .resume-header { text-align: center; margin-bottom: 16pt; }
+.application-resume--original .resume-header h1 { font-size: 13pt; margin-bottom: 8pt; }
+.application-resume--original .resume-header p { font-size: 9.5pt; }
+.application-resume--original .resume-section { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,3fr); column-gap: 0; padding: 8pt 0 12pt; }
+.application-resume--original .resume-label { grid-column: 1; padding-right: 10pt; font-size: 8.75pt; font-weight: 400; text-transform: uppercase; letter-spacing: 0.12em; }
+.application-resume--original .resume-section > .resume-content { grid-column: 2; }
+.application-resume--original .resume-section--dated > .resume-label { grid-column: 1 / -1; }
+.application-resume--original .resume-entry { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,3fr); gap: 0; }
+.application-resume--original .resume-entry > .resume-date { grid-column: 1; margin: 0; padding-right: 10pt; font-size: 9.5pt; }
+.application-resume--original .resume-entry > .resume-content { grid-column: 2; }
+.application-resume--original .resume-content h3 { font-size: 11pt; font-weight: 400; }
+.application-resume--original .resume-section--skills > .resume-content { column-count: 2; column-gap: 14pt; }
+.application-resume--original .resume-section--skills ul { list-style: none; padding-left: 0; }
+.application-resume--original .resume-section--skills li { margin-bottom: 6pt; break-inside: avoid; }
+.application-resume--original .resume-section--skills li > p { margin-bottom: 0; }
+@media screen and (max-width: 640px) {
+  .application-resume { padding: 20px; }
+  .application-resume--original .resume-section,
+  .application-resume--original .resume-entry { display: block; }
+  .application-resume--original .resume-entry > .resume-date { margin-bottom: 4pt; }
+  .application-resume--original .resume-section--skills > .resume-content { column-count: 1; }
+}
+@page application-resume { size: A4; margin: 12mm 16mm 15mm; }
+@media print {
+  .application-resume { page: application-resume; max-width: none; min-width: 0; padding: 0; }
+  .application-resume--original { page: application-resume-original; }
+  .application-resume li { break-inside: avoid; }
+}
+@page application-resume-original { size: A4; margin: 10mm 16mm 15mm; }
