@@ -5,7 +5,7 @@ from client_workflow.models import (
     ChangeRequest, ChecklistItem, Client, MasterTemplate, PaymentMilestone,
     Project, ProjectDocument, ProjectStage,
 )
-from client_workflow.services.defaults import STAGES
+from client_workflow.services.defaults import DEFAULT_TEMPLATES, STAGES
 
 
 STAGE_KEYS = {key for key, _label, _description in STAGES}
@@ -118,17 +118,48 @@ class ChecklistItemSerializer(serializers.ModelSerializer):
 
 
 class MasterTemplateSerializer(serializers.ModelSerializer):
+    starter_title = serializers.SerializerMethodField()
+    starter_body = serializers.SerializerMethodField()
+
     class Meta:
         model = MasterTemplate
-        fields = ("id", "kind", "title", "body", "updated_at")
-        read_only_fields = ("id", "kind", "updated_at")
+        fields = ("id", "kind", "title", "body", "starter_title", "starter_body", "updated_at")
+        read_only_fields = ("id", "kind", "starter_title", "starter_body", "updated_at")
+
+    def get_starter_title(self, obj):
+        return DEFAULT_TEMPLATES[obj.kind][0]
+
+    def get_starter_body(self, obj):
+        return DEFAULT_TEMPLATES[obj.kind][1]
 
 
 class ProjectDocumentSerializer(serializers.ModelSerializer):
+    starter_title = serializers.SerializerMethodField()
+    starter_body = serializers.SerializerMethodField()
+    is_share_active = serializers.SerializerMethodField()
+
     class Meta:
         model = ProjectDocument
-        fields = ("id", "project", "kind", "title", "body", "updated_at")
-        read_only_fields = ("id", "project", "kind", "updated_at")
+        fields = ("id", "project", "kind", "title", "body", "starter_title", "starter_body", "updated_at", "share_token", "published_at", "share_expires_at", "is_share_active")
+        read_only_fields = ("id", "project", "kind", "starter_title", "starter_body", "updated_at", "share_token", "published_at", "share_expires_at", "is_share_active")
+
+    def get_starter_title(self, obj):
+        return DEFAULT_TEMPLATES[obj.kind][0]
+
+    def get_starter_body(self, obj):
+        return DEFAULT_TEMPLATES[obj.kind][1]
+
+    def get_is_share_active(self, obj):
+        return bool(obj.share_token and obj.published_at and (obj.share_expires_at is None or obj.share_expires_at > timezone.now()))
+
+
+class PublishedDocumentSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source="published_title")
+    body = serializers.CharField(source="published_body")
+
+    class Meta:
+        model = ProjectDocument
+        fields = ("title", "body", "kind", "published_at")
 
 
 class PaymentMilestoneSerializer(serializers.ModelSerializer):

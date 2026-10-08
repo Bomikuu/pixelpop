@@ -5,6 +5,7 @@ from .views import (
     ChangeRequestViewSet, ChecklistItemViewSet, ClientViewSet, MasterTemplateViewSet,
     PaymentMilestoneViewSet, ProjectDocumentViewSet, ProjectViewSet, StageViewSet,
 )
+from .public_documents import PublicDocumentView, PublicDocumentDocxView
 
 
 router = DefaultRouter()
@@ -20,4 +21,8 @@ for prefix, view in (
 ):
     router.register(prefix, view, basename="client-workflow-" + prefix)
 
-urlpatterns = [path("", include(router.urls))]
+urlpatterns = [
+    path("documents/share/<str:token>/docx/", PublicDocumentDocxView.as_view()),
+    path("documents/share/<str:token>/", PublicDocumentView.as_view()),
+    path("", include(router.urls)),
+]

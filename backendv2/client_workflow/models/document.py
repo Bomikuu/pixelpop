@@ -29,6 +29,11 @@ class ProjectDocument(models.Model):
     kind = models.CharField(max_length=16, choices=TemplateKind.choices)
     title = models.CharField(max_length=160)
     body = models.TextField()
+    share_token = models.CharField(max_length=96, unique=True, null=True, blank=True)
+    published_title = models.CharField(max_length=160, null=True, blank=True)
+    published_body = models.TextField(null=True, blank=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    share_expires_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

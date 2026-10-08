@@ -104,76 +104,160 @@ Best,
     ),
     "proposal": (
         "Project proposal",
-        """Proposal for {{client_name}}: {{project_title}}
+        """# PROJECT PROPOSAL
 
-The problem in your words
-{{problem}}
+**Prepared for:** {{client_name}}  
+**Project:** {{project_title}}  
+**Prepared by:** {{provider_name}}  
+**Date:** {{proposal_date}}
 
-Expected outcome
-{{outcome}}
+---
 
-Deliverables
-{{deliverables}}
+## 1. The opportunity
 
-Not included
-{{exclusions}}
+Your team currently manages {{current_process}}. This creates {{current_problem}}. The proposed project will replace the repeated manual steps with a reliable, documented workflow that your team can operate after handover.
 
-Phased timeline and dependencies
-{{phases_and_client_dependencies}}
+## 2. Proposed outcome
 
-Price and proposed payment milestones
-{{currency}} {{project_price}}
-{{payment_milestones}}
+The completed solution will allow the agreed users to {{desired_outcome}}. We will consider the project successful when {{success_measure}}.
 
-Assumptions and decision needed
-{{assumptions_and_approval}}""",
+## 3. Scope and deliverables
+
+The fixed project scope includes:
+
+1. A kickoff session to confirm the workflow, access, and acceptance criteria.
+2. Design and implementation of {{primary_deliverable}}.
+3. One working review demonstration and up to {{revision_rounds}} consolidated revision rounds within the agreed scope.
+4. Testing against the agreed acceptance criteria, a short user guide, and a handover walkthrough.
+
+**Not included:** new features outside this list, ongoing content entry, third-party subscription charges, and maintenance after the support window unless separately agreed in writing.
+
+## 4. Schedule and what we need from you
+
+| Phase | Expected result | Target |
+| --- | --- | --- |
+| Discovery and kickoff | Approved scope and access | {{kickoff_date}} |
+| Build and review | Working demonstration and consolidated feedback | {{review_date}} |
+| Handover | Accepted deliverables and documentation | {{handover_date}} |
+
+Please provide one decision-maker, timely feedback, relevant sample data, and client-owned access. We will confirm revised dates if a dependency is delayed.
+
+## 5. Investment
+
+**Project fee:** {{currency}} {{project_price}}, excluding any applicable taxes and third-party charges. Suggested payment milestones: {{payment_milestones}}. Work outside the agreed scope will be estimated and approved before it starts.
+
+## 6. Approval and next steps
+
+If this approach works for you, reply with your approval by {{decision_date}}. We will then finalize the services agreement, confirm the initial payment, and schedule kickoff. This proposal describes the intended work; the signed agreement will control if its terms differ.
+
+**Client notes or requested changes:** {{client_notes}}""",
     ),
     "agreement": (
-        "Services agreement draft",
-        """DRAFT FOR PROFESSIONAL REVIEW. Replace every {{placeholder}} and review the terms for the parties and chosen jurisdiction before signing.
+        "Services agreement",
+        """# SERVICES AGREEMENT
 
-SERVICES AGREEMENT
+This Services Agreement (the **“Agreement”**) is effective **{{effective_date}}** and is made between:
 
-Parties and effective date
-This draft is between {{provider_legal_name}} and {{client_legal_name}}, effective {{effective_date}}.
+|  |  |
+| --- | --- |
+| **PROVIDER** | **{{provider_legal_name}}**, of {{provider_address}} (the “Provider”) |
+| **CLIENT** | **{{client_legal_name}}**, of {{client_address}} (the “Client”) |
 
-Scope and deliverables
-{{scope_and_deliverables}}
+The Provider and the Client are each a “Party” and together the “Parties.” The Client wishes to engage the Provider for the project described below, and the Parties agree as follows.
 
-Excluded work and change requests
-{{exclusions_and_written_change_process}}
+## 1. Services and scope
 
-Fees, invoices, and payment schedule
-{{currency}} {{fees_and_payment_terms}}
+The Provider will perform the services and deliver the work described in **Schedule A: Statement of Work** (the “Services”). Schedule A identifies the project outcome, deliverables, exclusions, timetable, and acceptance criteria. The Provider controls how the Services are performed, subject to the agreed deliverables, reasonable security requirements, and applicable law. Neither Party may change the scope by an informal conversation alone.
 
-Review, revisions, and acceptance
-{{revision_allowance_and_acceptance_process}}
+## 2. Project timing and cooperation
 
-Client responsibilities and dependencies
-{{access_data_approvals_and_delay_handling}}
+Work begins once this Agreement is signed, the initial payment is received, and the Client has provided the access and materials listed in Schedule A. The target handover date is **{{target_date}}**. The Client will appoint one decision-maker, provide accurate materials and necessary access, and give consolidated feedback within **five business days** of each review request. If a dependency is delayed, the Parties will document a reasonable revised schedule.
 
-Third-party tools and charges
-{{subscriptions_and_usage_costs}}
+## 3. Fees, invoices, and expenses
 
-Ownership, background materials, and licences
-{{ownership_and_licence_terms}}
+The fixed fee for the agreed Services is **{{currency}} {{project_fee}}**, exclusive of applicable taxes. The payment schedule is:
 
-Confidentiality and handling of client data
-{{confidentiality_and_data_handling}}
+| Milestone | Amount | Due |
+| --- | ---: | --- |
+| On signing, before kickoff | 40% of the project fee | On signing |
+| On approved review demonstration | 30% of the project fee | On approval |
+| On handover | 30% of the project fee | On handover |
 
-Support and external-service changes
-{{support_window_and_external_dependencies}}
+The initial payment is due on signing; subsequent invoices are payable within **14 calendar days** after receipt by the method stated on the invoice. The Client pays for third-party subscriptions, hosting, transaction fees, and usage charges only if listed in Schedule A or approved in writing beforehand. The Provider will not incur another reimbursable expense without written Client approval. If an undisputed invoice remains overdue, the Provider may pause work after giving **seven days’ written notice**, and the schedule will be adjusted accordingly.
 
-Liability and termination
-{{liability_terms}}
-{{termination_terms}}
+## 4. Changes and additional work
 
-Governing law and dispute process
-{{governing_law_and_disputes}}
+Either Party may propose a change. Before the Provider starts changed work, the Parties will approve a written change record describing the new or removed deliverables, fee impact, and timetable impact. Until that approval, the existing scope and price remain in effect. A request for a new integration, workflow, or substantial redesign is not included merely because it relates to the same project.
 
-Signatures
-{{provider_signature_and_date}}
-{{client_signature_and_date}}""",
+## 5. Review, revisions, and acceptance
+
+The fee includes **two** consolidated revision rounds for work that remains within Schedule A. The Provider will present each deliverable for review. Within **five business days**, the Client will either accept it in writing or identify specific failures against the acceptance criteria in Schedule A. The Provider will correct confirmed failures within a reasonable period and resubmit the affected work. Silence alone does not constitute acceptance.
+
+## 6. Client materials, access, and third parties
+
+The Client is responsible for the accuracy of information and materials it supplies and confirms it has the right to let the Provider use them for this project. Accounts and subscriptions intended for long-term Client use should be owned by the Client. Credentials will be exchanged through an agreed secure method, not inserted into this document. Third-party products remain subject to their own terms and may change independently of the Provider.
+
+## 7. Intellectual property
+
+Each Party keeps ownership of material it owned or developed independently before this Agreement. Once the Provider has received all fees due for the relevant deliverable, the Provider grants the Client a perpetual, worldwide, non-exclusive licence to use, operate, and modify the specifically identified final deliverables in Schedule A for the Client’s business purposes, to the extent the Provider has the right to grant that licence. The Provider retains its pre-existing tools, reusable components, know-how, and general techniques, while granting the Client the same licence to any such material embedded in the paid deliverables so the Client can use them as intended. Open-source and third-party material remains subject to its applicable licence. **This example uses a licence, not an ownership transfer; review the ownership model and wording before signing.**
+
+## 8. Confidentiality and data handling
+
+Each Party will use the other Party’s non-public information only to perform or receive the Services, protect it with reasonable care, and share it only with people who need it and are bound to protect it. This duty does not apply to information that becomes public without breach, was independently developed, or was lawfully received from another source. A Party may disclose information where law requires it, after giving notice where legally permitted. The Provider will return or securely delete Client confidential information on request, except material it must retain by law or ordinary backup rotation. **If personal data is processed, add a separate data-processing agreement appropriate to the Parties and locations before access is granted.**
+
+## 9. Warranty and support
+
+For **30 days** after written acceptance, the Provider will correct reproducible defects that cause the delivered work to fail the acceptance criteria, at no additional service fee. This does not include new features, changes to third-party services, or problems caused by Client changes after handover. Additional support or maintenance requires a separate written agreement. The Parties should review any other warranties required by the chosen law.
+
+## 10. Liability and termination
+
+Neither Party is responsible for indirect or consequential loss to the extent permitted by applicable law. Subject to liabilities that cannot legally be limited, each Party’s total liability under this Agreement is limited to the fees paid or payable under this Agreement. **The cap, exclusions, and any exceptions must be reviewed for the chosen jurisdiction before signing.** Either Party may terminate for a material breach if the other Party does not remedy it within **14 days** after written notice. The Client may also terminate for convenience on **14 days’ written notice**; in that case it pays for Services performed and approved non-cancellable costs through the termination date, and the Provider refunds any unused prepaid amount within **30 days**. On termination, the Provider will deliver paid-for completed work in its then-current state and each Party will return or delete the other’s confidential information as described above.
+
+## 11. Disputes, governing law, and notices
+
+The Parties will first try to resolve a dispute through a good-faith meeting between authorized representatives within **14 days** after written notice. If unresolved, the dispute will be handled by **{{court_or_arbitration_and_venue}}** under the laws of **{{governing_law}}**, excluding conflict-of-law rules where permitted. Notices under this Agreement must be sent to **{{provider_notice_email}}** for the Provider and **{{client_notice_email}}** for the Client, or to a replacement address later given in writing.
+
+## 12. General terms
+
+The Provider acts as an independent contractor, not an employee or partner of the Client. Neither Party may assign this Agreement without the other’s written consent. If a provision is unenforceable, the remainder remains in effect to the extent permitted by law. This Agreement, including approved changes and Schedule A, is the entire agreement about these Services. Any amendment must be recorded in writing and approved by both Parties. Electronic signatures and counterparts may be used where legally valid.
+
+## Signatures
+
+By signing, each person confirms that they are authorized to bind the Party named below.
+
+| Provider | Client |
+| --- | --- |
+| **{{provider_legal_name}}** | **{{client_legal_name}}** |
+| Signature: ____________________ | Signature: ____________________ |
+| Name and title: {{provider_signer}} | Name and title: {{client_signer}} |
+| Date: _________________________ | Date: _________________________ |
+
+---
+
+## Schedule A — Statement of Work
+
+**Project:** {{project_title}}  
+**Objective:** {{project_outcome}}
+
+### Deliverables
+
+1. A working software workflow for {{workflow_to_automate}}, including the agreed input, processing, and output steps.
+2. Configuration for the agreed deployment environment, plus a review demonstration using representative Client-provided data.
+3. User instructions and a handover walkthrough.
+
+### Exclusions and client dependencies
+
+The Services do not include {{specific_exclusions}}. The Client will provide {{required_access_and_materials}} before kickoff.
+
+### Acceptance criteria
+
+The work will be assessed against these observable results: {{acceptance_criteria}}. Reviews will use the Client-provided sample data and agreed environment.
+
+### Milestones and third-party costs
+
+Review demonstration: {{review_date}}. Target handover: {{target_date}}. Client-owned subscriptions or estimated usage charges: {{approved_third_party_costs_or_none}}.
+
+*Working template — replace every `{{placeholder}}`, reconcile amounts and dates, and obtain legal review for the applicable jurisdictions before signing.*""",
     ),
     "access": (
         "Access request",

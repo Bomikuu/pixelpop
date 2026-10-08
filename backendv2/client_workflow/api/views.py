@@ -1,5 +1,8 @@
 from django.db.models import Count, Q
+from django.http import HttpResponse
+from django.utils.text import slugify
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
@@ -8,6 +11,8 @@ from client_workflow.models import (
     Project, ProjectDocument, ProjectStage,
 )
 from client_workflow.services.projects import create_project, ensure_master_templates
+from client_workflow.services.docx_export import render_docx
+from client_workflow.services.public_documents import publish_document, revoke_document
 from .base import PrivateWorkflowViewSet, scoped_id
 from .serializers import (
     ChangeRequestSerializer, ChecklistItemSerializer, ClientSerializer,
@@ -88,7 +93,7 @@ class MasterTemplateViewSet(PrivateWorkflowViewSet):
 
 class ProjectDocumentViewSet(PrivateWorkflowViewSet):
     serializer_class = ProjectDocumentSerializer
-    http_method_names = ["get", "patch", "head", "options"]
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     def get_queryset(self):
         queryset = ProjectDocument.objects.filter(project__client__owner=self.request.user)
@@ -96,6 +101,25 @@ class ProjectDocumentViewSet(PrivateWorkflowViewSet):
         if project_id is not None:
             queryset = queryset.filter(project_id=project_id)
         return queryset.order_by("id")
+
+    @action(detail=True, methods=["post"])
+    def publish(self, request, pk=None):
+        if set(request.data) != {"expiry"}:
+            raise ValidationError({"expiry": "Choose 7 days, 30 days, or no expiry."})
+        document = publish_document(self.get_object(), request.data["expiry"])
+        return Response(self.get_serializer(document).data)
+
+    @action(detail=True, methods=["post"])
+    def revoke(self, request, pk=None):
+        document = revoke_document(self.get_object())
+        return Response(self.get_serializer(document).data)
+
+    @action(detail=True, methods=["get"])
+    def docx(self, request, pk=None):
+        document = self.get_object()
+        response = HttpResponse(render_docx(document.title, document.body), content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        response["Content-Disposition"] = f'attachment; filename="{slugify(document.title) or "document"}.docx"'
+        return response
 
 
 class PaymentMilestoneViewSet(PrivateWorkflowViewSet):
