@@ -1,7 +1,7 @@
 # Credit-card cash loans — approved design specification
 
 Date: 2026-10-12
-Status: Design approved in conversation; written specification awaiting review.
+Status: Written specification approved by the user; implementation plan awaiting review.
 Scope: Personal finance dashboard only. No production changes or database operations at this stage.
 
 ## Purpose and confirmed decisions
