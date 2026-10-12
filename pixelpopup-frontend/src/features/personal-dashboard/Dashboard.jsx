@@ -82,24 +82,24 @@ import { dateLabel, money, today, words } from "./lib/format";
 import "./styles/theme.css";
 
 const tabs = [
-  ["", "Dashboard", LayoutDashboard, "Overview"],
-  ["accounts", "Accounts & cards", Wallet, "Money"],
-  ["assets", "Assets", House, "Money"],
-  ["funds", "Benefits & investments", PiggyBank, "Money"],
-  ["people", "People & money", HeartHandshake, "Money"],
-  ["transactions", "Transactions", ArrowLeftRight, "Money"],
-  ["quick-entry-transactions", "Quick Entry transactions", Plus, "Money"],
-  ["income", "Income", ArrowDownLeft, "Money"],
-  ["deadlines", "Tasks & deadlines", ListChecks, "Planning"],
-  ["bills", "Bills", Receipt, "Planning"],
+  ["", "Dashboard", LayoutDashboard, "Home"],
+  ["transactions", "Transactions", ArrowLeftRight, "Daily tracking"],
+  ["income", "Income", ArrowDownLeft, "Daily tracking"],
+  ["bills", "Bills", Receipt, "Daily tracking"],
+  ["quick-entry-transactions", "Quick Entry transactions", Plus, "Daily tracking", "Entry review"],
+  ["accounts", "Accounts & cards", Wallet, "Money & assets", "Accounts"],
+  ["assets", "Assets", House, "Money & assets"],
+  ["funds", "Benefits & investments", PiggyBank, "Money & assets", "Funds & coverage"],
+  ["people", "People & money", HeartHandshake, "Money & assets"],
+  ["deadlines", "Tasks & deadlines", ListChecks, "Planning", "Tasks"],
   ["calendar", "Calendar", CalendarDays, "Planning"],
-  ["brainstorm", "Brainstorming", Lightbulb, "Planning"],
-  ["eod", "EOD", BookOpenText, "Planning"],
+  ["brainstorm", "Brainstorming", Lightbulb, "Planning", "Ideas"],
+  ["eod", "EOD", BookOpenText, "Planning", "End of day"],
   ["nutrition", "Nutrition", Utensils, "Wellbeing"],
   ["spending", "Spending", ChartNoAxesCombined, "Insights"],
-  ["reports", "Monthly reports", FileChartColumn, "Insights"],
+  ["reports", "Monthly reports", FileChartColumn, "Insights", "Reports"],
   ["settings", "Settings", Settings, "Workspace"],
-  ["events", "Events log", FileClock, "Workspace"],
+  ["events", "Events log", FileClock, "Workspace", "Activity log"],
 ];
 
 export default function Dashboard() {
@@ -443,15 +443,15 @@ export default function Dashboard() {
   const shared = { dashboard, month: selectedMonth, ...actions };
   const renderNavigation = (mobile = false) => (
     <nav id={mobile ? "mobile-dashboard-links" : "dashboard-navigation"} aria-label="Dashboard" className={"space-y-1 px-3 pb-5 " + (mobile ? "" : "hidden lg:block")}>
-      {tabs.map(([path, label, icon, group], index) => (
+      {tabs.map(([path, title, icon, group, label = title], index) => (
         <div key={path}>
-          {index > 0 && group !== tabs[index - 1][3] && <p className={"px-3 pb-2 pt-5 text-xs font-medium text-slate-500 " + (!mobile && collapsed ? "lg:hidden" : "")}>{group}</p>}
-          <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal " + (mobile ? "h-11 " : collapsed ? "lg:justify-center lg:px-0 " : "") + (tab === path ? "bg-blue-50 text-[var(--pd-primary)]" : "text-slate-600")}>
+          {(index === 0 || group !== tabs[index - 1][3]) && <p className={"px-3 pb-2 text-xs font-medium text-slate-500 " + (index === 0 ? "pt-2 " : "pt-5 ") + (!mobile && collapsed ? "lg:hidden" : "")}>{group}</p>}
+          <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal " + (mobile ? "h-11 " : "h-9 " + (collapsed ? "lg:justify-center lg:px-0 " : "")) + (tab === path ? "bg-blue-50 text-[var(--pd-primary)]" : "text-slate-600")}>
             <a href={"/dashboard" + (path ? "/" + path : "") + "?month=" + selectedMonth} aria-current={tab === path ? "page" : undefined} aria-label={label} title={!mobile && collapsed ? label : undefined} onClick={(event) => {
               if (!event.metaKey && !event.ctrlKey) { event.preventDefault(); navigate(path); }
             }}>
-              {createElement(icon, { size: 17, "aria-hidden": true })}
-              <span className={!mobile && collapsed ? "lg:hidden" : ""}>{label}</span>
+              {createElement(icon, { size: 17, className: "shrink-0", "aria-hidden": true })}
+              <span className={"whitespace-nowrap " + (!mobile && collapsed ? "lg:hidden" : "")}>{label}</span>
             </a>
           </Button>
         </div>
