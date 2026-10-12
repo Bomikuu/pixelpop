@@ -6,7 +6,7 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { money, requestId, today } from "../../lib/format";
-import { formError } from "../../lib/sharedBills";
+import { formError, participantName } from "../../lib/sharedBills";
 import PersonPaymentSummary from "./PersonPaymentSummary";
 import PaymentReceiver from "./PaymentReceiver";
 
@@ -201,7 +201,7 @@ export default function PublicPaymentDialog({
             label="Person paying"
             options={bill.participants.map((person) => ({
               value: String(person.id),
-              label: person.name,
+              label: participantName(person, bill.participants),
               icon: Users,
             }))}
             value={payerId}
@@ -220,7 +220,7 @@ export default function PublicPaymentDialog({
               options={recipients.map((person) => ({
                 value: String(person.id),
                 label:
-                  person.name + " · " + money(receive(person)) + " to receive",
+                  participantName(person, bill.participants) + " · " + money(receive(person)) + " to receive",
                 icon: Users,
               }))}
               value={recipientId}

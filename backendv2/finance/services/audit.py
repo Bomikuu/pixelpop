@@ -27,10 +27,10 @@ FIELDS = {
     "MoneyMovement": ("kind", "amount", "date", "source", "destination", "loan", "notes"),
     "NutritionActivity": ("date", "activity_type", "name", "steps", "duration_minutes", "active_kcal", "source", "manual_override"),
     "NutritionProfile": ("height_cm", "daily_target_kcal", "daily_target_protein_g", "daily_target_carbs_g", "daily_target_fat_g"),
-    "Person": ("name", "relationship", "custom_relationship", "notes"),
+    "Person": ("name", "nickname", "relationship", "custom_relationship", "email", "phone", "organization", "notes", "avatar_hash"),
     "RecurringSchedule": ("title", "kind", "amount", "variable_amount", "category", "account", "coverage", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active"),
     "SharedBill": ("title", "total", "date", "category", "archived", "allocation_confirmed", "ledger_allocation_pending", "receiver", "all_paid", "participants"),
-    "SharedBillParticipant": ("name", "is_me", "share", "share_is_fixed", "ledger_share"),
+    "SharedBillParticipant": ("name", "contact", "is_me", "share", "share_is_fixed", "ledger_share"),
     "SharedBillPayment": ("payer", "paid_to", "amount", "date", "status", "kind", "payment_method", "record_ledger", "ledger_reviewed", "account"),
     "Transaction": ("kind", "amount", "name", "recipient", "contact", "category", "account", "coverage", "date", "payment_method", "receipt_state", "notes"),
     "WeightEntry": ("date", "weight_kg", "note"),
@@ -114,7 +114,7 @@ def snapshot_record(instance):
             ]
         elif name == "participants":
             result[name] = [
-                f"{row.name}: {row.share} ({'fixed' if row.share_is_fixed else 'split'})"
+                f"{row.name}{' [Person #' + str(row.contact_id) + ']' if row.contact_id else ''}: {row.share} ({'fixed' if row.share_is_fixed else 'split'})"
                 for row in instance.participants.order_by("id")
             ]
         elif name == "last_four":

@@ -7,7 +7,7 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { choiceIcon, cashKinds } from "../../lib/presets";
 import { money, today, requestId } from "../../lib/format";
-import { formError } from "../../lib/sharedBills";
+import { formError, participantName } from "../../lib/sharedBills";
 import PersonPaymentSummary from "./PersonPaymentSummary";
 import AccountBalancePreview, { accountChoiceOption, accountProjection } from "../AccountBalancePreview";
 
@@ -103,7 +103,7 @@ export default function BillPaymentDialog({
           .filter((person) => String(person.id) === paidTo)
           .map((person) => ({
             value: String(person.id),
-            label: person.name,
+            label: participantName(person, bill.participants),
             icon: Users,
           }))
       : [
@@ -117,7 +117,7 @@ export default function BillPaymentDialog({
             )
             .map((person) => ({
               value: String(person.id),
-              label: person.name + " · to receive " + money(person.to_receive),
+              label: participantName(person, bill.participants) + " · to receive " + money(person.to_receive),
               icon: Users,
             })),
         ];
@@ -292,7 +292,7 @@ export default function BillPaymentDialog({
               onChange={changePayer}
               options={bill.participants.map((person) => ({
                 value: String(person.id),
-                label: person.name + (person.is_me ? " (You)" : ""),
+                label: participantName(person, bill.participants) + (person.is_me ? " (You)" : ""),
                 icon: Users,
               }))}
               disabled={busy || Boolean(reportedPayment)}

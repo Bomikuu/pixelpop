@@ -46,7 +46,8 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
     categories: data.categories.map((category) => ({ value: String(category.id), label: category.name, icon: choiceIcon(category.name) })),
     contacts: [...data.contacts, ...(createdContact && !data.contacts.some((person) => person.id === createdContact.id) ? [createdContact] : [])]
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((person) => ({ value: String(person.id), label: person.name, icon: Users })),
+      .map((person) => ({ value: String(person.id), label: [person.name, person.nickname, person.organization,
+        person.custom_relationship || person.relationship, "Person #" + person.id].filter(Boolean).join(" · "), icon: Users })),
   };
   function change(name, value) {
     setValues((current) => ({ ...current, [name]: value }));
@@ -60,9 +61,9 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
 
   async function savePerson() {
     if (personSaving) return;
-    const invalid = {};
-    if (!personDraft.name.trim()) invalid.name = "Enter a name.";
-    if (!personDraft.relationship) invalid.relationship = "Choose a relationship.";
+    const personDefinition = formDefinition("person");
+    const personFields = personDefinition.fields.filter((field) => !field.when || field.when(personDraft));
+    const invalid = validateForm({ entity: "person", fields: personFields, values: personDraft });
     if (Object.keys(invalid).length) {
       setPersonErrors(invalid);
       document.getElementById("new-contact-" + Object.keys(invalid)[0])?.focus();
@@ -70,11 +71,11 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
     }
     setPersonSaving(true);
     try {
-      const person = await mutate("contacts/", {
-        ...personDraft,
-        name: personDraft.name.trim(),
-        custom_relationship: personDraft.relationship === "Other" ? personDraft.custom_relationship.trim() : "",
+      const { body } = buildSubmission({
+        entity: "person", definition: personDefinition, fields: personFields,
+        values: Object.fromEntries(personDefinition.fields.map((field) => [field.name, personDraft[field.name] || ""])),
       });
+      const person = await mutate("contacts/", body);
       setCreatedContact(person);
       change("contact", String(person.id));
       setPersonDraft({ name: "", relationship: "", custom_relationship: "", notes: "" });
@@ -112,7 +113,7 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
 
   async function save(event) {
     event.preventDefault();
-    if (saving) return;
+    if (saving || personSaving) return;
     const invalid = validateForm({ entity, fields, values, getAccountState: accountState });
     if (Object.keys(invalid).length) {
       setErrors(invalid);
@@ -150,7 +151,7 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
 
   return <FormModalShell
     title={definition.title} description={description} error={errors.common}
-    busy={saving} dirty={dirty} onSubmit={save} onCancel={close}
+    busy={saving || personSaving} dirty={dirty} onSubmit={save} onCancel={close} scrollBody={entity === "person"}
     onCloseAutoFocus={restoreFocus} submitDisabled={insufficientAccount || fields.some((field) => field.type === "image" && ["__processing__", "__invalid__"].includes(values[field.name]))}
     saveLabel={entity === "person" ? "Save person" : "Save record"}
   >
@@ -158,8 +159,8 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
       <RecurringBillPreset value={utility} onChange={chooseUtility} disabled={saving} />}
     <div className={entity === "account" ? "grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,350px)]" : ""}>
       {entity === "account" && <AccountFormPreview values={values} />}
-      <div className={`grid gap-4 sm:grid-cols-2 ${entity === "account" ? "xl:order-1" : "lg:grid-cols-6"}`}>
-        {entity === "person" ? <PersonFields values={values} onChange={change} errors={errors} disabled={saving} /> :
+      <div className={`grid gap-4 sm:grid-cols-2 ${entity === "account" ? "xl:order-1" : entity === "person" ? "" : "lg:grid-cols-6"}`}>
+        {entity === "person" ? <PersonFields values={values} onChange={change} errors={errors} disabled={saving} existingAvatar={record?.avatar_url} /> :
           fields.map((field) => {
             let options = field.options || sources[field.source] || [];
             if (field.cashOnly && field.source === "accounts") options = sources.cashAccounts;

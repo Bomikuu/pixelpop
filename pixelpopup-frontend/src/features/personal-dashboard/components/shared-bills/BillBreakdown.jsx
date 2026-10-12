@@ -19,6 +19,7 @@ import {
 } from "../../ui/table";
 import { money, dateLabel } from "../../lib/format";
 import MoneyFlowAmount from "../MoneyFlowAmount";
+import PersonAvatar from "../PersonAvatar";
 import { initials } from "../../lib/sharedBills";
 
 const colors = [
@@ -176,7 +177,7 @@ export default function BillBreakdown({ bill, readOnly = false, actions }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((person, index) => {
+                {rows.map((person) => {
                   const remaining = Number(person.remaining);
                   const advanced = Number(
                     person.refund_due ?? person.to_receive,
@@ -220,13 +221,7 @@ export default function BillBreakdown({ bill, readOnly = false, actions }) {
                               className="size-9 shrink-0 rounded-full border border-blue-200 bg-white object-cover [image-rendering:pixelated]"
                             />
                           ) : (
-                            <span
-                              aria-hidden="true"
-                              className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-50 text-xs font-semibold"
-                              style={{ color: colors[index % colors.length] }}
-                            >
-                              {initials(person.name)}
-                            </span>
+                            <PersonAvatar src={person.avatar_url} name={person.name} />
                           )}
                           <span className="break-words">
                             <span

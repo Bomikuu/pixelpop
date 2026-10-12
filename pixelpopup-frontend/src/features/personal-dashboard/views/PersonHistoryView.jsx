@@ -6,6 +6,9 @@ import {
   Users,
   ArrowDownLeft,
   ChartNoAxesCombined,
+  Building2,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
@@ -74,9 +77,14 @@ export default function PersonHistoryView({ personKey, ...props }) {
                 />
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                {person.custom_relationship || person.relationship} · Giving, loans, and repayments for this person only.
+                {[person.nickname, person.custom_relationship || person.relationship, person.id ? "Person #" + person.id : "Unlinked records"].filter(Boolean).join(" · ")} · Giving, loans, and repayments for this person only.
               </p>
               {person.notes && <p className="mt-1 line-clamp-2 max-w-2xl text-sm text-slate-600">{person.notes}</p>}
+              {(person.email || person.phone || person.organization) && <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
+                {person.email && <span className="flex min-w-0 items-center gap-1.5"><Mail className="size-4 shrink-0" aria-hidden="true" /><span className="break-all">{person.email}</span></span>}
+                {person.phone && <span className="flex items-center gap-1.5"><Phone className="size-4 shrink-0" aria-hidden="true" />{person.phone}</span>}
+                {person.organization && <span className="flex min-w-0 items-center gap-1.5"><Building2 className="size-4 shrink-0" aria-hidden="true" /><span className="break-words">{person.organization}</span></span>}
+              </div>}
             </div>
             <PeopleActions openForm={openForm} person={person} />
           </div>
@@ -119,7 +127,7 @@ export default function PersonHistoryView({ personKey, ...props }) {
                 resource="transactions"
                 kind="expense"
                 title="Giving records"
-                fixedParams={{ giving: "1", recipient: person.person }}
+                fixedParams={{ giving: "1", contact: person.id ? String(person.id) : "unlinked", ...(!person.id ? { recipient: person.person } : {}) }}
               />
             </TabsContent>
             <TabsContent value="loans">
@@ -128,7 +136,7 @@ export default function PersonHistoryView({ personKey, ...props }) {
                 hideAdd
                 resource="loans"
                 title="Loans · lifetime"
-                fixedParams={{ person: person.person }}
+                fixedParams={{ contact: person.id ? String(person.id) : "unlinked", ...(!person.id ? { person: person.person } : {}) }}
               />
             </TabsContent>
             <TabsContent value="repayments">
@@ -137,7 +145,7 @@ export default function PersonHistoryView({ personKey, ...props }) {
                 hideAdd
                 resource="movements"
                 title="Repayment records"
-                fixedParams={{ kind: "loan_repayment", person: person.person }}
+                fixedParams={{ kind: "loan_repayment", contact: person.id ? String(person.id) : "unlinked", ...(!person.id ? { person: person.person } : {}) }}
               />
             </TabsContent>
           </Tabs>

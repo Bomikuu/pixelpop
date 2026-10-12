@@ -7,6 +7,12 @@ export const initials = (name) =>
     .join("")
     .toUpperCase();
 
+export function participantName(person, participants) {
+  const duplicate = participants.some((other) => other.id !== person.id &&
+    other.name.trim().toLowerCase() === person.name.trim().toLowerCase());
+  return person.name + (duplicate ? ` · ${person.contact_label ? person.contact_label + " · " : ""}Participant #${person.id}` : "");
+}
+
 export function cents(value) {
   const text = String(value).trim();
   if (!/^\d{1,12}(\.\d{1,2})?$/.test(text)) return null;

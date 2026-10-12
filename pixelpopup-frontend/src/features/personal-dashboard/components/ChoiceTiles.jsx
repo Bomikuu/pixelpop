@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { choiceIcon } from "../lib/presets";
 import AccountCardFace from "./AccountCardFace";
 import InstitutionLogo from "./InstitutionLogo";
+import PersonAvatar from "./PersonAvatar";
 
 export { InstitutionLogo };
 
@@ -18,6 +19,7 @@ export default function ChoiceTiles({
   compact = false,
   accountChoices = false,
   avatarChoices = false,
+  personChoices = false,
 }) {
   return (
     <fieldset
@@ -33,7 +35,7 @@ export default function ChoiceTiles({
       </legend>
       <div
         className={
-          accountChoices
+          accountChoices || personChoices
             ? "grid max-h-72 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3"
             : compact
               ? "flex flex-wrap gap-2"
@@ -66,7 +68,9 @@ export default function ChoiceTiles({
                 aria-describedby={describedBy}
                 className="sr-only"
               />
-              {accountChoices && option.account ? (
+              {personChoices ? (
+                <PersonAvatar src={option.avatar_url} name={option.label} className="size-10 text-xs" />
+              ) : accountChoices && option.account ? (
                 <div aria-hidden="true" className="relative h-14 w-[98px] shrink-0 overflow-hidden rounded-md">
                   <div className="pointer-events-none absolute left-0 top-0 w-[350px] origin-top-left scale-[0.28]">
                     <AccountCardFace account={option.account} align="left" />

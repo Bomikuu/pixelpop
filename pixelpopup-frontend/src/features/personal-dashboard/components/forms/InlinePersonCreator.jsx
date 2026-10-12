@@ -25,7 +25,7 @@ export default function InlinePersonCreator({
       </div>
       {errors.common && <p role="alert" className="mt-3 text-sm text-red-800">{errors.common}</p>}
       <div className="mt-4 flex justify-end">
-        <Button type="button" size="sm" onClick={onSave} disabled={saving} aria-busy={saving}>
+        <Button type="button" size="sm" onClick={onSave} disabled={saving || ["__processing__", "__invalid__"].includes(draft.avatar_upload)} aria-busy={saving}>
           <Save aria-hidden="true" />{saving ? "Saving person…" : "Save person"}
         </Button>
       </div>

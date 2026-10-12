@@ -1,6 +1,18 @@
-import { initials } from "../../lib/sharedBills";
+import PersonAvatar from "../PersonAvatar";
 
-export default function ParticipantAvatars({ participants }) {
+export default function ParticipantAvatars({ participants, showNames = false }) {
+  if (showNames) {
+    return (
+      <span className="flex flex-wrap gap-x-5 gap-y-3">
+        {participants.map((person) => (
+          <span key={person.id || person.name} className="flex min-w-0 items-center gap-2 text-sm text-slate-900">
+            <PersonAvatar src={person.avatar_url} name={person.name} className="size-9 text-xs" />
+            <span className="break-words">{person.name}</span>
+          </span>
+        ))}
+      </span>
+    );
+  }
   return (
     <span className="flex flex-wrap items-center gap-2">
       <span className="flex -space-x-2" aria-hidden="true">
@@ -8,9 +20,9 @@ export default function ParticipantAvatars({ participants }) {
           <span
             key={person.id || person.name}
             title={person.name}
-            className="grid size-8 place-items-center rounded-full border-2 border-white bg-blue-50 text-xs font-semibold text-blue-800"
+            className="rounded-full border-2 border-white"
           >
-            {initials(person.name)}
+            <PersonAvatar src={person.avatar_url} name={person.name} className="size-8 text-xs" />
           </span>
         ))}
       </span>

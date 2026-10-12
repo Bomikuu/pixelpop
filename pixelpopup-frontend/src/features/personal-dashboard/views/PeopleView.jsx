@@ -139,7 +139,8 @@ export default function PeopleView(props) {
                               label={row.person}
                             />
                             <p className="ml-12 text-xs text-slate-600">
-                              {row.custom_relationship || row.relationship}
+                              {[row.nickname, row.organization, row.custom_relationship || row.relationship,
+                                row.id ? "Person #" + row.id : "Unlinked records"].filter(Boolean).join(" · ")}
                             </p>
                           </TableCell>
                           {["given", "lent", "repaid", "outstanding"].map(

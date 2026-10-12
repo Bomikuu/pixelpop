@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { RefreshCw, Link2, ShieldCheck, Receipt, Heart } from "lucide-react";
+import { RefreshCw, Link2, Heart } from "lucide-react";
 import { financeApi } from "../features/personal-dashboard/api";
 import { useRecords } from "../features/personal-dashboard/hooks/useDashboardData";
 import BillBreakdown from "../features/personal-dashboard/components/shared-bills/BillBreakdown";
-import ParticipantAvatars from "../features/personal-dashboard/components/shared-bills/ParticipantAvatars";
+import SharedBillHeader from "../features/personal-dashboard/components/shared-bills/SharedBillHeader";
 import PublicBillActions from "../features/personal-dashboard/components/shared-bills/PublicBillActions";
-import PaymentReceiver from "../features/personal-dashboard/components/shared-bills/PaymentReceiver";
 import { Button } from "../features/personal-dashboard/ui/button";
 import {
   Tooltip,
@@ -18,7 +17,6 @@ import {
   EmptyState,
   ErrorState,
 } from "../features/personal-dashboard/components/Panel";
-import { dateLabel } from "../features/personal-dashboard/lib/format";
 import "../features/personal-dashboard/styles/theme.css";
 
 const publicRequest = (path, options) =>
@@ -59,33 +57,8 @@ export default function SharedBillPage() {
   }, [state.data?.title, token]);
   const renderContent = ({ headerActions, contributionActions } = {}) => (
     <>
-      <header className="flex flex-wrap items-start justify-between gap-4 rounded-xl border bg-white p-5 sm:p-6">
-        <div className="flex min-w-0 flex-1 basis-72 items-start gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700 sm:size-16">
-            <Receipt size={28} aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <h1 className="break-words text-2xl font-semibold">
-              {state.data?.title || "Shared bill breakdown"}
-            </h1>
-            <p className="mt-2 flex items-center gap-2 text-sm text-slate-600">
-              <ShieldCheck size={16} aria-hidden="true" />
-              Public breakdown · Payments need no PIN; management does.
-            </p>
-            {state.data && (
-              <>
-                <p className="mt-2 text-sm text-slate-600">
-                  {dateLabel(state.data.date)}
-                </p>
-                <div className="mt-3">
-                  <ParticipantAvatars participants={state.data.participants} />
-                </div>
-                <PaymentReceiver bill={state.data} />
-              </>
-            )}
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
+      <SharedBillHeader bill={state.data} publicView actions={
+        <>
           {headerActions}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -107,8 +80,8 @@ export default function SharedBillPage() {
               Refresh breakdown
             </TooltipContent>
           </Tooltip>
-        </div>
-      </header>
+        </>
+      } />
       {state.loading ? (
         <p role="status" className="py-8 text-sm text-slate-600">
           Loading shared breakdown…

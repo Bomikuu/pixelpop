@@ -1,9 +1,35 @@
+from django.db import transaction
 from django.utils.crypto import salted_hmac
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 
 from finance.models import LoanReceivable, MoneyMovement, Person, Transaction
 from .balances import ZERO, outstanding, today, total
 from .queries import month_range
+
+
+def find_contact(name):
+    normalized = name.strip().casefold()
+    matches = [person for person in Person.objects.only("id", "name").iterator()
+               if person.name.strip().casefold() == normalized]
+    if len(matches) > 1:
+        raise ValidationError({"contact": "Several people have this name. Select the saved person by their identifying details."})
+    return matches[0] if matches else None
+
+
+@transaction.atomic
+def contact_for_name(name, user=None, create_new=False):
+    label = name.strip()
+    if not label:
+        return None
+
+    # Name-only legacy requests are serialized, but never choose between duplicates.
+    from finance.models import WorkspaceSettings
+    WorkspaceSettings.objects.get_or_create(pk=1)
+    WorkspaceSettings.objects.select_for_update().get(pk=1)
+    existing = None if create_new else find_contact(label)
+    if existing:
+        return existing
+    return Person.objects.create(name=label, relationship="Other", created_by=user)
 
 
 def person_key(name):
@@ -11,18 +37,27 @@ def person_key(name):
     return salted_hmac("finance.person", name.strip().casefold()).hexdigest()
 
 
+def person_avatar_url(contact):
+    return f"/api/v1/finance/contacts/{contact.pk}/avatar/?v={contact.avatar_hash}" if contact.avatar_hash else None
+
+
 def people_summary(month, selected_key=None):
     start, end = month_range(month)
     people = {}
     by_name = {}
 
-    for contact in Person.objects.all().order_by("name", "id"):
+    for contact in Person.objects.defer("avatar_blob").order_by("name", "id"):
         row = {
             "id": contact.pk,
             "key": contact.key,
             "person": contact.name,
+            "nickname": contact.nickname,
             "relationship": contact.relationship,
             "custom_relationship": contact.custom_relationship,
+            "email": contact.email,
+            "phone": contact.phone,
+            "organization": contact.organization,
+            "avatar_url": person_avatar_url(contact),
             "notes": contact.notes,
             "given": ZERO,
             "lent": ZERO,
@@ -30,20 +65,21 @@ def people_summary(month, selected_key=None):
             "outstanding": ZERO,
         }
         people[contact.pk] = row
-        by_name[contact.name.strip().casefold()] = row
+        by_name.setdefault(contact.name.strip().casefold(), []).append(row)
 
     def person(name, contact_id):
         if contact_id and contact_id in people:
             return people[contact_id]
         label = name.strip()
         normalized = label.casefold()
-        if normalized in by_name:
-            return by_name[normalized]
+        matches = by_name.get(normalized, [])
         key = "legacy:" + normalized
         if key not in people:
             people[key] = {
-                "id": None, "key": person_key(label), "person": label,
+                "id": None, "key": (salted_hmac("finance.unlinked-person", normalized).hexdigest() if matches else person_key(label)), "person": label,
+                "nickname": "",
                 "relationship": "Other", "custom_relationship": "", "notes": "",
+                "email": "", "phone": "", "organization": "", "avatar_url": None,
                 "given": ZERO, "lent": ZERO, "repaid": ZERO, "outstanding": ZERO,
             }
         return people[key]

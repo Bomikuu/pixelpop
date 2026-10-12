@@ -61,6 +61,7 @@ urlpatterns = [
     path("people-options/", shared_bills.PeopleOptionsView.as_view()),
     path("shared-bills/", shared_bills.SharedBillsView.as_view()),
     path("shared-bills/share/<str:token>/", shared_bills.PublicSharedBillView.as_view()),
+    path("shared-bills/share/<str:token>/participants/<int:participant_id>/avatar/", shared_bills.PublicSharedBillAvatarView.as_view()),
     path("shared-bills/share/<str:token>/unlock/", shared_bills.PublicSharedBillMutationView.as_view(action="unlock")),
     path("shared-bills/share/<str:token>/participants/", shared_bills.PublicSharedBillMutationView.as_view(action="participants")),
     path("shared-bills/share/<str:token>/pay/", shared_bills.PublicSharedBillMutationView.as_view(action="pay")),

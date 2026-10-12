@@ -17,7 +17,7 @@ from rest_framework.views import APIView
 
 from finance import models
 from finance.services.balances import today, total, outstanding, account_balance, ensure_account_capacity, validate_fund_history
-from finance.services.queries import filtered, month_range, by_person
+from finance.services.queries import filtered, month_range, by_person, by_contact
 from finance.services.recurrence import materialize
 from finance.services.settlements import action_date, move_money, settle_deadline
 from finance.services.summaries import overview, transaction_summary, deadline_summary
@@ -162,13 +162,22 @@ class FinanceViewSet(AuditCrudMixin, PrivateMixin, viewsets.ModelViewSet):
 
 
 class PersonViewSet(AuditCrudMixin, PrivateMixin, viewsets.ModelViewSet):
-    queryset = models.Person.objects.all().order_by("name", "id")
+    queryset = models.Person.objects.defer("avatar_blob").order_by("name", "id")
     serializer_class = PersonSerializer
     pagination_class = FinancePagination
     http_method_names = ["get", "post", "patch", "head", "options"]
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=["get"], url_path="avatar")
+    def avatar(self, request, pk=None):
+        person = self.get_object()
+        if not person.avatar_hash or not person.avatar_blob:
+            raise Http404
+        response = HttpResponse(bytes(person.avatar_blob), content_type="image/webp")
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
 
 
 class AccountViewSet(FinanceViewSet):
@@ -462,6 +471,8 @@ class LoanViewSet(FinanceViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        if self.request.query_params.get("contact"):
+            qs = by_contact(qs, self.request.query_params["contact"])
         person = self.request.query_params.get("person", "").strip()
         if person:
             qs = by_person(qs, "person", person)
@@ -470,7 +481,7 @@ class LoanViewSet(FinanceViewSet):
     def summary(self, qs):
         rows = list(qs)
         dates = [r.due_date for r in rows if r.due_date and outstanding(r) > 0]
-        return {"count": len(rows), "outstanding": sum((outstanding(r) for r in rows), Decimal(0)), "lent": total(qs, "principal"), "repaid": total(models.MoneyMovement.objects.filter(loan__in=qs, kind="loan_repayment", date__lte=today())), "people": len({r.person.casefold() for r in rows}), "overdue": sum((outstanding(r) for r in rows if r.due_date and r.due_date < today()), Decimal(0)), "next_collection": str(min(dates)) if dates else None}
+        return {"count": len(rows), "outstanding": sum((outstanding(r) for r in rows), Decimal(0)), "lent": total(qs, "principal"), "repaid": total(models.MoneyMovement.objects.filter(loan__in=qs, kind="loan_repayment", date__lte=today())), "people": len({("contact", r.contact_id) if r.contact_id else ("unlinked", r.person.casefold()) for r in rows}), "overdue": sum((outstanding(r) for r in rows if r.due_date and r.due_date < today()), Decimal(0)), "next_collection": str(min(dates)) if dates else None}
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -644,6 +655,8 @@ class MovementViewSet(PrivateMixin, viewsets.ReadOnlyModelViewSet):
         qs = filtered(super().get_queryset(), self.request.query_params, "date", ("notes", "source__name", "destination__name"))
         if self.request.query_params.get("person"):
             qs = by_person(qs.filter(kind="loan_repayment", loan__isnull=False), "loan__person", self.request.query_params["person"])
+        if self.request.query_params.get("contact"):
+            qs = by_contact(qs.filter(kind="loan_repayment", loan__isnull=False), self.request.query_params["contact"], "loan__contact")
         return qs
 
     def list(self, request, *args, **kwargs):

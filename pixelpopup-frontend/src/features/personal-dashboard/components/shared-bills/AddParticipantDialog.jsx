@@ -16,6 +16,7 @@ export default function AddParticipantDialog({
   close,
 }) {
   const [name, setName] = useState("");
+  const [contact, setContact] = useState(null);
   const [mode, setMode] = useState("auto"),
     [amount, setAmount] = useState("");
   const [confirmLegacy, setConfirmLegacy] = useState(false);
@@ -62,10 +63,10 @@ export default function AddParticipantDialog({
     if (
       bill.participants.some(
         (person) =>
-          person.name.trim().toLowerCase() === name.trim().toLowerCase(),
+          contact?.contact_id && String(person.contact_id) === String(contact.contact_id),
       )
     ) {
-      setError("This person is already in the event. Choose a different name.");
+      setError("This saved person is already in the event. Choose another person.");
       requestAnimationFrame(() => errorRef.current?.focus());
       return;
     }
@@ -77,6 +78,7 @@ export default function AddParticipantDialog({
         name: name.trim(),
         amount: mode === "auto" ? null : amount,
         request_id: key,
+        ...(dashboard ? { contact_id: contact?.contact_id || null, new_person: contact ? !!contact.new_person : true } : {}),
         ...(legacy && confirmLegacy ? { confirm_resplit_legacy: true } : {}),
       });
       close();
@@ -133,7 +135,8 @@ export default function AddParticipantDialog({
             maxLength={120}
             value={name}
             disabled={busy}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => { setName(event.target.value); setContact(null); }}
+            readOnly={!!contact?.contact_id}
           />
         </div>
         {dashboard && (
@@ -142,7 +145,8 @@ export default function AddParticipantDialog({
             version={dashboard.version}
             retry={dashboard.refresh}
             selected={bill.participants}
-            add={setName}
+            value={contact?.contact_id ? String(contact.contact_id) : ""}
+            add={(person) => { setContact(person); setName(person.name); }}
             disabled={busy}
           />
         )}

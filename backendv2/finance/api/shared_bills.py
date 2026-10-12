@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.http import Http404, HttpResponse
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -9,6 +10,7 @@ from rest_framework.views import APIView
 
 from finance import models
 from finance.services.queries import filtered
+from finance.services.people import person_avatar_url
 from finance.services.audit import log_record, snapshot_record
 from finance.services.shared_bills import breakdown, create_bill, pay_bill, share_bill, strict, generate_pin, verify_pin, add_participant, decide_payment, edit_bill, accept_ledger_allocation, management_token, verify_management, mark_all_paid
 from .views import FinancePagination, PrivateMixin, json_money
@@ -137,6 +139,12 @@ class PeopleOptionsView(PrivateMixin, APIView):
         query = request.query_params.get("q", "").strip().casefold()
         if len(query) > 120:
             raise ValidationError({"q": "Use at most 120 characters."})
+        contacts = list(models.Person.objects.defer("avatar_blob").order_by("name", "id"))
+        known_names = {person.name.strip().casefold() for person in contacts}
+        options = [{"id": person.pk, "name": person.name, "nickname": person.nickname,
+                    "organization": person.organization, "avatar_url": person_avatar_url(person),
+                    "relationship": person.custom_relationship or person.relationship}
+                   for person in contacts if not query or query in " ".join((person.name, person.nickname, person.organization, person.relationship)).casefold()]
         sources = (models.Transaction.objects.filter(kind="expense").exclude(recipient="").values_list("recipient", flat=True),
                    models.LoanReceivable.objects.values_list("person", flat=True),
                    models.SharedBillParticipant.objects.filter(is_me=False).values_list("name", flat=True))
@@ -144,9 +152,10 @@ class PeopleOptionsView(PrivateMixin, APIView):
         for source in sources:
             for name in source:
                 name = name.strip()
-                if name and (not query or query in name.casefold()):
+                if name and name.casefold() not in known_names and (not query or query in name.casefold()):
                     names.setdefault(name.casefold(), name)
-        return Response([{"name": name} for name in sorted(names.values(), key=str.casefold)[:100]])
+        options.extend({"id": None, "name": name, "avatar_url": None, "relationship": "Previously added"} for name in names.values())
+        return Response(sorted(options, key=lambda row: (row["name"].casefold(), row["id"] or 0))[:100])
 
 
 class SharedLinkThrottle(AnonRateThrottle):
@@ -185,6 +194,21 @@ class PublicSharedBillView(APIView):
         response["Referrer-Policy"] = "no-referrer"
         response["X-Content-Type-Options"] = "nosniff"
         return response
+
+
+class PublicSharedBillAvatarView(PublicSharedBillView):
+    def get(self, request, token, participant_id):
+        bill = self.get_bill(token)
+        if not 1 <= participant_id <= 50:
+            raise Http404
+        # Public participant IDs are bill-local ordinals, not private contact IDs.
+        participants = list(bill.participants.select_related("contact").order_by("id")[participant_id - 1:participant_id])
+        if not participants or participants[0].is_me:
+            raise Http404
+        contact = participants[0].contact
+        if not contact or not contact.avatar_hash or not contact.avatar_blob:
+            raise Http404
+        return HttpResponse(bytes(contact.avatar_blob), content_type="image/webp")
 
 
 class PublicSharedBillMutationView(PublicSharedBillView):

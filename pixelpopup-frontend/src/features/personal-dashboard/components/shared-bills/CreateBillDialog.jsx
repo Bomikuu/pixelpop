@@ -6,7 +6,8 @@ import { Button } from "../../ui/button";
 import SelectableField from "../SelectableField";
 import { choiceIcon } from "../../lib/presets";
 import { money, requestId, today } from "../../lib/format";
-import { initials, splitPreview, formError } from "../../lib/sharedBills";
+import { splitPreview, formError } from "../../lib/sharedBills";
+import PersonAvatar from "../PersonAvatar";
 import PersonPicker from "./PersonPicker";
 import SharedFormFrame from "./SharedFormFrame";
 
@@ -66,7 +67,10 @@ export default function CreateBillDialog({
         category: category || null,
         request_id: key,
         participants: participants.map((person) => ({
-          ...person,
+          name: person.name,
+          is_me: person.is_me,
+          contact_id: person.contact_id || null,
+          new_person: !!person.new_person,
           amount: person.amount === "" ? null : person.amount,
         })),
       });
@@ -160,18 +164,19 @@ export default function CreateBillDialog({
           </p>
           {participants.map((person, index) => (
             <div
-              key={person.name}
+              key={person.draft_key || "self"}
               className="flex flex-wrap items-center gap-3 border-b pb-3"
             >
-              <span
-                aria-hidden="true"
-                className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-50 text-xs font-semibold text-blue-800"
-              >
-                {initials(person.name)}
-              </span>
+              <PersonAvatar
+                name={person.name}
+                src={person.is_me
+                  ? "/portfolio/assets/mico-ang-pixel-portrait.webp"
+                  : person.avatar_url}
+              />
               <span className="min-w-24 flex-1 break-words text-sm font-medium">
                 {person.name}
                 {person.is_me && " (You)"}
+                {person.contact_label && <span className="block text-xs font-normal text-slate-600">{person.contact_label}</span>}
               </span>
               <div className="w-36">
                 <Label htmlFor={"share-amount-" + index} className="sr-only">
@@ -226,10 +231,10 @@ export default function CreateBillDialog({
             retry={dashboard.refresh}
             selected={participants}
             disabled={busy}
-            add={(name) =>
+            add={(person) =>
               setParticipants((rows) => [
                 ...rows,
-                { name, is_me: false, amount: "" },
+                { ...person, draft_key: requestId(), is_me: false, amount: "" },
               ])
             }
           />

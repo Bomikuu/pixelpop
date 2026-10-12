@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
-import { Search, X, UserPlus, Users } from "lucide-react";
+import { Search, X, UserPlus } from "lucide-react";
 import { useRecords } from "../../hooks/useDashboardData";
 import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "../../ui/select";
+import ChoiceTiles from "../ChoiceTiles";
 import { ErrorState } from "../Panel";
 
 export default function PersonPicker({
@@ -19,6 +13,10 @@ export default function PersonPicker({
   add,
   disabled,
   retry,
+  value = "",
+  id = "shared-person",
+  label = "Add participants",
+  allowCreate = true,
 }) {
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
@@ -34,28 +32,36 @@ export default function PersonPicker({
     version,
   );
   const names = state.data || [];
-  const options = names
+  const choiceValue = (person) => person.id ? String(person.id) : "legacy:" + person.name;
+  const available = names
     .filter(
       (person) =>
-        !selected.some(
+        (allowCreate || person.id) && !selected.some(
           (item) =>
-            item.name.trim().toLowerCase() === person.name.trim().toLowerCase(),
+            person.id ? String(item.contact_id || "") === String(person.id)
+              : !item.contact_id && !item.new_person && item.name?.trim().toLowerCase() === person.name.trim().toLowerCase(),
         ),
-    )
-    .map((person) => ({ value: person.name, label: person.name, icon: Users }));
-  const exists = [...selected, ...names].some(
+    );
+  const options = available.map((person) => ({ value: choiceValue(person), label: person.name,
+    avatar_url: person.avatar_url, description: [person.nickname, person.organization, person.relationship,
+      person.id ? "Person #" + person.id : "Not linked yet"].filter(Boolean).join(" · ") }));
+  const exists = names.some(
     (person) =>
       person.name.trim().toLowerCase() === search.trim().toLowerCase(),
   );
-  function choose(name) {
-    add(name);
+  function choose(value) {
+    const person = available.find((item) => choiceValue(item) === value);
+    if (!person) return;
+    add({ name: person.name, contact_id: person.id || null, avatar_url: person.avatar_url,
+      contact_label: [person.nickname, person.organization, person.relationship].filter(Boolean).join(" · "), new_person: false });
     setSearch("");
     setQuery("");
+    document.getElementById(id + "-search")?.focus();
   }
   return (
     <div className="space-y-3 border-t pt-4">
-      <label htmlFor="shared-person-search" className="text-sm font-medium">
-        Add participants
+      <label htmlFor={id + "-search"} className="text-sm font-medium">
+        {label}
       </label>
       <div className="relative">
         <Search
@@ -64,11 +70,11 @@ export default function PersonPicker({
           aria-hidden="true"
         />
         <Input
-          id="shared-person-search"
+          id={id + "-search"}
           type="search"
           maxLength={120}
           className="pr-10 pl-9"
-          placeholder="Search saved people or enter a new name"
+          placeholder={allowCreate ? "Search saved people or enter a new name" : "Search by name, nickname or company"}
           value={search}
           disabled={disabled}
           onChange={(event) => setSearch(event.target.value)}
@@ -86,7 +92,7 @@ export default function PersonPicker({
             onClick={() => {
               setSearch("");
               setQuery("");
-              document.getElementById("shared-person-search")?.focus();
+              document.getElementById(id + "-search")?.focus();
             }}
           >
             <X />
@@ -102,43 +108,34 @@ export default function PersonPicker({
       ) : (
         <>
           {options.length > 0 && (
-            <Select value="" onValueChange={choose} disabled={disabled}>
-              <SelectTrigger
-                id="shared-known-person"
-                className="w-full"
-                aria-label="Choose saved person"
-              >
-                <SelectValue placeholder="Choose a saved person" />
-              </SelectTrigger>
-              <SelectContent className="personal-dashboard" position="popper">
-                {options.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <Users
-                      className="size-4 text-[var(--pd-primary)]"
-                      aria-hidden="true"
-                    />
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ChoiceTiles
+              id={id + "-known"}
+              label="Choose a saved person"
+              options={options}
+              value={value}
+              onChange={choose}
+              disabled={disabled}
+              personChoices
+            />
           )}
-          {search.trim() && !exists && (
+          {allowCreate && search.trim() && (
             <Button
               type="button"
               variant="outline"
               disabled={disabled}
-              onClick={() => choose(search.trim())}
+              onClick={() => {
+                add({ name: search.trim(), contact_id: null, new_person: true });
+                setSearch(""); setQuery("");
+              }}
             >
               <UserPlus aria-hidden="true" />
-              Add new person: {search.trim()}
+              {exists ? "Add a different person named " : "Add new person: "}{search.trim()}
             </Button>
           )}
-          {!options.length && (!search.trim() || exists) && (
+          {!options.length && (
             <p className="text-xs text-slate-600">
-              {exists
-                ? "This person is already selected."
-                : "No saved people available. Enter a name to add someone new."}
+              {allowCreate ? "No matching people available to select. Add a new person or try another search."
+                : "No matching saved people. Add them in People first, then link them here."}
             </p>
           )}
         </>

@@ -5,6 +5,7 @@ from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
+from django.db.models import Q
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.cache import cache
 from django.core import signing
@@ -13,6 +14,7 @@ from rest_framework.exceptions import ValidationError, PermissionDenied, Throttl
 
 from finance import models
 from .balances import ZERO, ensure_account_capacity, outstanding, today
+from .people import contact_for_name, person_avatar_url
 from .settlements import action_date, amount, locked_account, move_money, request_key
 
 
@@ -24,21 +26,50 @@ def strict(data, fields):
         raise ValidationError({key: "Unknown field." for key in unknown})
 
 
+def saved_contact(value):
+    text = str(value)
+    if isinstance(value, bool) or not text.isascii() or not text.isdigit() or len(text) > 19 or not 1 <= int(text) <= 9223372036854775807:
+        raise ValidationError({"contact_id": "Choose an existing saved person."})
+    contact = models.Person.objects.filter(pk=int(value)).first()
+    if not contact:
+        raise ValidationError({"contact_id": "This saved person is unavailable. Choose another person."})
+    return contact
+
+
+def participant_contact(row, user, force_new=False):
+    new_person = row.get("new_person", False)
+    if not isinstance(new_person, bool):
+        raise ValidationError({"new_person": "Choose true or false."})
+    contact_id = row.get("contact_id")
+    if contact_id not in (None, ""):
+        if new_person or force_new:
+            raise ValidationError({"contact_id": "Choose a saved person or add a new person, not both."})
+        return saved_contact(contact_id)
+    return contact_for_name(row["name"], user=user, create_new=new_person or force_new)
+
+
 def participant_shares(rows, total):
     if not isinstance(rows, list) or not 2 <= len(rows) <= 50:
         raise ValidationError({"participants": "Choose between 2 and 50 people, including yourself."})
     people, seen, fixed, blanks = [], set(), ZERO, []
     for index, row in enumerate(rows):
-        strict(row, ("name", "is_me", "amount"))
+        strict(row, ("name", "is_me", "amount", "contact_id", "new_person"))
         name = row.get("name", "")
         if not isinstance(name, str):
             raise ValidationError({"participants": "Enter a valid person name."})
         name = name.strip()
-        if not name or len(name) > 120 or name.casefold() in seen:
-            raise ValidationError({"participants": "Names must be unique and contain 1–120 characters."})
-        seen.add(name.casefold())
+        if not name or len(name) > 120:
+            raise ValidationError({"participants": "Names must contain 1–120 characters."})
         if not isinstance(row.get("is_me", False), bool):
             raise ValidationError({"participants": "Use a true/false value for is_me."})
+        if not isinstance(row.get("new_person", False), bool) or (row.get("is_me") and row.get("new_person")):
+            raise ValidationError({"participants": "Only another participant can be added as a new saved person."})
+        contact_id = row.get("contact_id")
+        if contact_id not in (None, ""):
+            contact_id = saved_contact(contact_id).pk
+            if row.get("is_me") or row.get("new_person") or contact_id in seen:
+                raise ValidationError({"participants": "Choose each saved person once, separately from yourself."})
+            seen.add(contact_id)
         value = row.get("amount")
         if value in (None, ""):
             share = ZERO
@@ -51,7 +82,8 @@ def participant_shares(rows, total):
             except (ValueError, InvalidOperation):
                 raise ValidationError({"participants": "Contributions must be non-negative amounts with at most two decimal places."})
             fixed += share
-        people.append({"name": name, "is_me": row.get("is_me", False), "share": share, "share_is_fixed": value not in (None, "")})
+        people.append({"name": name, "is_me": row.get("is_me", False), "contact_id": contact_id or None,
+                       "share": share, "share_is_fixed": value not in (None, "")})
     if sum(row["is_me"] for row in people) != 1:
         raise ValidationError({"participants": "Include yourself exactly once."})
     if fixed > total or (not blanks and fixed != total):
@@ -87,17 +119,31 @@ def create_bill(data, user):
     models.WorkspaceSettings.objects.select_for_update().get(pk=1)
     existing = models.SharedBill.objects.filter(request_id=key).first()
     if existing:
-        prior = list(existing.participants.order_by("id").values("name", "is_me", "share", "share_is_fixed"))
-        if (existing.title, existing.total, existing.date, existing.category_id, prior) != (title, value, day, category.pk if category else None, people):
+        prior = list(existing.participants.order_by("id").values("name", "is_me", "share", "share_is_fixed", "contact_id"))
+        same_people = len(prior) == len(people) and all(
+            all(old[field] == row[field] for field in ("is_me", "share", "share_is_fixed"))
+            and (row["contact_id"] or old["name"] == row["name"])
+            and (not row["contact_id"] or old["contact_id"] == row["contact_id"])
+            for old, row in zip(prior, people))
+        if (existing.title, existing.total, existing.date, existing.category_id) != (title, value, day, category.pk if category else None) or not same_people:
             raise ValidationError("This request identifier belongs to a different shared bill.")
         return existing
+    seen_contacts = set()
+    for person, source in zip(people, data["participants"]):
+        if not person["is_me"]:
+            contact = participant_contact(source, user)
+            if contact.pk in seen_contacts:
+                raise ValidationError({"participants": "This saved person is already selected. Add a different person if the names are the same."})
+            seen_contacts.add(contact.pk)
+            person["contact_id"] = contact.pk
+            person["name"] = contact.name
     bill = models.SharedBill.objects.create(title=title, total=value, date=day, category=category, request_id=key, created_by=user)
     models.SharedBillParticipant.objects.bulk_create([models.SharedBillParticipant(bill=bill, **row) for row in people])
     return bill
 
 
 def breakdown(bill, public=False, reserve_pending=False, ledger=False, exclude_payment=None):
-    participants = list(bill.participants.order_by("id"))
+    participants = list(bill.participants.select_related("contact").order_by("id"))
     payments = list(bill.payments.select_related("payer", "paid_to", "expense").order_by("date", "id"))
     net = {row.pk: ZERO for row in participants}
     merchant = ZERO
@@ -126,14 +172,25 @@ def breakdown(bill, public=False, reserve_pending=False, ledger=False, exclude_p
             merchant += payment.amount
     def contribution(row):
         return row.ledger_share if ledger and row.ledger_share is not None else row.share
+    def avatar_url(person, ordinal):
+        if person.is_me:
+            return "/portfolio/assets/mico-ang-pixel-portrait.webp"
+        contact = person.contact
+        if not contact or not contact.avatar_hash:
+            return None
+        if public:
+            return f"/api/v1/finance/shared-bills/share/{bill.share_token}/participants/{ordinal}/avatar/?v={contact.avatar_hash}"
+        return person_avatar_url(contact)
+
     rows = [{"id": row.pk, "name": row.name, "is_me": row.is_me, "share": contribution(row),
+             "avatar_url": avatar_url(row, index + 1),
              "share_is_fixed": row.share_is_fixed,
              "paid": net[row.pk], "remaining": max(contribution(row) - net[row.pk], ZERO),
              "to_receive": max(net[row.pk] - contribution(row), ZERO),
              "refund_due": max(net[row.pk] - contribution(row) - waivers[row.pk], ZERO),
              "waived_excess": waivers[row.pk],
              "covered_by_group": bool(bill.all_paid and not ledger and net[row.pk] < contribution(row)),
-             "status": "paid" if net[row.pk] >= contribution(row) else "partial" if net[row.pk] > 0 else "unpaid"} for row in participants]
+             "status": "paid" if net[row.pk] >= contribution(row) else "partial" if net[row.pk] > 0 else "unpaid"} for index, row in enumerate(participants)]
     owner = next(row for row in rows if row["is_me"])
     result = {"title": bill.title, "total": bill.total, "date": str(bill.date), "participants": rows,
               "payments": [{"id": p.pk, "payer_id": p.payer_id, "payer_name": p.payer.name,
@@ -167,6 +224,9 @@ def breakdown(bill, public=False, reserve_pending=False, ledger=False, exclude_p
                       share_expires_at=bill.share_expires_at.isoformat() if bill.share_expires_at else None,
                       ledger_recorded=any(p.record_ledger for p in payments))
         for row, participant in zip(rows, participants):
+            row["contact_id"] = participant.contact_id
+            row["contact_label"] = " · ".join(filter(None, (participant.contact.nickname, participant.contact.organization,
+                participant.contact.custom_relationship or participant.contact.relationship))) if participant.contact_id else None
             row["has_advance"] = bool(participant.advance_id)
             row["ledger_share"] = participant.ledger_share if participant.ledger_share is not None else participant.share
         for row, payment in zip(result["payments"], payments):
@@ -282,7 +342,7 @@ def pay_bill(bill_id, data, user, pending=False, approving=None, breakdown_only=
                     contribution = rows[participant.pk]["share"]
                     if participant.is_me or not contribution:
                         continue
-                    loan = models.LoanReceivable.objects.create(person=participant.name, principal=contribution,
+                    loan = models.LoanReceivable.objects.create(person=participant.name, contact_id=participant.contact_id, principal=contribution,
                         date=ledger_day, account=account, notes="Shared bill advance: " + bill.title, created_by=user)
                     participant.advance = loan
                     participant.save(update_fields=["advance"])
@@ -393,7 +453,7 @@ def verify_management(bill, token):
 
 @transaction.atomic
 def add_participant(bill_id, data, user=None):
-    strict(data, ("name", "amount", "request_id", "confirm_resplit_legacy"))
+    strict(data, ("name", "amount", "request_id", "confirm_resplit_legacy", "contact_id", "new_person"))
     models.WorkspaceSettings.objects.get_or_create(pk=1)
     models.WorkspaceSettings.objects.select_for_update().get(pk=1)
     bill = models.SharedBill.objects.select_for_update().get(pk=bill_id)
@@ -415,16 +475,20 @@ def add_participant(bill_id, data, user=None):
             raise ValidationError({"amount": "Use a non-negative contribution with at most two decimal places."})
     existing = models.SharedBillParticipant.objects.filter(membership_request_id=key).first()
     if existing:
-        if existing.bill_id != bill.pk or existing.name != name or existing.share_is_fixed != fixed or (fixed and existing.share != value):
+        explicit_contact = data.get("contact_id") not in (None, "")
+        if existing.bill_id != bill.pk or (not explicit_contact and existing.name != name) or existing.share_is_fixed != fixed or (fixed and existing.share != value) or (explicit_contact and str(existing.contact_id) != str(data["contact_id"])):
             raise ValidationError("This request identifier belongs to a different participant.")
         return bill
     confirm_allocation(bill, data.get("confirm_resplit_legacy", False))
     people = list(bill.participants.order_by("id"))
-    if len(people) >= 50 or any(person.name.strip().casefold() == name.casefold() for person in people):
-        raise ValidationError({"name": "Choose a new person; this bill supports up to 50 people."})
+    if len(people) >= 50:
+        raise ValidationError({"name": "This bill supports up to 50 people."})
+    contact = participant_contact({**data, "name": name}, user or bill.created_by, force_new=user is None)
+    if any(person.contact_id == contact.pk for person in people):
+        raise ValidationError({"contact_id": "This saved person is already in the event."})
     preserve_ledger_allocation(bill, people)
-    rows = [{"name": p.name, "is_me": p.is_me, "amount": str(p.share) if p.share_is_fixed else None} for p in people]
-    shares = participant_shares(rows + [{"name": name, "amount": data.get("amount"), "is_me": False}], bill.total)
+    rows = [{"name": p.name, "is_me": p.is_me, "contact_id": p.contact_id, "amount": str(p.share) if p.share_is_fixed else None} for p in people]
+    shares = participant_shares(rows + [{"name": contact.name, "contact_id": contact.pk, "amount": data.get("amount"), "is_me": False}], bill.total)
     for person, share in zip(people, shares):
         person.share = share["share"]
         person.save(update_fields=["share"])
@@ -461,7 +525,7 @@ def synchronize_debts(bill, user):
             continue
         target = targets.get(person.pk, ZERO)
         if not person.advance_id and target:
-            person.advance = models.LoanReceivable.objects.create(person=person.name, principal=ZERO, date=today(), account=account, existing=True,
+            person.advance = models.LoanReceivable.objects.create(person=person.name, contact_id=person.contact_id, principal=ZERO, date=today(), account=account, existing=True,
                 notes="Reassigned shared bill advance: " + bill.title, created_by=user)
             person.save(update_fields=["advance"])
         if person.advance_id:
@@ -475,7 +539,7 @@ def prepare_collection(bill, payer, people, value, day, user):
     """The actual payer may settle more than their proportional owner allocation."""
     account = next(person.advance.account for person in people.values() if person.advance_id)
     if not payer.advance_id:
-        payer.advance = models.LoanReceivable.objects.create(person=payer.name, principal=ZERO, date=day,
+        payer.advance = models.LoanReceivable.objects.create(person=payer.name, contact_id=payer.contact_id, principal=ZERO, date=day,
             account=account, existing=True, notes="Reassigned shared bill advance: " + bill.title, created_by=user)
         payer.save(update_fields=["advance"])
     missing = max(value - outstanding(payer.advance), ZERO)
@@ -585,11 +649,23 @@ def edit_bill(bill_id, data):
         if not isinstance(requested, list) or len(requested) != len(people):
             raise ValidationError({"participants": "Edit existing participants; use Add person for new people."})
         rows = []
+        links = []
         for person, row in zip(people, requested):
-            strict(row, ("id", "amount"))
+            strict(row, ("id", "amount", "contact_id"))
             if str(row.get("id")) != str(person.pk):
                 raise ValidationError({"participants": "The participant list changed. Refresh and try again."})
-            rows.append({"name": person.name, "is_me": person.is_me, "amount": row.get("amount")})
+            contact = saved_contact(row["contact_id"]) if row.get("contact_id") not in (None, "") else None
+            contact_id = contact.pk if contact else person.contact_id
+            if person.is_me and contact_id:
+                raise ValidationError({"contact_id": "Your own entry does not need a person link."})
+            if contact_id != person.contact_id:
+                if person.contact_id and (person.advance_id or bill.payments.filter(Q(payer=person) | Q(paid_to=person)).exists()):
+                    raise ValidationError({"contact_id": "This participant already has financial history. Keep its existing person link."})
+                if person.advance_id and person.advance.contact_id not in (None, contact_id):
+                    raise ValidationError({"contact_id": "The existing loan belongs to another person. Its identity must stay unchanged."})
+            links.append(contact)
+            rows.append({"name": contact.name if contact else person.name, "contact_id": contact_id,
+                         "is_me": person.is_me, "amount": row.get("amount")})
         shares = participant_shares(rows, total)
         allocation_changed = any((p.share, p.share_is_fixed) != (s["share"], s["share_is_fixed"]) for p, s in zip(people, shares))
         if allocation_changed:
@@ -598,6 +674,18 @@ def edit_bill(bill_id, data):
             for person, share in zip(people, shares):
                 person.share, person.share_is_fixed = share["share"], share["share_is_fixed"]
                 person.save(update_fields=["share", "share_is_fixed"])
+        # The validated final set is unique. Clear changed links first to allow a
+        # safe swap between participants that do not have financial history.
+        changed_links = [(person, contact) for person, contact in zip(people, links)
+                         if contact and person.contact_id != contact.pk]
+        if changed_links:
+            models.SharedBillParticipant.objects.filter(pk__in=[p.pk for p, _ in changed_links]).update(contact=None)
+        for person, contact in changed_links:
+            person.contact, person.name = contact, contact.name
+            person.save(update_fields=["contact", "name"])
+            if person.advance_id and person.advance.contact_id is None:
+                person.advance.contact, person.advance.person = contact, contact.name
+                person.advance.save(update_fields=["contact", "person", "updated_at"])
     elif total != bill.total:
         raise ValidationError({"participants": "Provide contributions when changing the total."})
     bill.title, bill.total, bill.date, bill.category = title.strip(), total, day, category

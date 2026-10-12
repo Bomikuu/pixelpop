@@ -5,7 +5,6 @@ import {
   Plus,
   Archive,
   ArchiveRestore,
-  Receipt,
   UserPlus,
   Clock,
   KeyRound,
@@ -30,10 +29,9 @@ import { ErrorState, Panel } from "../components/Panel";
 import BillBreakdown from "../components/shared-bills/BillBreakdown";
 import BillPaymentDialog from "../components/shared-bills/BillPaymentDialog";
 import BillSharing from "../components/shared-bills/BillSharing";
-import ParticipantAvatars from "../components/shared-bills/ParticipantAvatars";
+import SharedBillHeader from "../components/shared-bills/SharedBillHeader";
 import AddParticipantDialog from "../components/shared-bills/AddParticipantDialog";
 import EditBillDialog from "../components/shared-bills/EditBillDialog";
-import PaymentReceiver from "../components/shared-bills/PaymentReceiver";
 import PublicPaymentDialog from "../components/shared-bills/PublicPaymentDialog";
 import CloseEventDialog from "../components/shared-bills/CloseEventDialog";
 import { money, dateLabel } from "../lib/format";
@@ -161,39 +159,8 @@ export default function SharedBillView({ billId, dashboard, month, notify }) {
       ) : (
         bill && (
           <>
-            <header className="flex flex-wrap items-start justify-between gap-4 rounded-xl border bg-white p-5 sm:p-6">
-              <div className="flex min-w-0 flex-1 items-start gap-4">
-                <span className="grid size-14 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700 sm:size-16">
-                  <Receipt size={28} aria-hidden="true" />
-                </span>
-                <div className="min-w-0">
-                  <h2
-                    ref={heading}
-                    tabIndex={-1}
-                    className="break-words text-2xl font-semibold"
-                  >
-                    {bill.title}
-                  </h2>
-                  <p className="mt-2 text-sm text-slate-600">
-                    {dateLabel(bill.date)} · {bill.category_name}
-                    {bill.archived && " · Archived"}
-                  </p>
-                  <div className="mt-3">
-                    <ParticipantAvatars participants={bill.participants} />
-                  </div>
-                  <PaymentReceiver bill={bill} />
-                  <p className="mt-3 text-sm">
-                    Your agreed contribution:{" "}
-                    <strong className="text-[var(--pd-primary)] tabular-nums">
-                      {money(bill.my_share)}
-                    </strong>{" "}
-                    <span className="text-slate-600">
-                      · The group total is not your expense.
-                    </span>
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
+            <SharedBillHeader bill={bill} headingRef={heading} actions={
+              <>
                 {!bill.archived && (
                   <Button variant="outline" onClick={() => setEditOpen(true)}>
                     <Pencil aria-hidden="true" />
@@ -222,8 +189,8 @@ export default function SharedBillView({ billId, dashboard, month, notify }) {
                     Editing PIN
                   </Button>
                 )}
-              </div>
-            </header>
+              </>
+            } />
             {!bill.archived && bill.ledger_allocation_pending && (
               <Panel
                 title="Contribution changes need ledger review"

@@ -8,7 +8,7 @@ from finance import models
 from finance.services.balances import account_balance, outstanding, today
 from finance.services.summaries import urgency
 from finance.services.asset_financing import financing_balance, installment_paid, terms_on
-from finance.services.people import person_key
+from finance.services.people import contact_for_name, person_key, person_avatar_url
 from finance.services.asset_images import normalize_asset_image
 
 
@@ -26,26 +26,32 @@ class StrictSerializer(serializers.ModelSerializer):
         return attrs
 
 
-def contact_for_name(name):
-    label = name.strip()
-    if not label:
-        return None
-    existing = next((person for person in models.Person.objects.only("id", "name").iterator() if person.name.casefold() == label.casefold()), None)
-    return existing or models.Person.objects.create(name=label, relationship="Other")
-
-
 class PersonSerializer(StrictSerializer):
+    avatar_url = serializers.SerializerMethodField()
+    avatar_upload = serializers.CharField(write_only=True, required=False, allow_null=True, max_length=350000, trim_whitespace=False)
+
     class Meta:
         model = models.Person
-        fields = ("id", "key", "name", "relationship", "custom_relationship", "notes")
+        fields = ("id", "key", "name", "nickname", "relationship", "custom_relationship", "email", "phone", "organization", "notes", "avatar_url", "avatar_upload")
         read_only_fields = ("key",)
+
+    def get_avatar_url(self, obj):
+        return person_avatar_url(obj)
+
+    def validate_avatar_upload(self, value):
+        return normalize_asset_image(value)
+
+    def _avatar_fields(self, data):
+        if "avatar_upload" in data:
+            avatar = data.pop("avatar_upload")
+            data["avatar_blob"] = avatar
+            data["avatar_hash"] = sha256(avatar).hexdigest() if avatar else ""
+        return data
 
     def validate_name(self, value):
         name = value.strip()
         if not name:
             raise serializers.ValidationError("Enter a person's name.")
-        if any(person.name.casefold() == name.casefold() for person in models.Person.objects.exclude(pk=getattr(self.instance, "pk", None)).only("name").iterator()):
-            raise serializers.ValidationError("This person already exists.")
         return name
 
     def validate(self, attrs):
@@ -61,11 +67,12 @@ class PersonSerializer(StrictSerializer):
     @transaction.atomic
     def create(self, validated_data):
         name = validated_data["name"]
-        matching_loans = [row.pk for row in models.LoanReceivable.objects.filter(contact__isnull=True).only("id", "person") if row.person.strip().casefold() == name.casefold()]
-        matching_gifts = [row.pk for row in models.Transaction.objects.filter(contact__isnull=True, kind="expense").only("id", "recipient") if row.recipient.strip().casefold() == name.casefold()]
-        if matching_loans or matching_gifts:
+        duplicate_name = any(person.name.strip().casefold() == name.casefold() for person in models.Person.objects.only("name").iterator())
+        matching_loans = [] if duplicate_name else [row.pk for row in models.LoanReceivable.objects.filter(contact__isnull=True).only("id", "person") if row.person.strip().casefold() == name.casefold()]
+        matching_gifts = [] if duplicate_name else [row.pk for row in models.Transaction.objects.filter(contact__isnull=True, kind="expense").only("id", "recipient") if row.recipient.strip().casefold() == name.casefold()]
+        if (matching_loans or matching_gifts) and not models.Person.objects.filter(key=person_key(name)).exists():
             validated_data["key"] = person_key(name)
-        person = super().create(validated_data)
+        person = super().create(self._avatar_fields(validated_data))
         if matching_loans:
             models.LoanReceivable.objects.filter(pk__in=matching_loans).update(contact=person, person=name)
         if matching_gifts:
@@ -74,10 +81,11 @@ class PersonSerializer(StrictSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        person = super().update(instance, validated_data)
+        person = super().update(instance, self._avatar_fields(validated_data))
         if "name" in validated_data:
             person.loans.update(person=person.name)
             person.giving_transactions.update(recipient=person.name)
+            person.shared_participants.update(name=person.name)
             models.Deadline.objects.filter(loan__contact=person, settlement_kind="loan_collection", status="pending").update(title="Collect from " + person.name)
         return person
 

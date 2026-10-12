@@ -11,16 +11,10 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { choiceIcon } from "../lib/presets";
+import PersonAvatar from "./PersonAvatar";
 
 export default function RecordIdentity({ resource, row, label }) {
   const person = ["loans", "people"].includes(resource);
-  const initials = String(label)
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
   const content = [row.title, row.name, row.category_name, label]
     .filter(Boolean)
     .join(" ")
@@ -60,15 +54,15 @@ export default function RecordIdentity({ resource, row, label }) {
       : "bg-blue-50 text-blue-700");
   return (
     <span className="flex items-start gap-2.5">
-      <span
+      {person ? <PersonAvatar src={row.avatar_url} name={row.person || label} /> : <span
         aria-hidden="true"
         className={
           "grid size-9 shrink-0 place-items-center rounded-full text-xs font-semibold " +
           color
         }
       >
-        {person ? initials || "—" : <Icon size={16} />}
-      </span>
+        <Icon size={16} />
+      </span>}
       <span className="min-w-0 pt-1 font-medium leading-6">{label}</span>
     </span>
   );

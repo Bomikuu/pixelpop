@@ -38,12 +38,15 @@ class Person(Record):
     RELATIONSHIPS = [(value, value) for value in ("Mother", "Father", "Parent", "Sibling", "Partner", "Child", "Friend", "Colleague", "Other")]
     key = models.CharField(max_length=40, unique=True, default=new_person_key, editable=False)
     name = models.CharField(max_length=120)
+    nickname = models.CharField(max_length=60, blank=True)
     relationship = models.CharField(max_length=20, choices=RELATIONSHIPS)
     custom_relationship = models.CharField(max_length=60, blank=True)
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=15, blank=True, validators=[RegexValidator(r"\A[0-9]{7,15}\Z", "Use 7–15 digits, including the country code if needed.")])
+    organization = models.CharField(max_length=120, blank=True)
+    avatar_blob = models.BinaryField(null=True, blank=True, editable=False)
+    avatar_hash = models.CharField(max_length=64, blank=True, editable=False)
     notes = models.TextField(blank=True, max_length=4000)
-
-    class Meta:
-        constraints = [models.UniqueConstraint(Lower(Trim("name")), name="finance_person_name_ci_unique")]
 
     def __str__(self):
         return self.name
@@ -368,6 +371,7 @@ class SharedBill(Record):
 
 class SharedBillParticipant(models.Model):
     bill = models.ForeignKey(SharedBill, on_delete=models.PROTECT, related_name="participants")
+    contact = models.ForeignKey(Person, null=True, blank=True, on_delete=models.PROTECT, related_name="shared_participants")
     name = models.CharField(max_length=120)
     is_me = models.BooleanField(default=False)
     share = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
@@ -380,6 +384,7 @@ class SharedBillParticipant(models.Model):
         constraints = [
             models.CheckConstraint(condition=models.Q(share__gte=0), name="finance_shared_share_nonnegative"),
             models.UniqueConstraint(fields=["bill"], condition=models.Q(is_me=True), name="finance_shared_one_me"),
+            models.UniqueConstraint(fields=["bill", "contact"], condition=models.Q(contact__isnull=False), name="finance_shared_unique_contact"),
         ]
 
 

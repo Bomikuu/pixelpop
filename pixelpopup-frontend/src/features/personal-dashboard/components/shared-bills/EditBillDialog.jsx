@@ -1,13 +1,15 @@
 import { useRef, useState } from "react";
-import { Check, Receipt, Users, Store } from "lucide-react";
+import { Check, Receipt, Users, Store, Link2 } from "lucide-react";
 import SharedFormFrame from "./SharedFormFrame";
 import SelectableField from "../SelectableField";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { money, today } from "../../lib/format";
-import { formError, splitPreview, initials } from "../../lib/sharedBills";
+import { formError, splitPreview, participantName } from "../../lib/sharedBills";
 import { choiceIcon } from "../../lib/presets";
+import PersonAvatar from "../PersonAvatar";
+import PersonPicker from "./PersonPicker";
 
 export default function EditBillDialog({ bill, dashboard, notify, close }) {
   const [title, setTitle] = useState(bill.title);
@@ -17,9 +19,11 @@ export default function EditBillDialog({ bill, dashboard, notify, close }) {
   const [receiver, setReceiver] = useState(String(bill.receiver_id || ""));
   const baseline = bill.participants.map((person) => ({
     id: person.id,
+    contact_id: person.contact_id ? String(person.contact_id) : "",
     amount: person.share_is_fixed ? String(person.share) : "",
   }));
   const [participants, setParticipants] = useState(baseline);
+  const [linking, setLinking] = useState(null);
   const [confirmLegacy, setConfirmLegacy] = useState(false);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -37,7 +41,7 @@ export default function EditBillDialog({ bill, dashboard, notify, close }) {
     receiver !== String(bill.receiver_id || "") ||
     confirmLegacy ||
     participants.some(
-      (person, index) => person.amount !== baseline[index].amount,
+      (person, index) => person.amount !== baseline[index].amount || person.contact_id !== baseline[index].contact_id,
     );
   function changeShare(index, amount) {
     setParticipants((rows) =>
@@ -69,6 +73,7 @@ export default function EditBillDialog({ bill, dashboard, notify, close }) {
           receiver_id: receiver || null,
           participants: participants.map((person) => ({
             id: person.id,
+            contact_id: person.contact_id || null,
             amount: person.amount === "" ? null : person.amount,
           })),
           ...(confirmLegacy ? { confirm_resplit_legacy: true } : {}),
@@ -170,7 +175,7 @@ export default function EditBillDialog({ bill, dashboard, notify, close }) {
                 },
                 ...bill.participants.map((person) => ({
                   value: String(person.id),
-                  label: person.name + (person.is_me ? " (You)" : ""),
+                  label: participantName(person, bill.participants) + (person.is_me ? " (You)" : ""),
                   icon: Users,
                 })),
               ]}
@@ -222,6 +227,10 @@ export default function EditBillDialog({ bill, dashboard, notify, close }) {
           <ul className="max-h-96 divide-y overflow-y-auto">
             {participants.map((row, index) => {
               const person = bill.participants[index];
+              const contact = dashboard.data.contacts?.find((item) => String(item.id) === row.contact_id);
+              const name = contact?.name || row.name || person.name;
+              const hasHistory = person.has_advance || bill.payments.some((payment) => payment.payer_id === person.id || payment.paid_to_id === person.id);
+              const canLink = !person.is_me && (!person.contact_id || !hasHistory);
               return (
                 <li
                   key={row.id}
@@ -231,19 +240,23 @@ export default function EditBillDialog({ bill, dashboard, notify, close }) {
                   }
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700"
-                    >
-                      {initials(person.name)}
-                    </span>
-                    <span className="break-words text-sm font-medium">
-                      {person.name}
+                    <PersonAvatar name={name} src={contact?.avatar_url || row.avatar_url || person.avatar_url} />
+                    <span className="min-w-0 break-words text-sm font-medium">
+                      {name}
                       {person.is_me && (
                         <span className="ml-2 text-xs font-semibold text-blue-700">
                           You
                         </span>
                       )}
+                      {!person.is_me && <span className="block text-xs font-normal text-slate-600">
+                        {contact ? [contact.nickname, contact.organization, contact.custom_relationship || contact.relationship, "Person #" + contact.id].filter(Boolean).join(" · ")
+                          : row.contact_label || person.contact_label || "Not linked to a saved person"}
+                      </span>}
+                      {canLink && <Button type="button" variant="ghost" size="sm" disabled={busy}
+                        className="mt-1 h-auto px-0 py-1 text-[var(--pd-primary)]" aria-expanded={linking === row.id}
+                        onClick={() => setLinking((current) => current === row.id ? null : row.id)}>
+                        <Link2 aria-hidden="true" />{row.contact_id ? "Change person" : "Link saved person"}
+                      </Button>}
                     </span>
                   </span>
                   <div className="space-y-1">
@@ -272,6 +285,15 @@ export default function EditBillDialog({ bill, dashboard, notify, close }) {
                       {preview ? money(preview[index]) : "Check amounts"}
                     </strong>
                   </span>
+                  {linking === row.id && <div className="sm:col-span-3">
+                    <PersonPicker id={"edit-person-" + row.id} label={"Choose the saved person for " + name}
+                      request={dashboard.request} version={dashboard.version} retry={dashboard.refresh}
+                      selected={participants.filter((item) => item.id !== row.id)} value={row.contact_id}
+                      disabled={busy} allowCreate={false} add={(selected) => {
+                        setParticipants((rows) => rows.map((item) => item.id === row.id ? { ...item, ...selected, contact_id: String(selected.contact_id) } : item));
+                        setLinking(null);
+                      }} />
+                  </div>}
                 </li>
               );
             })}

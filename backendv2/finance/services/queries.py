@@ -24,6 +24,15 @@ def by_person(queryset, field, name):
     return queryset.filter(pk__in=ids)
 
 
+def by_contact(queryset, value, field="contact"):
+    if value == "unlinked":
+        return queryset.filter(**{field + "__isnull": True})
+    text = str(value)
+    if not text.isascii() or not text.isdigit() or len(text) > 19 or not 1 <= int(text) <= 9223372036854775807:
+        raise ValidationError({"contact": "Choose a saved person."})
+    return queryset.filter(**{field + "_id": int(value)})
+
+
 def filtered(queryset, params, date_field="date", search_fields=()):
     q = params.get("q", "").strip()
     if len(q) > 160:
@@ -57,4 +66,6 @@ def filtered(queryset, params, date_field="date", search_fields=()):
         queryset = queryset.filter(kind="expense").exclude(recipient="")
     if hasattr(queryset.model, "recipient") and params.get("recipient"):
         queryset = by_person(queryset, "recipient", params["recipient"])
+    if hasattr(queryset.model, "contact") and params.get("contact"):
+        queryset = by_contact(queryset, params["contact"])
     return queryset
