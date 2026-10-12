@@ -10,6 +10,18 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-12-credit-card-cash-loans-design.md` — read completely before execution.
 
+## Execution status — 2026-10-12
+
+- Tasks 1–8 are implemented: calculator, financing ledger/reservation, private API and paginated history, explicit repayment allocations, lender amendments/settlement, account tab and preview, dedicated details, and dashboard/calendar/report integration.
+- Calculator and planning commits: `a776d23`, `655d566`, `11cb43b`. Remaining implementation changes are not yet committed; they depend on earlier uncommitted Quick Entry work. Do not stage mixed changes or the local database without resolving that boundary.
+- Final focused command: `.venv/bin/python manage.py test finance.tests.test_cash_loan_calculations finance.tests.test_cash_loan_ledger finance.tests.test_cash_loan_api finance.tests.test_cash_loan_payments finance.tests.test_cash_loan_lifecycle finance.tests.test_cash_loan_integration finance.tests.test_account_detail finance.tests.test_finance --settings=finance.tests.settings` — **90 tests passed**. Test inheritance repeats shared ledger cases; this count is not 90 unique scenarios.
+- Tests use an isolated temporary database. Postgres concurrent-request behavior was not exercised against a live server; stable locks and request receipts were implemented, and competing/consumed allocation rejection was tested sequentially.
+- Independent source review found three UI contract gaps: account-effect previews, separate schedule principal/status columns, and effective card utilization. All three were corrected and scored fixed. No visual/runtime UI approval is claimed.
+- Local migration was separately approved after tests. A consistent SQLite backup was created at `/tmp/pixelpop-cash-loans-backup.d50VUa/db.sqlite3` before applying only finance migrations 0026–0027. Production is unchanged.
+- Inherited surface contract: `.impeccable/surfaces/cash-loans.md`. No dependencies, global design tokens, production settings or deployment were changed.
+
+The original test-first/staged-commit checklist below is retained as the planned sequence; the status above records actual execution and remaining commit boundaries.
+
 ## Global Constraints
 
 - Personal finance dashboard only. No production changes or database operations at this stage.

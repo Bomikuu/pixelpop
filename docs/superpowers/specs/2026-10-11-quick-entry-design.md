@@ -1,7 +1,7 @@
 # Quick Expense & Income Entry
 
 Date: 2026-10-11
-Status: Design agreed; written specification awaiting user review.
+Status: Approved and implemented natively; source-reviewed, runtime and visual checks not run.
 
 ## Purpose and scope
 
