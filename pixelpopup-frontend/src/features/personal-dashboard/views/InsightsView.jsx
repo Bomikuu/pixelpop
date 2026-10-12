@@ -46,13 +46,6 @@ export default function InsightsView({
       />
       {reports ? (
         <>
-          <ComparisonChart
-            title="Income versus expenses"
-            rows={o.charts.monthly}
-            description="Monthly history includes received and expected income."
-            incomeLabel="Received + expected income"
-            comparisonMonth={o.selected_month}
-          />
           <Panel
             title="Monthly totals"
             description="Income includes expected amounts; the difference is not your spendable bank balance."
@@ -100,21 +93,8 @@ export default function InsightsView({
             {...actions}
           />
         </>
-      ) : (
-        <SpendingChart charts={o.charts} />
-      )}
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-2">
-        <ComparisonChart
-          title="Spending by category"
-          description="Actual expense amounts in the selected month."
-          rows={o.charts.categories.map((row) => ({
-            label: row.name,
-            amount: row.amount,
-          }))}
-          fields={["amount"]}
-          amountLabel="Spent"
-          amountDirection="out"
-        />
         <Panel
           title="Category breakdown"
           description="Ranked by spending in the selected month."
@@ -178,12 +158,36 @@ export default function InsightsView({
           </p>
         </Panel>
       </div>
-      <ComparisonChart
-        title="Bills by due month"
-        rows={o.charts.bills}
-        comparisonMonth={o.selected_month}
-        fields={["paid", "unpaid"]}
-      />
+      {reports ? (
+        <ComparisonChart
+          title="Income versus expenses"
+          rows={o.charts.monthly}
+          description="Monthly history includes received and expected income."
+          incomeLabel="Received + expected income"
+          comparisonMonth={o.selected_month}
+        />
+      ) : (
+        <SpendingChart charts={o.charts} />
+      )}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ComparisonChart
+          title="Spending by category"
+          description="Actual expense amounts in the selected month."
+          rows={o.charts.categories.map((row) => ({
+            label: row.name,
+            amount: row.amount,
+          }))}
+          fields={["amount"]}
+          amountLabel="Spent"
+          amountDirection="out"
+        />
+        <ComparisonChart
+          title="Bills by due month"
+          rows={o.charts.bills}
+          comparisonMonth={o.selected_month}
+          fields={["paid", "unpaid"]}
+        />
+      </div>
     </div>
   );
 }

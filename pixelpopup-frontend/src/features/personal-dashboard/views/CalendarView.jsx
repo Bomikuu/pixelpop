@@ -53,14 +53,6 @@ export default function CalendarView({ dashboard, month, setMonth, openForm, set
           },
         ]}
       />
-      <ComparisonChart
-        title="Monthly planning comparison"
-        description="Pending versus completed deadlines by due month; income receipts are listed in the calendar separately."
-        rows={dashboard.data.overview.charts.bills}
-        fields={["pending", "completed"]}
-        monetary={false}
-        comparisonMonth={month}
-      />
       {state.error && (
         <ErrorState message={state.error} retry={dashboard.refresh} />
       )}
@@ -141,7 +133,9 @@ export default function CalendarView({ dashboard, month, setMonth, openForm, set
                         aria-label={
                           (["task", "reminder"].includes(row.kind)
                             ? "Complete task "
-                            : row.financing_asset_id
+                            : row.cash_loan_id
+                              ? "Open cash loan to record repayment for "
+                              : row.financing_asset_id
                               ? "Open asset to record payment for "
                               : row.settlement_kind === "loan_collection"
                                 ? "Record collection for "
@@ -165,7 +159,7 @@ export default function CalendarView({ dashboard, month, setMonth, openForm, set
                       {!["task", "reminder"].includes(row.kind) && (
                         row.amount == null
                           ? "No fixed amount"
-                          : row.financing_asset_id && row.status === "pending"
+                          : (row.financing_asset_id || row.cash_loan_id) && row.status === "pending"
                             ? money(row.remaining_due) + " left of " + money(row.amount)
                             : money(row.amount)
                       )}
@@ -187,6 +181,14 @@ export default function CalendarView({ dashboard, month, setMonth, openForm, set
           )}
         </Panel>
       </div>
+      <ComparisonChart
+        title="Monthly planning comparison"
+        description="Pending versus completed deadlines by due month; income receipts are listed in the calendar separately."
+        rows={dashboard.data.overview.charts.bills}
+        fields={["pending", "completed"]}
+        monetary={false}
+        comparisonMonth={month}
+      />
     </div>
   );
 }

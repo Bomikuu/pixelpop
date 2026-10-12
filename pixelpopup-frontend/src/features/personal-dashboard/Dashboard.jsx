@@ -30,6 +30,8 @@ import {
   Lightbulb,
   BookOpenText,
   Bell,
+  LogOut,
+  LoaderCircle,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useReminders } from "./hooks/useReminders";
@@ -40,8 +42,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "./ui/dialog";
 import { TooltipProvider } from "./ui/tooltip";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import FormDialog from "./components/forms/FormDialog";
 import { DeleteDialog, HistoryDialog } from "./components/ActionDialogs";
 import GlobalSearch from "./components/GlobalSearch";
@@ -49,7 +53,10 @@ import RecordList from "./components/RecordList";
 import SummaryTiles from "./components/SummaryTiles";
 import DashboardCompanion from "./components/DashboardCompanion";
 import DashboardToasts from "./components/DashboardToasts";
+import { STANDARD_DASHBOARD_TOASTS_ENABLED } from "../../ui/mascot/dashboardCompanionConfig";
 import DatabaseBackup from "./components/DatabaseBackup";
+import DashboardLogin from "./components/DashboardLogin";
+import BalanceCorrectionView from "./views/BalanceCorrectionView";
 import CalendarDialog from "./components/CalendarDialog";
 import { EmptyState, ErrorState, Panel } from "./components/Panel";
 import OverviewView from "./views/OverviewView";
@@ -61,10 +68,13 @@ import PersonHistoryView from "./views/PersonHistoryView";
 import SharedBillView from "./views/SharedBillView";
 import AssetDetailView from "./views/AssetDetailView";
 import AccountDetailView from "./views/AccountDetailView";
+import CashLoanDetailView from "./cash-loans/CashLoanDetailView";
 import NutritionView from "./views/NutritionView";
 import EventsView from "./views/EventsView";
 import BrainstormView from "./views/BrainstormView";
 import EodView from "./views/EodView";
+import QuickEntryDialog from "./components/quick-entry/QuickEntryDialog";
+import UnsettledTransactions from "./components/quick-entry/UnsettledTransactions";
 import ReminderSettings from "./components/reminders/ReminderSettings";
 import ReminderChecklistDialog from "./components/reminders/ReminderChecklistDialog";
 import NutritionDateControls from "./components/nutrition/NutritionDateControls";
@@ -78,6 +88,7 @@ const tabs = [
   ["funds", "Benefits & investments", PiggyBank, "Money"],
   ["people", "People & money", HeartHandshake, "Money"],
   ["transactions", "Transactions", ArrowLeftRight, "Money"],
+  ["quick-entry-transactions", "Quick Entry transactions", Plus, "Money"],
   ["income", "Income", ArrowDownLeft, "Money"],
   ["deadlines", "Tasks & deadlines", ListChecks, "Planning"],
   ["bills", "Bills", Receipt, "Planning"],
@@ -106,6 +117,8 @@ export default function Dashboard() {
   const personKey = tab === "people" ? routeParts[1] : undefined;
   const assetId = tab === "assets" ? routeParts[1] : undefined;
   const accountId = tab === "accounts" ? routeParts[1] : undefined;
+  const correctingBalances = tab === "settings" && routeParts[1] === "balances";
+  const cashLoanId = accountId && routeParts[2] === "cash-loans" ? routeParts[3] : undefined;
   const sharedBillRoute = tab === "people" && routeParts[1] === "shared";
   const sharedBillId = sharedBillRoute ? routeParts[2] : undefined;
   const currentTab =
@@ -119,7 +132,40 @@ export default function Dashboard() {
     refresh: dashboard.refresh,
   });
   const [mobileNav, setMobileNav] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const logoutTrigger = useRef(null);
+  const logoutPending = useRef(false);
+  const signOut = async (event) => {
+    event.preventDefault();
+    if (logoutPending.current) return;
+    logoutPending.current = true;
+    setLoggingOut(true);
+    setLogoutError("");
+    try {
+      await dashboard.request("session/logout/", { method: "POST" });
+      logoutPending.current = false;
+      setLoggingOut(false);
+      setLogoutOpen(false);
+      setMobileNav(false);
+      // Recheck the session even if an unsaved-work prompt cancels navigation.
+      dashboard.refresh();
+      window.location.replace("/dashboard");
+    } catch (error) {
+      setLogoutError(error.message);
+      setLoggingOut(false);
+      logoutPending.current = false;
+    }
+  };
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setMobileNav(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
   const [nutritionDate, setNutritionDate] = useState(today);
+  const [quickEntryOpen, setQuickEntryOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return (
@@ -210,7 +256,9 @@ export default function Dashboard() {
   };
   const openOverdueItem = (item) => {
     const month = item.due_date.slice(0, 7);
-    const path = item.financing_asset_id
+    const path = item.cash_loan_id
+      ? "accounts/" + item.credit_card + "/cash-loans/" + item.cash_loan_id
+      : item.financing_asset_id
       ? "assets/" + item.financing_asset_id
       : item.shared_bill_id
         ? "people/shared/" + item.shared_bill_id
@@ -264,10 +312,12 @@ export default function Dashboard() {
     });
   const notify = (text, context) => {
     const id = ++notificationId.current;
-    setNotices((items) => [
-      ...items.slice(-2),
-      { id, text, tone: context?.tone || "success" },
-    ]);
+    const notice = { id, text, tone: context?.tone || "success", context, createdAt: Date.now() };
+    setNotices((items) => {
+      const latest = items[items.length - 1];
+      if (latest?.text === text && latest.tone === notice.tone && notice.createdAt - latest.createdAt < 2000) return items;
+      return [...(STANDARD_DASHBOARD_TOASTS_ENABLED ? items.slice(-2) : items), notice];
+    });
     if (context?.action) {
       setCompanionActivity(
         context.action === "added" || context.action === "edited"
@@ -279,6 +329,10 @@ export default function Dashboard() {
   };
   const actions = {
     openForm: (entity, record) => {
+      if (["deadline", "settlement"].includes(entity) && record?.cash_loan_id) {
+        navigateRouter(`/dashboard/accounts/${record.credit_card}/cash-loans/${record.cash_loan_id}?month=${selectedMonth}`);
+        return;
+      }
       if (
         (entity === "deadline" || entity === "settlement") &&
         record?.financing_asset_id
@@ -372,32 +426,46 @@ export default function Dashboard() {
   if (dashboard.status !== "ready")
     return (
       <main className="personal-dashboard grid min-h-screen place-items-center bg-slate-50 p-6">
-        <div className="max-w-md text-center">
+        <div className="w-full max-w-md text-center">
           {dashboard.status === "denied" ? (
-            <>
-              <ShieldCheck
-                className="mx-auto mb-5 text-slate-500"
-                size={32}
-                aria-hidden="true"
-              />
-              <h1 className="text-2xl font-semibold">
-                This page is not accessible.
-              </h1>
-              <p className="mt-3 text-base text-slate-600">
-                You need to be logged in to view your personal dashboard.
-              </p>
-            </>
+            <DashboardLogin onSignedIn={dashboard.refresh} />
           ) : dashboard.status === "error" ? (
             <ErrorState message={dashboard.error} retry={dashboard.refresh} />
           ) : (
-            <p role="status" className="text-sm text-slate-600">
-              Verifying your Django session…
-            </p>
+            <div role="status" className="flex flex-col items-center gap-3 text-sm text-slate-600">
+              <LoaderCircle className="size-8 animate-spin text-[var(--pd-primary)] motion-reduce:animate-none" aria-hidden="true" />
+              <span>Loading your workspace…</span>
+            </div>
           )}
         </div>
       </main>
     );
   const shared = { dashboard, month: selectedMonth, ...actions };
+  const renderNavigation = (mobile = false) => (
+    <nav id={mobile ? "mobile-dashboard-links" : "dashboard-navigation"} aria-label="Dashboard" className={"space-y-1 px-3 pb-5 " + (mobile ? "" : "hidden lg:block")}>
+      {tabs.map(([path, label, icon, group], index) => (
+        <div key={path}>
+          {index > 0 && group !== tabs[index - 1][3] && <p className={"px-3 pb-2 pt-5 text-xs font-medium text-slate-500 " + (!mobile && collapsed ? "lg:hidden" : "")}>{group}</p>}
+          <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal " + (mobile ? "h-11 " : collapsed ? "lg:justify-center lg:px-0 " : "") + (tab === path ? "bg-blue-50 text-[var(--pd-primary)]" : "text-slate-600")}>
+            <a href={"/dashboard" + (path ? "/" + path : "") + "?month=" + selectedMonth} aria-current={tab === path ? "page" : undefined} aria-label={label} title={!mobile && collapsed ? label : undefined} onClick={(event) => {
+              if (!event.metaKey && !event.ctrlKey) { event.preventDefault(); navigate(path); }
+            }}>
+              {createElement(icon, { size: 17, "aria-hidden": true })}
+              <span className={!mobile && collapsed ? "lg:hidden" : ""}>{label}</span>
+            </a>
+          </Button>
+        </div>
+      ))}
+      <div className="mt-3 border-t pt-3">
+        <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal text-slate-600 " + (mobile ? "h-11" : collapsed ? "lg:justify-center lg:px-0" : "")}>
+          <a href="/business" aria-label="Business dashboard" title={!mobile && collapsed ? "Business dashboard" : undefined}><BriefcaseBusiness size={17} aria-hidden="true" /><span className={!mobile && collapsed ? "lg:hidden" : ""}>Business dashboard</span></a>
+        </Button>
+        <Button type="button" variant="ghost" className={"w-full justify-start px-3 font-normal text-slate-600 " + (mobile ? "h-11" : collapsed ? "lg:justify-center lg:px-0" : "")} aria-label="Log out" title={!mobile && collapsed ? "Log out" : undefined} onClick={(event) => { logoutTrigger.current = event.currentTarget; setLogoutError(""); setLogoutOpen(true); }}>
+          <LogOut size={17} aria-hidden="true" /><span className={!mobile && collapsed ? "lg:hidden" : ""}>Log out</span>
+        </Button>
+      </div>
+    </nav>
+  );
   return (
     <TooltipProvider>
       <div
@@ -430,17 +498,21 @@ export default function Dashboard() {
                 Personal workspace
               </span>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              aria-label="Toggle dashboard navigation"
-              aria-expanded={mobileNav}
-              aria-controls="dashboard-navigation"
-              onClick={() => setMobileNav(!mobileNav)}
-            >
-              <Menu />
-            </Button>
+            <Dialog open={mobileNav} onOpenChange={setMobileNav}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-11 lg:hidden" aria-label="Open dashboard navigation" aria-expanded={mobileNav} aria-controls="mobile-dashboard-navigation"><Menu /></Button>
+              </DialogTrigger>
+              <DialogContent id="mobile-dashboard-navigation" className="personal-dashboard inset-y-0 left-0 top-0 flex h-dvh w-80 max-w-[calc(100%-3rem)] translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-y-0 border-l-0 p-0 sm:max-w-80 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 motion-reduce:animate-none [&_[data-slot=dialog-close]]:right-2 [&_[data-slot=dialog-close]]:top-2 [&_[data-slot=dialog-close]]:grid [&_[data-slot=dialog-close]]:size-11 [&_[data-slot=dialog-close]]:place-items-center" >
+                <DialogHeader className="shrink-0 border-b px-5 py-5 pr-12 text-left">
+                  <DialogTitle className="flex items-center gap-3 text-sm"><Wallet size={19} aria-hidden="true" />Personal workspace</DialogTitle>
+                  <DialogDescription className="sr-only">Choose a page in your personal dashboard.</DialogDescription>
+                </DialogHeader>
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-3 pb-[env(safe-area-inset-bottom)]">
+                  {renderNavigation(true)}
+                  <p className="border-t px-5 py-4 text-xs leading-5 text-slate-500">Private workspace<br />Signed in as {dashboard.data.user.name}</p>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button
               variant="ghost"
               size="icon-sm"
@@ -453,70 +525,7 @@ export default function Dashboard() {
               {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
             </Button>
           </div>
-          <nav
-            id="dashboard-navigation"
-            aria-label="Dashboard"
-            className={
-              (mobileNav ? "block" : "hidden") + " space-y-1 px-3 pb-5 lg:block"
-            }
-          >
-            {tabs.map(([path, label, icon, group], index) => (
-              <div key={path}>
-                {index > 0 && group !== tabs[index - 1][3] && (
-                  <p
-                    className={
-                      "px-3 pb-2 pt-5 text-xs font-medium text-slate-500 " +
-                      (collapsed ? "lg:hidden" : "")
-                    }
-                  >
-                    {group}
-                  </p>
-                )}
-                <Button
-                  asChild
-                  variant="ghost"
-                  className={
-                    "w-full justify-start px-3 font-normal " +
-                    (collapsed ? "lg:justify-center lg:px-0 " : "") +
-                    (tab === path
-                      ? "bg-blue-50 text-[var(--pd-primary)]"
-                      : "text-slate-600")
-                  }
-                >
-                  <a
-                    href={
-                      "/dashboard" +
-                      (path ? "/" + path : "") +
-                      "?month=" +
-                      selectedMonth
-                    }
-                    aria-current={tab === path ? "page" : undefined}
-                    aria-label={label}
-                    title={collapsed ? label : undefined}
-                    onClick={(event) => {
-                      if (!event.metaKey && !event.ctrlKey) {
-                        event.preventDefault();
-                        navigate(path);
-                      }
-                    }}
-                  >
-                    {createElement(icon, { size: 17, "aria-hidden": true })}
-                    <span className={collapsed ? "lg:hidden" : ""}>
-                      {label}
-                    </span>
-                  </a>
-                </Button>
-              </div>
-            ))}
-          </nav>
-          <div className="border-t px-3 py-3">
-            <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal text-slate-600 " + (collapsed ? "lg:justify-center lg:px-0" : "")}>
-              <a href="/business" aria-label="Business dashboard" title={collapsed ? "Business dashboard" : undefined}>
-                <BriefcaseBusiness size={17} aria-hidden="true" />
-                <span className={collapsed ? "lg:hidden" : ""}>Business dashboard</span>
-              </a>
-            </Button>
-          </div>
+          {renderNavigation()}
           <p
             className={
               "hidden border-t px-5 py-4 text-xs leading-5 text-slate-500 " +
@@ -546,7 +555,7 @@ export default function Dashboard() {
                     <span className="text-slate-500">Workspace</span>
                     <ChevronRight size={14} className="text-slate-500" aria-hidden="true" />
                     <h1 className="text-sm! leading-5! font-semibold text-slate-950">
-                      {tab ? current?.[1] || "Page not found" : "Welcome back, Miku!"}
+                      {correctingBalances ? "Correct balances" : tab ? current?.[1] || "Page not found" : "Welcome back, Miku!"}
                     </h1>
                   </nav>
                   <p className="mt-1 text-xs leading-5 text-slate-600">
@@ -617,6 +626,12 @@ export default function Dashboard() {
                         }
                       }}
                     >
+                      <DropdownMenu.Item
+                        className="flex cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--pd-soft)] data-[highlighted]:text-slate-950"
+                        onSelect={() => { quickAddOpening.current = true; setQuickEntryOpen(true); }}
+                      >
+                        <Plus size={16} aria-hidden="true" />Quick Entry
+                      </DropdownMenu.Item>
                       {[
                         ["Task", ListChecks, "deadline", { kind: "task" }],
                         ["Bill", Receipt, "deadline", { kind: "bill" }],
@@ -638,7 +653,7 @@ export default function Dashboard() {
             )}
             {!tab && reminders.error && <p role="alert" className="mt-2 text-right text-xs text-red-700">{reminders.error}</p>}
           </header>
-          {tab !== "nutrition" && tab !== "events" && dashboard.data.overview.attention.overdue > 0 && (
+          {!tab && dashboard.data.overview.attention.overdue > 0 && (
             <div
               role="status"
               className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900"
@@ -701,6 +716,8 @@ export default function Dashboard() {
               openForm={actions.openForm}
               settleDeadline={actions.settleDeadline}
             />
+          ) : tab === "quick-entry-transactions" ? (
+            <UnsettledTransactions dashboard={dashboard} notify={notify} />
           ) : tab === "nutrition" ? (
             <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onLeave={() => navigate("")} />
           ) : tab === "events" ? (
@@ -712,7 +729,9 @@ export default function Dashboard() {
           ) : tab === "funds" ? (
             <FundsView {...shared} />
           ) : tab === "accounts" && accountId ? (
-            /^\d+$/.test(accountId) && !routeParts.slice(2).some(Boolean) ? (
+            /^\d+$/.test(accountId) && cashLoanId && /^\d+$/.test(cashLoanId) && !routeParts.slice(4).some(Boolean) ? (
+              <CashLoanDetailView key={cashLoanId} accountId={accountId} loanId={cashLoanId} {...shared} />
+            ) : /^\d+$/.test(accountId) && !routeParts.slice(2).some(Boolean) ? (
               <AccountDetailView key={accountId} accountId={accountId} {...shared} />
             ) : (
               <EmptyState
@@ -776,6 +795,8 @@ export default function Dashboard() {
             ) : (
               <PeopleView {...shared} />
             )
+          ) : correctingBalances ? (
+            <BalanceCorrectionView dashboard={dashboard} notify={notify} />
           ) : tab === "settings" ? (
             <div className="space-y-6">
               <SummaryTiles
@@ -817,9 +838,9 @@ export default function Dashboard() {
                 }
               >
                 <p className="text-sm text-slate-600">
-                  Opening balances and corrections belong to Accounts & cards.
-                  Categories and recurring schedules are managed below.
+                  Categories and recurring schedules are managed below. Reconcile forgotten transactions by correcting your actual account balances.
                 </p>
+                <Button className="mt-4" variant="outline" onClick={() => navigateRouter("/dashboard/settings/balances")}><ShieldCheck className="size-4" aria-hidden="true" />Correct account balances</Button>
               </Panel>
               <ReminderSettings
                 settings={dashboard.data.settings}
@@ -890,17 +911,34 @@ export default function Dashboard() {
           )}
         </main>
         <DashboardCompanion
-          tab={tab}
+          tab={sharedBillRoute ? "shared" : currentTab}
           overdue={dashboard.data.overview.attention.overdue}
           activity={companionActivity}
           reaction={companionReaction}
+          stationary={!STANDARD_DASHBOARD_TOASTS_ENABLED}
+          notification={notices[0]}
+          pendingCount={notices.length}
+          dismiss={(id) => setNotices((items) => items.filter((item) => item.id !== id))}
         />
-        <DashboardToasts
+        {STANDARD_DASHBOARD_TOASTS_ENABLED && <DashboardToasts
           notices={notices}
           dismiss={(id) =>
             setNotices((items) => items.filter((item) => item.id !== id))
           }
-        />
+        />}
+        <AlertDialog open={logoutOpen} onOpenChange={(open) => { if (!logoutPending.current) setLogoutOpen(open); }}>
+          <AlertDialogContent className="personal-dashboard" onEscapeKeyDown={(event) => { if (logoutPending.current) event.preventDefault(); }} onCloseAutoFocus={(event) => { if (logoutTrigger.current?.isConnected) { event.preventDefault(); logoutTrigger.current.focus(); } }}>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2"><LogOut className="size-5" aria-hidden="true" />Log out of your workspace?</AlertDialogTitle>
+              <AlertDialogDescription>This ends your Django session in this browser, including Django admin. Save any unsaved work first. Your saved records will not change.</AlertDialogDescription>
+            </AlertDialogHeader>
+            {logoutError && <p role="alert" className="flex items-start gap-2 rounded-md bg-red-50 p-3 text-sm text-red-900"><TriangleAlert className="size-4 shrink-0" aria-hidden="true" />{logoutError}</p>}
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={loggingOut}>Stay signed in</AlertDialogCancel>
+              <AlertDialogAction onClick={signOut} disabled={loggingOut} aria-busy={loggingOut}><LogOut className="size-4" aria-hidden="true" />{loggingOut ? "Logging out…" : "Log out"}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <ReminderChecklistDialog
           dialog={reminders.dialog}
           error={reminders.error}
@@ -953,6 +991,7 @@ export default function Dashboard() {
             </DialogContent>
           </Dialog>
         )}
+        {quickEntryOpen && <QuickEntryDialog open={quickEntryOpen} onOpenChange={setQuickEntryOpen} dashboard={dashboard} notify={notify} restoreFocus={() => quickAddTrigger.current?.focus()} />}
         {dialog && (
           <FormDialog
             key={dialog.entity + "-" + (dialog.record?.id || "new")}

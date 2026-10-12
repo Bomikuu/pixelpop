@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, BookOpen, BriefcaseBusiness, CalendarDays, ChartNoAxesCombined, ChevronRight, ClipboardCheck, FileText, GitPullRequest, LayoutDashboard, ListChecks, Menu, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings2, ShieldCheck, Target, Users, Workflow, X } from "lucide-react";
 import { leadershipApi } from "./api";
@@ -9,6 +9,8 @@ import ClientDetailView from "./client-workflow/ClientDetailView";
 import ProjectWorkflowView from "./client-workflow/ProjectWorkflowView";
 import TemplateLibraryView from "./client-workflow/TemplateLibraryView";
 import JobApplicationsView from "./job-applications/JobApplicationsView";
+import BusinessCompanion from "./components/BusinessCompanion";
+import { STANDARD_DASHBOARD_TOASTS_ENABLED } from "../../ui/mascot/dashboardCompanionConfig";
 import { Button } from "../personal-dashboard/ui/button";
 import { Input } from "../personal-dashboard/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../personal-dashboard/ui/dialog";
@@ -78,10 +80,23 @@ export default function BusinessDashboard() {
   const [revision, setRevision] = useState(0);
   const [mobileNav, setMobileNav] = useState(false);
   const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem("business-dashboard-nav-collapsed") === "true"; } catch { return false; } });
-  const [toast, setToast] = useState(null);
+  const [notices, setNotices] = useState([]);
+  const noticeSequence = useRef(0);
   const [clientDocumentDirty, setClientDocumentDirty] = useState(false);
-  const notify = useCallback((message, danger = false) => { setToast({ message, danger, id: Date.now() }); }, []);
-  useEffect(() => { if (!toast) return; const timeout = setTimeout(() => setToast(null), 4200); return () => clearTimeout(timeout); }, [toast]);
+  const notify = useCallback((message, danger = false) => {
+    const notice = { message, danger, id: ++noticeSequence.current, createdAt: Date.now() };
+    setNotices((old) => {
+      const latest = old[old.length - 1];
+      return latest?.message === message && latest.danger === danger && notice.createdAt - latest.createdAt < 2000 ? old : [...old, notice];
+    });
+  }, []);
+  const dismissNotice = useCallback((id) => setNotices((old) => old.filter((notice) => notice.id !== id)), []);
+  const toast = notices[0];
+  useEffect(() => {
+    if (!STANDARD_DASHBOARD_TOASTS_ENABLED || !toast) return;
+    const timeout = setTimeout(() => dismissNotice(toast.id), 4200);
+    return () => clearTimeout(timeout);
+  }, [toast, dismissNotice]);
   useEffect(() => { const original = document.title; const meta = document.querySelector('meta[name="robots"]') || document.createElement("meta"); const previous = meta.getAttribute("content"); meta.name = "robots"; meta.content = "noindex, nofollow"; if (!meta.parentNode) document.head.appendChild(meta); document.title = `${isApplicationAI ? "Application AI" : isMemberPage ? memberName || "Team member" : current?.[1] || "Business"} · Business Dashboard`; return () => { document.title = original; if (previous === null) meta.remove(); else meta.content = previous; }; }, [current, isMemberPage, memberName, isApplicationAI]);
   const load = useCallback(async () => { setLoading(true); setError(""); setErrorStatus(null); try { const data = await leadershipApi("bootstrap/"); setBootstrap(data); if (data.plan) setOverview(await leadershipApi("overview/")); else setOverview(null); } catch (cause) { setError(cause.message); setErrorStatus(cause.status); setBootstrap(null); setOverview(null); } finally { setLoading(false); } }, []);
   useEffect(() => { load(); }, [load]);
@@ -100,5 +115,7 @@ export default function BusinessDashboard() {
     <main className="min-w-0 p-4 sm:p-6 lg:p-8"><header className="mb-5 flex flex-wrap items-start justify-between gap-3 border-b pb-4"><div><nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm"><span className="text-slate-500">Business</span><ChevronRight size={14} className="text-slate-400" aria-hidden="true"/>{isMemberPage && <><button type="button" onClick={() => go("team")} className="text-slate-600 hover:text-blue-700 hover:underline">Team Development</button><ChevronRight size={14} className="text-slate-400" aria-hidden="true"/></>}{isClientDetail || isProjectDetail ? <><button type="button" onClick={() => go("clients")} className="text-slate-600 hover:text-blue-700 hover:underline">Clients</button><ChevronRight size={14} className="text-slate-400" aria-hidden="true"/></> : null}<h1 className="text-sm! leading-5! font-semibold text-slate-950">{isApplicationAI ? "Application AI" : isApplicationAnswers ? "Reusable answers" : isMemberPage ? memberName || "Team member" : isProjectDetail ? "Project workflow" : isClientDetail ? "Client details" : isTemplatesRoute ? "Templates" : current?.[1] || "Page not found"}</h1></nav><p className="mt-1 text-xs text-slate-600">{isApplicationsRoute ? "Prepare application materials and track submissions and replies." : bootstrap.plan ? `${bootstrap.plan.team_name} · ${bootstrap.currentWeek ? `Week ${bootstrap.currentWeek} of 12` : bootstrap.period === "upcoming" ? "Plan not started" : "Plan completed"}` : "Client workspace"} · {new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", dateStyle: "long" }).format(new Date())}</p></div><span className="inline-flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-xs text-slate-600"><BriefcaseBusiness size={15} className="text-blue-700"/> Private workspace</span></header>
       {!current || (isClientRoute ? !clientRouteValid : isApplicationsRoute ? !applicationRouteValid : memberId && !isMemberPage) ? <ErrorState message="This business page does not exist." retry={() => go("")}/> : isApplicationsRoute ? <JobApplicationsView applicationId={/^\d+$/.test(memberId || "") ? memberId : undefined} initialTab={applicationInitialTab} navigate={go} notify={notify}/> : isProjectDetail ? <ProjectWorkflowView key={extraSegments[1]} clientId={memberId} projectId={extraSegments[1]} csrf={bootstrap.csrfToken} navigate={go} onDirtyChange={setClientDocumentDirty}/> : isClientDetail ? <ClientDetailView key={memberId} clientId={memberId} csrf={bootstrap.csrfToken} navigate={go}/> : isTemplatesRoute ? <TemplateLibraryView csrf={bootstrap.csrfToken} onDirtyChange={setClientDocumentDirty}/> : path === "clients" ? <ClientsView csrf={bootstrap.csrfToken} navigate={go}/> : isMemberPage ? <MemberDetailView key={memberId} memberId={memberId} csrf={bootstrap.csrfToken} currentWeek={bootstrap.currentWeek} onBack={() => go("team")} onMemberLoaded={onMemberLoaded} notify={notify}/> : path === "" ? <OverviewView overview={overview} bootstrap={bootstrap} navigate={go} csrf={bootstrap.csrfToken} revision={revision}/> : path === "week" ? <ThisWeekView bootstrap={bootstrap} overview={overview} csrf={bootstrap.csrfToken} notify={notify} refresh={changed}/> : path === "roadmap" ? <RoadmapView bootstrap={bootstrap} csrf={bootstrap.csrfToken} notify={notify} refresh={changed} revision={revision}/> : <SectionPage key={path} section={path} bootstrap={bootstrap} csrf={bootstrap.csrfToken} notify={notify} refresh={changed} revision={revision}/>}
     </main>
-  </div>{toast && <div role={toast.danger ? "alert" : "status"} className={`fixed bottom-5 right-5 z-[60] flex max-w-sm items-center gap-2 rounded-md border bg-white px-4 py-3 text-sm shadow-lg ${toast.danger ? "border-rose-300 text-rose-800" : "border-emerald-200 text-slate-900"}`}>{toast.danger ? <X size={16}/> : <ShieldCheck size={16} className="text-emerald-700"/>}{toast.message}</div>}</div>;
+  </div>{STANDARD_DASHBOARD_TOASTS_ENABLED
+    ? toast && <div role={toast.danger ? "alert" : "status"} className={`fixed bottom-5 right-5 z-[60] flex max-w-sm items-center gap-2 rounded-md border bg-white px-4 py-3 text-sm shadow-lg ${toast.danger ? "border-rose-300 text-rose-800" : "border-emerald-200 text-slate-900"}`}>{toast.danger ? <X size={16}/> : <ShieldCheck size={16} className="text-emerald-700"/>}{toast.message}</div>
+    : <BusinessCompanion notification={notices[0]} pendingCount={notices.length} dismiss={dismissNotice}/>}</div>;
 }

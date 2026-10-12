@@ -9,7 +9,7 @@ export default function EodCard({ date, entry, selected, onSelect, wide }) {
   const tone = !entry ? "unlogged" : entry.type === "workday" ? "logged" : "neutral";
 
   return <button type="button" onClick={onSelect} aria-expanded={selected} aria-controls={selected ? "eod-detail" : undefined}
-    className={`eod-card group relative flex min-h-44 min-w-0 flex-col overflow-hidden border bg-white p-4 text-left shadow-[0_3px_12px_-9px_rgba(15,23,42,.4)] transition-[border-color,box-shadow] hover:border-blue-300 hover:shadow-[0_8px_22px_-13px_rgba(15,23,42,.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 motion-reduce:transition-none ${wide ? "sm:col-span-2" : ""} ${selected ? "border-blue-500 ring-1 ring-blue-100" : "border-slate-200"}`}>
+    className={`eod-card group relative flex min-h-44 min-w-0 basis-full grow flex-col overflow-hidden border bg-white p-4 text-left shadow-[0_3px_12px_-9px_rgba(15,23,42,.4)] transition-[border-color,box-shadow] hover:border-blue-300 hover:shadow-[0_8px_22px_-13px_rgba(15,23,42,.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 motion-reduce:transition-none ${wide ? "sm:basis-full xl:basis-[calc(50%-0.375rem)]" : "sm:basis-[calc(50%-0.375rem)] xl:basis-[calc(25%-0.5625rem)]"} ${selected ? "border-blue-500 ring-1 ring-blue-100" : "border-slate-200"}`}>
     <EodPattern tone={tone} />
     <span className="relative z-10 flex items-start justify-between gap-3">
       <span className="text-3xl font-semibold leading-none text-slate-950 tabular-nums">{Number(date.slice(8))}</span>

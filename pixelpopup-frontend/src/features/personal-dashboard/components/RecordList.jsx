@@ -13,6 +13,9 @@ import {
   Receipt,
   ArrowDownLeft,
   ListChecks,
+  Wallet,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useRecords } from "../hooks/useDashboardData";
@@ -27,6 +30,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import AccountCards from "./AccountCards";
+import AssetCards from "./assets/AssetCards";
+import AssetImage from "./assets/AssetImage";
 import RecordIdentity from "./RecordIdentity";
 import { choiceIcon } from "../lib/presets";
 import { RecordCharts } from "./Charts";
@@ -270,6 +275,7 @@ export default function RecordList({
   const [transactionKind, setTransactionKind] = useState(initialTransactionKind);
   const [acting, setActing] = useState(null);
   const [actionError, setActionError] = useState("");
+  const [assetView, setAssetView] = useState("cards");
   useEffect(() => {
     if (composing) return;
     const timer = setTimeout(() => {
@@ -353,6 +359,8 @@ export default function RecordList({
     }
   }
   function display(field, row) {
+    if (resource === "transactions" && field === "account_name" && row.account == null)
+      return <Link to="/dashboard/quick-entry-transactions?view=unsettled" className="inline-flex items-center gap-2 text-sm hover:text-[var(--pd-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)]"><Wallet className="size-4 shrink-0" aria-hidden="true" /><span>Other Account<span className="block text-xs text-slate-600">Needs account</span></span></Link>;
     if (field === "recipient" && !row.recipient) return "—";
     if (recent && field === "date")
       return (
@@ -392,7 +400,7 @@ export default function RecordList({
           to={"/dashboard/assets/" + row.id + "?month=" + month}
           className="inline-flex rounded-sm hover:text-[var(--pd-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)]"
         >
-          <RecordIdentity resource={resource} row={row} label={row.name || "—"} />
+          {row.image_url ? <span className="flex items-start gap-2.5"><AssetImage src={row.image_url} kind={row.kind} name={row.name} thumbnail className="size-9 shrink-0 rounded-full" /><span className="min-w-0 pt-1 font-medium leading-6">{row.name || "—"}</span></span> : <RecordIdentity resource={resource} row={row} label={row.name || "—"} />}
         </Link>
       );
     if (resource === "deadlines" && field === "title" && row.financing_asset_id)
@@ -503,19 +511,6 @@ export default function RecordList({
             : summaries(resource, state.data.summary, displayedKind, bills)}
         />
       )}
-      {!compact && !accountScoped && !hideAnalytics && fixedParams?.coverage !== "1" && state.data?.charts && (
-        <RecordCharts
-          charts={state.data.charts}
-          month={month}
-          amountDirection={resource === "transactions" && displayedKind === "expense" ? "out" : undefined}
-          sideBySide={
-            (resource === "transactions" && !kind) ||
-            resource === "deadlines" ||
-            (resource === "accounts" && kind === "fund" && fixedParams?.coverage === "0")
-          }
-          assetComposition={resource === "assets"}
-        />
-      )}
       <Panel
         title={title}
         description={
@@ -534,7 +529,12 @@ export default function RecordList({
                       : "Current recorded values. Open history for dated movements."
         }
         action={
-          headerActions ?? (!compact && !hideAdd && resource === "deadlines" ? (
+          resource === "assets" ? <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => setAssetView((view) => view === "cards" ? "table" : "cards")} aria-label={`Switch assets to ${assetView === "cards" ? "table" : "card"} view`}>
+              {assetView === "cards" ? <Table2 aria-hidden="true" /> : <LayoutGrid aria-hidden="true" />}{assetView === "cards" ? "Table view" : "Card view"}
+            </Button>
+            {headerActions ?? (!compact && !hideAdd && <Button onClick={() => openForm(addEntity, addRecord)}><Plus aria-hidden="true" />Add asset</Button>)}
+          </div> : headerActions ?? (!compact && !hideAdd && resource === "deadlines" ? (
             <div className="flex flex-wrap gap-2">
               {!bills && (
                 <Button onClick={() => openForm("deadline", { kind: "task" })}>
@@ -706,21 +706,19 @@ export default function RecordList({
         )}
         {recent && state.data && !state.error && (
           <>
-            <div className="grid gap-3 border-b border-[var(--pd-border)] pb-5 lg:grid-cols-3 xl:grid-cols-12">
-              <RecentTransactionsChart rows={state.data.charts?.monthly} />
+            <div className="grid gap-3 border-b border-[var(--pd-border)] pb-5 lg:grid-cols-3">
               {[
                 { label: "Transactions", value: state.data.summary?.count ?? 0, icon: ListChecks, tone: "bg-blue-50 text-blue-700", surface: "bg-blue-50/30" },
                 { label: "Money in", value: <MoneyFlowAmount amount={state.data.summary?.income ?? 0} direction="in" />, icon: ArrowDownLeft, tone: "bg-emerald-50 text-emerald-700", surface: "bg-emerald-50/30" },
                 { label: "Money out", value: <MoneyFlowAmount amount={state.data.summary?.expenses ?? 0} direction="out" />, icon: ArrowUpRight, tone: "bg-rose-50 text-rose-700", surface: "bg-rose-50/30" },
               ].map(({ label, value, icon: Icon, tone, surface }) => (
-                <div key={label} className={"min-w-0 rounded-lg border border-[var(--pd-border)] p-4 transition-colors hover:border-blue-200 motion-reduce:transition-none lg:col-span-1 xl:col-span-2 " + surface}>
+                <div key={label} className={"min-w-0 rounded-lg border border-[var(--pd-border)] p-4 transition-colors hover:border-blue-200 motion-reduce:transition-none " + surface}>
                   <span className={"grid size-9 place-items-center rounded-full " + tone}><Icon size={18} aria-hidden="true" /></span>
                   <p className="mt-4 text-sm text-slate-600">{label}</p>
                   <p className="mt-1 break-words text-xl font-semibold tracking-tight text-slate-950 tabular-nums">{value}</p>
                 </div>
               ))}
             </div>
-            <p className="mt-2 text-xs text-slate-600">Search, category and type apply to the chart. Period selection applies to the list and totals.</p>
             <div className="my-4 flex flex-wrap gap-2" role="group" aria-label="Transaction type">
               {[["", "All"], ["income", "Income"], ["expense", "Expenses"]].map(([value, label]) => (
                 <Button
@@ -782,10 +780,14 @@ export default function RecordList({
               <AccountCards
                 rows={rows}
                 month={month}
+                dashboard={dashboard}
+                notify={notify}
                 openForm={openForm}
                 showHistory={showHistory}
                 confirmDelete={confirmDelete}
               />
+            ) : resource === "assets" && assetView === "cards" ? (
+              <AssetCards rows={rows} month={month} dashboard={dashboard} notify={notify} openForm={openForm} confirmDelete={confirmDelete} />
             ) : (
               <div className="overflow-x-auto">
                 <Table className={recent ? "min-w-[760px]" : undefined}>
@@ -1008,7 +1010,24 @@ export default function RecordList({
             )}
           </>
         )}
+        {recent && state.data && !state.error && <div className="mt-5 space-y-2 border-t border-[var(--pd-border)] pt-5">
+          <RecentTransactionsChart rows={state.data.charts?.monthly} />
+          <p className="text-xs text-slate-600">Search, category and type apply to the chart. Period selection applies to the list and totals.</p>
+        </div>}
       </Panel>
+      {!compact && !accountScoped && !hideAnalytics && fixedParams?.coverage !== "1" && state.data?.charts && (
+        <RecordCharts
+          charts={state.data.charts}
+          month={month}
+          amountDirection={resource === "transactions" && displayedKind === "expense" ? "out" : undefined}
+          sideBySide={
+            (resource === "transactions" && !kind) ||
+            resource === "deadlines" ||
+            (resource === "accounts" && kind === "fund" && fixedParams?.coverage === "0")
+          }
+          assetComposition={resource === "assets"}
+        />
+      )}
     </div>
   );
 }

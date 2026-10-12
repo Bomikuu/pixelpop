@@ -12,7 +12,7 @@ export function accountChoiceOption(account) {
     description: account.kind === "credit_card"
       ? limit == null
         ? "Credit limit not set"
-        : money(Math.max(0, limit - debt)) + " available · " + money(limit) + " limit"
+        : money(account.available_credit ?? (limit - debt)) + " available · " + money(limit) + " limit"
       : money(account.balance) + (account.kind === "fund" ? " recorded value" : " balance"),
     icon: choiceIcon(account.kind === "fund" ? account.fund_type : account.kind),
     logo: institutionFor(account.institution)?.logo,
@@ -28,7 +28,7 @@ export function accountProjection(account, amount, direction = "out", existingAm
   if (account.kind === "credit_card") {
     if (direction === "out") {
       if (account.credit_limit == null) return { blocked: true, text: "Set this card's credit limit before paying." };
-      const remaining = Number(account.credit_limit) - current - change;
+      const remaining = Number(account.available_credit ?? (Number(account.credit_limit) - current)) - change;
       return remaining < -0.001
         ? { blocked: true, text: "Insufficient credit. This charge exceeds the card's limit." }
         : { blocked: false, text: "Projected available credit: " + money(remaining) };

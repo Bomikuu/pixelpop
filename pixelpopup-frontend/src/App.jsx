@@ -9,6 +9,8 @@ import {
 
 import { OverlayHost } from "./ui/overlay";
 import RoamingCatMascot from "./ui/mascot/RoamingCatMascot";
+import StationaryCatMascot from "./ui/mascot/StationaryCatMascot";
+import publicMascotMessages from "./data/cat-mascot-messages.json";
 import PortfolioModern from "./pages/portfolio/PortfolioModern";
 const UiKitPage = lazy(() => import("./pages/UiKitPage"));
 const OverlayPlayground = lazy(() => import("./pages/OverlayPlayground"));
@@ -96,6 +98,7 @@ const ScoreboardOverlayPage = lazy(
 const PersonalDashboardPage = lazy(
   () => import("./pages/PersonalDashboardPage"),
 );
+const QuickEntryPage = lazy(() => import("./pages/QuickEntryPage"));
 const BusinessDashboardPage = lazy(
   () => import("./pages/BusinessDashboardPage"),
 );
@@ -105,10 +108,16 @@ function LegacyApplicationsRedirect() {
   const { pathname, search, hash } = useLocation();
   return <Navigate replace to={pathname.replace(/^\/dashboard\/applications/, "/business/applications") + search + hash} />;
 }
+function LegacyQuickEntryRedirect() {
+  const { search, hash } = useLocation();
+  return <Navigate replace to={"/dashboard/quick-entry-transactions" + search + hash} />;
+}
 function PublicExtras() {
   const { pathname } = useLocation();
+  const isPortfolio = pathname === "/" || pathname === "/portfolio" || pathname.startsWith("/portfolio/");
   if (
     pathname === "/dashboard" ||
+    pathname === "/quick-entry" ||
     pathname.startsWith("/dashboard/") ||
     pathname === "/business" ||
     pathname.startsWith("/business/") ||
@@ -119,7 +128,12 @@ function PublicExtras() {
   return (
     <>
       <OverlayHost />
-      <RoamingCatMascot />
+      {isPortfolio ? <StationaryCatMascot
+        key={pathname}
+        messages={publicMascotMessages.filter((item) => item.routes.some((route) =>
+          route.endsWith("*") ? pathname.startsWith(route.slice(0, -1)) : pathname === route,
+        ))}
+      /> : <RoamingCatMascot />}
     </>
   );
 }
@@ -136,6 +150,8 @@ export default function App() {
         >
           <Routes>
             <Route path="/dashboard/applications/*" element={<LegacyApplicationsRedirect />} />
+            <Route path="/dashboard/quick-entry/*" element={<LegacyQuickEntryRedirect />} />
+            <Route path="/quick-entry" element={<QuickEntryPage />} />
             <Route path="/dashboard/*" element={<PersonalDashboardPage />} />
             <Route path="/business/*" element={<BusinessDashboardPage />} />
             <Route path="/shared-bills/:token" element={<SharedBillPage />} />

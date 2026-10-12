@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import RoamingCatMascot from "../../../ui/mascot/RoamingCatMascot";
 import { catMascotConfig } from "../../../ui/mascot/catMascotConfig";
+import StationaryCatMascot from "../../../ui/mascot/StationaryCatMascot";
+import { dashboardSmokeyMessages, smokeyAcknowledgement } from "../../../ui/mascot/dashboardSmokeyMessages";
 
 const config = {
   ...catMascotConfig,
@@ -140,6 +142,10 @@ export default function DashboardCompanion({
   overdue,
   activity,
   reaction,
+  stationary = false,
+  notification,
+  pendingCount = 0,
+  dismiss,
 }) {
   const [desktop, setDesktop] = useState(
     () => window.matchMedia("(min-width: 1024px)").matches,
@@ -167,6 +173,14 @@ export default function DashboardCompanion({
         : null,
     [reaction],
   );
+  if (stationary) {
+    const response = notification ? {
+      ...notification,
+      danger: notification.tone === "error",
+      message: `${smokeyAcknowledgement(notification)}\n\n${notification.text}`,
+    } : null;
+    return <StationaryCatMascot notification={response} pendingCount={pendingCount} dismiss={dismiss} messages={dashboardSmokeyMessages("personal", tab, overdue)}/>;
+  }
   return desktop ? (
     <RoamingCatMascot
       config={config}

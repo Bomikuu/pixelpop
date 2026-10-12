@@ -1,19 +1,10 @@
-import {
-  CreditCard,
-  Pencil,
-  History,
-  ArrowLeftRight,
-  Trash2,
-  Plus,
-  ArrowDownLeft,
-  Receipt,
-} from "lucide-react";
-import { Button } from "../ui/button";
 import { Link } from "react-router-dom";
+import { Progress } from "../ui/progress";
 import { money } from "../lib/format";
 import { coverageTypes, institutionFor } from "../lib/presets";
 import AccountCardFace from "./AccountCardFace";
 import { InstitutionLogo } from "./ChoiceTiles";
+import AccountActionsMenu from "./AccountActionsMenu";
 
 export default function AccountCards({
   rows,
@@ -21,6 +12,8 @@ export default function AccountCards({
   openForm,
   showHistory,
   confirmDelete,
+  dashboard,
+  notify,
 }) {
   return (
     <div className="grid min-w-0 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -32,7 +25,7 @@ export default function AccountCards({
           institution = showInstitution ? institutionFor(account.institution || account.name) : null,
           debt = Number(account.balance),
           limit = Number(account.credit_limit),
-          utilization = limit > 0 ? Math.max(0, (debt / limit) * 100) : null;
+          utilization = limit > 0 ? Math.max(0, ((account.available_credit != null ? limit - Number(account.available_credit) : debt) / limit) * 100) : null;
         return (
           <article
             key={account.id}
@@ -83,6 +76,7 @@ export default function AccountCards({
             <div className="space-y-3 border-t border-[var(--pd-border)] bg-white p-3">
               {card && (
                 <div>
+                  {account.available_credit != null && <p className="mb-2 text-xs tabular-nums text-slate-600">{money(account.available_credit)} available credit{Number(account.additional_reservation) > 0 && " · " + money(account.additional_reservation) + " reserved for loan costs"}</p>}
                   <div className="flex flex-wrap justify-between gap-2 text-xs text-slate-600">
                     <span>
                       Limit{" "}
@@ -97,111 +91,11 @@ export default function AccountCards({
                     </span>
                   </div>
                   {utilization != null && (
-                    <div className="mt-2 h-2 overflow-hidden rounded bg-slate-100">
-                      <div
-                        className={
-                          "h-full " +
-                          (utilization >= 90
-                            ? "bg-amber-600"
-                            : "bg-[var(--pd-primary)]")
-                        }
-                        style={{ width: Math.min(utilization, 100) + "%" }}
-                      />
-                    </div>
+                    <Progress value={Math.min(utilization, 100)} aria-label={account.name + " credit limit used"} aria-valuetext={utilization.toFixed(1) + "% used"} className={"mt-2 bg-slate-100 [&_[data-slot=progress-indicator]]:motion-reduce:transition-none " + (utilization >= 90 ? "[&_[data-slot=progress-indicator]]:bg-amber-600" : "")} />
                   )}
                 </div>
               )}
-              <div className="flex flex-wrap items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={"Edit " + account.name}
-                  onClick={() => openForm(fund ? "fund" : "account", account)}
-                >
-                  <Pencil />
-                </Button>
-                {coverage ? (
-                  <Button asChild variant="ghost" size="icon-sm" aria-label={"Premium payment history for " + account.name}>
-                    <Link to={"/dashboard/accounts/" + account.id + "?month=" + month}><History /></Link>
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={"History for " + account.name}
-                    onClick={() => showHistory("accounts", account)}
-                  >
-                    <History />
-                  </Button>
-                )}
-                {account.active && (
-                  <>
-                    {!coverage && <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={"Correct " + account.name + " balance"}
-                      onClick={() => openForm("adjustment", account)}
-                    >
-                      <ArrowLeftRight />
-                    </Button>}
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={"Archive " + account.name}
-                      onClick={() => confirmDelete("accounts", account)}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </>
-                )}
-                {card && account.active && debt > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto"
-                    onClick={() =>
-                      openForm("movement", {
-                        kind: "credit_card_payment",
-                        destination: account.id,
-                      })
-                    }
-                  >
-                    <CreditCard />
-                    Record payment
-                  </Button>
-                )}
-              </div>
-              {fund && !coverage && account.active && (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      openForm("fund_contribution", { destination: account.id })
-                    }
-                  >
-                    <Plus />
-                    Contribute
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      openForm("fund_withdrawal", { source: account.id })
-                    }
-                  >
-                    <ArrowDownLeft />
-                    Withdraw
-                  </Button>
-                </div>
-              )}
-              {coverage && account.active && (
-                <Button
-                  size="sm"
-                  onClick={() => openForm("expense", { name: account.name + " premium", coverage: account.id })}
-                >
-                  <Receipt aria-hidden="true" /> Record premium payment
-                </Button>
-              )}
+              <AccountActionsMenu account={account} dashboard={dashboard} month={month} openForm={openForm} showHistory={showHistory} confirmDelete={confirmDelete} notify={notify} allowArchivedEdit />
               <p className="text-xs text-slate-500">
                 {fund
                   ? coverage ? "Coverage only · premiums belong in expenses" : "Manually tracked · not spendable cash or a live provider balance"

@@ -1,10 +1,11 @@
 export function buildSubmission({ entity, record, definition, fields, values, requestId }) {
   const body = Object.fromEntries(
     fields
+      .filter((field) => field.type !== "image" || values[field.name])
       .filter((field) => field.name !== "repeat" && field.name !== "amount_mode" && (entity === "schedule" || field.name !== "interval"))
       .map((field) => [
         field.name,
-        values[field.name] === ""
+        field.type === "image" && values[field.name] === "__remove__" ? null : values[field.name] === ""
           ? field.nullable || field.type === "number" || field.type === "time" ? null : ""
           : ["existing", "active", "important"].includes(field.name) ? values[field.name] === "true" : values[field.name],
       ]),

@@ -151,7 +151,7 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
   return <FormModalShell
     title={definition.title} description={description} error={errors.common}
     busy={saving} dirty={dirty} onSubmit={save} onCancel={close}
-    onCloseAutoFocus={restoreFocus} submitDisabled={insufficientAccount}
+    onCloseAutoFocus={restoreFocus} submitDisabled={insufficientAccount || fields.some((field) => field.type === "image" && ["__processing__", "__invalid__"].includes(values[field.name]))}
     saveLabel={entity === "person" ? "Save person" : "Save record"}
   >
     {entity === "deadline" && !record?.id && ["bill", "subscription", "payment"].includes(values.kind) &&

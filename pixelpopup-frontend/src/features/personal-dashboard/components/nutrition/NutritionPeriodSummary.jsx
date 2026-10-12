@@ -87,8 +87,9 @@ export default function NutritionPeriodSummary({ summary, profile, period, onPer
         <SummaryTile label="Average protein" value={data.average_protein == null ? "—" : number(data.average_protein, 2)} unit="g/day" icon={Dumbbell} />
         <SummaryTile label="Days logged" value={number(data.logged_days)} unit={period === "week" ? "of 7" : period === "month" ? `of ${rows.length}` : "total"} icon={CalendarCheck2} />
       </div>
+      <div className="mt-4"><PeriodTable rows={rows} period={period} target={target} /></div>
       <p className="mt-4 text-sm text-slate-600">{period === "overall" ? "Each pair of bars is a recorded month. The chart shows the latest 24; the table includes every recorded month." : period === "month" ? "Each pair of bars is one day in the selected calendar month." : "Each pair of bars is one day in the seven days ending on the selected date."} Blue is food; green is logged activity. Net is only calculated on days with meals. {target !== null && (period === "overall" ? "Red food bars mark months whose logged-day average is above your current food target." : "Red food bars mark days above your current food target.")}</p>
-      <div className="mt-4 grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(19rem,1fr)]">
+      <div className="mt-4">
         <ChartContainer config={chartConfig} className="h-64 w-full min-w-0">
           <BarChart accessibilityLayer data={chartRows} margin={{ left: 0, right: 10 }}>
             <CartesianGrid vertical={false} />
@@ -99,7 +100,6 @@ export default function NutritionPeriodSummary({ summary, profile, period, onPer
             <Bar dataKey="activity" maxBarSize={38} radius={[3, 3, 0, 0]} fill="var(--color-activity)" />
           </BarChart>
         </ChartContainer>
-        <PeriodTable rows={rows} period={period} target={target} />
       </div>
       {period === "overall" && <p className="mt-3 text-xs text-slate-600">Months with meals or activity appear. Activity-only dates do not count as zero food. Current target comparisons also apply to past entries.</p>}
     </> : <EmptyState icon={Flame} title={`No nutrition entries in this ${title.toLowerCase()} view`} message="Log a meal or activity to start this summary." />;

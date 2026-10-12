@@ -12,6 +12,7 @@ import "reactflow/dist/style.css";
 
 import { ensureSchema, validateFlow } from "../authoring/flowSchema";
 import { saveFlow, loadFlow, importFlowJson, exportFlowJson } from "../authoring/flowStorage";
+import useNumericInput from "../../ui/useNumericInput";
 
 const cx = (...c) => c.filter(Boolean).join(" ");
 
@@ -199,14 +200,25 @@ function TextInput({ value, onChange, placeholder }) {
 }
 
 function NumInput({ value, onChange, placeholder }) {
+  const [draft, setDraft] = useState(String(value ?? ""));
+  useEffect(() => setDraft(String(value ?? "")), [value]);
+  const inputProps = useNumericInput({
+    type: "number",
+    step: "any",
+    value: draft,
+    onChange: (event) => {
+      const next = event.target.value;
+      setDraft(next);
+      if (next === "") onChange("");
+      else if (!["-", ".", "-."].includes(next)) onChange(Number(next));
+    },
+    placeholder,
+  });
   return (
     <input
-      type="number"
+      {...inputProps}
       className="w-full border-[3px] rounded-xl px-2 py-1 font-pp text-xs"
       style={{ borderColor: "var(--pp-border)" }}
-      value={String(value ?? "")}
-      onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
-      placeholder={placeholder}
     />
   );
 }

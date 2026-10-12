@@ -95,15 +95,6 @@ export default function PeopleView(props) {
           {state.data?.summary && (
             <PeopleSummary summary={state.data.summary} month={month} />
           )}
-          {state.data?.charts && (
-            <ComparisonChart
-              title="Monthly giving & lending"
-              description="Support, principal lent, and repayments stay separate. Existing loans use their recorded lending date—not a new cash deduction."
-              rows={state.data.charts.monthly}
-              fields={state.data.charts.fields}
-              comparisonMonth={month}
-            />
-          )}
           <Panel
             title="People"
             description={
@@ -205,6 +196,15 @@ export default function PeopleView(props) {
               </>
             )}
           </Panel>
+          {state.data?.charts && (
+            <ComparisonChart
+              title="Monthly giving & lending"
+              description="Support, principal lent, and repayments stay separate. Existing loans use their recorded lending date—not a new cash deduction."
+              rows={state.data.charts.monthly}
+              fields={state.data.charts.fields}
+              comparisonMonth={month}
+            />
+          )}
         </TabsContent>
         <TabsContent value="giving">
           <RecordList

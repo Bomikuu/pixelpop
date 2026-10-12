@@ -51,6 +51,7 @@ function entryType(row) {
 }
 function deadlineAction(row) {
   if (["task", "reminder"].includes(row.kind)) return "Complete task";
+  if (row.cash_loan_id) return "Open cash loan to record repayment";
   if (row.financing_asset_id) return "Open asset to record payment";
   if (row.settlement_kind === "loan_collection") return "Record collection";
   return "Pay bill";
@@ -366,7 +367,7 @@ export default function CalendarDialog({
                                   {" · "}
                                   {row.amount == null
                                     ? "Amount not set"
-                                    : row.financing_asset_id && row.status === "pending"
+                                    : (row.financing_asset_id || row.cash_loan_id) && row.status === "pending"
                                       ? money(row.remaining_due) + " left of " + money(row.amount)
                                       : money(row.amount)}
                                 </>

@@ -5,6 +5,7 @@ import SelectableField from "../SelectableField";
 import AccountBalancePreview from "../AccountBalancePreview";
 import { institutions } from "../../lib/presets";
 import { accountSources } from "./accountFlow";
+import AssetPhotoField from "./AssetPhotoField";
 
 export default function FormField({
   field, values, options = [], error, disabled, onChange, entity, accountState,
@@ -13,7 +14,7 @@ export default function FormField({
 }) {
   const id = `${idPrefix}-${field.name}`;
   const selectedAccount = accountSources.has(field.source) ? accountState?.(field) : null;
-  const fullWidth = ["textarea", "institution"].includes(field.type) ||
+  const fullWidth = ["textarea", "institution", "image"].includes(field.type) ||
     accountSources.has(field.source) || field.source === "contacts" ||
     field.name === "existing" || (field.type === "select" && options.length < 3);
   const compactSelect = field.type === "select" && !fullWidth;
@@ -23,7 +24,7 @@ export default function FormField({
 
   return <div className={`min-w-0 ${placement}`}>
     {labelAction ? <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><Label htmlFor={id}>{field.label}{field.required && " *"}</Label>{labelAction}</div> : <Label htmlFor={id} className="mb-2 block">{field.label}{field.required && " *"}</Label>}
-    {field.type === "select" ? <>
+    {field.type === "image" ? <AssetPhotoField id={id} value={values[field.name]} existingImage={field.existingImage} kind={values.kind} disabled={disabled} error={error} onChange={(value) => onChange(field.name, value)} /> : field.type === "select" ? <>
       <SelectableField
         id={id} label={field.label} required={field.required}
         options={field.nullable ? [{ value: "", label: "None" }, ...options] : options}

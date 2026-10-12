@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowDownLeft,
   ArrowLeft,
   ArrowLeftRight,
   CalendarClock,
@@ -10,14 +9,14 @@ import {
   LayoutDashboard,
   Pencil,
   Plus,
-  Receipt,
   ShieldCheck,
-  Trash2,
 } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import AccountCardFace from "../components/AccountCardFace";
+import AccountActionsMenu from "../components/AccountActionsMenu";
 import { InstitutionLogo } from "../components/ChoiceTiles";
 import AccountLedger from "../components/AccountLedger";
 import AccountSummaryCharts from "../components/AccountSummaryCharts";
@@ -26,6 +25,7 @@ import SummaryTiles from "../components/SummaryTiles";
 import { EmptyState, ErrorState, Panel } from "../components/Panel";
 import { dateLabel, money, today, words } from "../lib/format";
 import { coverageTypes, fundTypes, institutionFor } from "../lib/presets";
+import CashLoanList from "../cash-loans/CashLoanList";
 
 function summaryItems(account, summary, details) {
   if (account.kind === "fund" && coverageTypes.includes(account.fund_type))
@@ -49,6 +49,8 @@ function summaryItems(account, summary, details) {
       { label: "Charges this month", value: money(summary.card_charges), icon: "expenses" },
       { label: "Payments this month", value: money(summary.card_payments), icon: "income" },
       { label: "Debt change this month", value: money(summary.net_change), icon: "debt", hint: "Positive means more debt" },
+      { label: "Available credit", value: money(summary.available_credit), icon: "balance", hint: "Credit limit less posted debt and cash-loan reservations" },
+      { label: "Unposted costs reserved", value: money(summary.additional_reservation), icon: "financing", hint: "Reservation only—not posted debt" },
       { label: "Limit used", value: summary.utilization == null ? "Not set" : Number(summary.utilization).toFixed(1) + "%", icon: "count" },
     );
   } else if (fund) {
@@ -138,17 +140,7 @@ export default function AccountDetailView({ accountId, dashboard, month, openFor
               </div>
             </div>
             {account.active && (
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => openForm(isFund ? "fund" : "account", account)}><Pencil aria-hidden="true" /> Edit</Button>
-                {!isCoverage && <Button variant="outline" onClick={() => openForm("adjustment", account)}><ArrowLeftRight aria-hidden="true" /> Correct balance</Button>}
-                {isCard && Number(summary.balance) > 0 && <Button onClick={() => openForm("movement", { kind: "credit_card_payment", destination: account.id })}><CreditCard aria-hidden="true" /> Record payment</Button>}
-                {isFund && !isCoverage && <>
-                  <Button onClick={() => openForm("fund_contribution", { destination: account.id })}><Plus aria-hidden="true" /> Contribute</Button>
-                  <Button variant="outline" onClick={() => openForm("fund_withdrawal", { source: account.id })}><ArrowDownLeft aria-hidden="true" /> Withdraw</Button>
-                </>}
-                {isCoverage && <Button onClick={() => premiumDues.length ? openForm("settlement", premiumDues[0]) : openForm("expense", { name: account.name + " premium", coverage: account.id })}><Receipt aria-hidden="true" /> Record premium payment</Button>}
-                <Button variant="ghost" onClick={() => confirmDelete("accounts", account)}><Trash2 aria-hidden="true" /> Archive</Button>
-              </div>
+              <AccountActionsMenu account={account} dashboard={dashboard} month={month} openForm={openForm} showHistory={() => setTab("history")} confirmDelete={confirmDelete} notify={notify} premiumDue={premiumDues[0]} />
             )}
           </section>
 
@@ -213,9 +205,18 @@ export default function AccountDetailView({ accountId, dashboard, month, openFor
               <TabsTrigger value="summary" className="px-3 py-2"><LayoutDashboard aria-hidden="true" /> Summary</TabsTrigger>
               <TabsTrigger value="transactions" className="px-3 py-2"><ArrowLeftRight aria-hidden="true" /> Transactions</TabsTrigger>
               <TabsTrigger value="history" className="px-3 py-2"><History aria-hidden="true" /> History</TabsTrigger>
+              {isCard && <TabsTrigger value="cash-loans" className="px-3 py-2"><CreditCard aria-hidden="true" /> Cash loans</TabsTrigger>}
             </TabsList>
             <TabsContent value="summary" className="space-y-5">
               <SummaryTiles items={summaryItems(account, summary)} />
+              {isCard && <Panel title="Debt & credit usage" description="Used credit includes posted debt and reserved cash-loan costs; this is not a repayment percentage.">
+                <div className="mb-3 flex flex-wrap items-end justify-between gap-2 text-sm">
+                  <span>Outstanding debt <span className="ml-2 tabular-nums">{money(summary.balance)}</span></span>
+                  <span className="tabular-nums text-slate-600">{summary.utilization == null ? "Credit limit not set" : Number(summary.utilization).toFixed(1) + "% of " + money(account.credit_limit) + " used"}</span>
+                </div>
+                {summary.utilization == null ? <p className="text-sm text-slate-600">Set a credit limit in Edit account to track usage.</p> : <Progress value={Math.min(100, Math.max(0, Number(summary.utilization)))} aria-label="Credit limit used" aria-valuetext={Number(summary.utilization).toFixed(1) + "% used"} className={"h-3 bg-slate-100 [&_[data-slot=progress-indicator]]:motion-reduce:transition-none " + (Number(summary.utilization) >= 90 ? "[&_[data-slot=progress-indicator]]:bg-amber-600" : "")} />}
+                <p className="mt-3 text-xs text-slate-600">{money(summary.available_credit)} available credit{Number(summary.additional_reservation) > 0 ? " · " + money(summary.additional_reservation) + " reserved for unposted loan costs" : ""}</p>
+              </Panel>}
               <AccountSummaryCharts account={account} charts={state.data.charts} />
             </TabsContent>
             <TabsContent value="transactions">
@@ -230,12 +231,6 @@ export default function AccountDetailView({ accountId, dashboard, month, openFor
                   title="Account transactions"
                   accountScoped
                   hideAdd
-                  headerActions={account.active && (
-                    <div className="flex flex-wrap gap-2">
-                      {!isCard && <Button variant="outline" onClick={() => openForm("income", { account: account.id })}><Plus aria-hidden="true" /> Add income</Button>}
-                      <Button onClick={() => openForm("expense", { account: account.id })}><Plus aria-hidden="true" /> Add expense</Button>
-                    </div>
-                  )}
                   fixedParams={{ account: String(account.id) }}
                   dashboard={dashboard}
                   month={month}
@@ -249,6 +244,7 @@ export default function AccountDetailView({ accountId, dashboard, month, openFor
             <TabsContent value="history">
               <AccountLedger key={account.id} account={account} month={month} dashboard={dashboard} />
             </TabsContent>
+            {isCard && <TabsContent value="cash-loans"><CashLoanList card={account} dashboard={dashboard} month={month} notify={notify} /></TabsContent>}
           </Tabs>}
         </>
       )}

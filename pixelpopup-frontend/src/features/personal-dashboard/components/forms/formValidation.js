@@ -5,6 +5,8 @@ export function validateForm({ entity, fields, values, getAccountState }) {
   for (const field of fields) {
     const value = values[field.name]?.trim();
     const linkedExpense = entity === "settlement" && values.transaction;
+    if (field.type === "image" && ["__processing__", "__invalid__"].includes(value))
+      invalid[field.name] = value === "__processing__" ? "Wait for the photo to finish preparing." : "Choose a valid photo or remove it.";
     if (field.required && !value && !(linkedExpense && ["amount", "account"].includes(field.name)))
       invalid[field.name] = "Enter or select " + field.label.toLowerCase() + ".";
     if (value && field.type === "number" && (!Number.isFinite(Number(value)) || (field.min != null && Number(value) < Number(field.min))))

@@ -1,7 +1,7 @@
 [
   {
     "id": "portfolio-welcome",
-    "message": "Meow! Want to see the work?",
+    "message": "Smokey Sr., portfolio supervisor. Want to see what Mico has been building?",
     "routes": ["/", "/portfolio"],
     "weight": 3,
     "actionLabel": "View selected work",
@@ -9,7 +9,7 @@
   },
   {
     "id": "portfolio-stack",
-    "message": "Curious about Mico's technology stack?",
+    "message": "Tools are useful; what you build with them is the interesting part. Curious about Mico's stack?",
     "routes": ["/", "/portfolio"],
     "weight": 2,
     "actionLabel": "Explore the stack",
@@ -17,7 +17,7 @@
   },
   {
     "id": "portfolio-contact",
-    "message": "Have a product problem worth solving?",
+    "message": "Got a product idea or a tricky workflow? Tell Mico what needs to get easier. I'll supervise the introductions.",
     "routes": ["/", "/portfolio"],
     "weight": 2,
     "actionLabel": "Start a conversation",
@@ -25,7 +25,7 @@
   },
   {
     "id": "asta-services",
-    "message": "We build software around real business needs.",
+    "message": "Smokey Sr. checking in. ASTA starts with the business workflow—not just a list of screens.",
     "routes": ["/asta*"],
     "weight": 3,
     "actionLabel": "View services",
@@ -33,7 +33,7 @@
   },
   {
     "id": "asta-team",
-    "message": "Meet the people behind ASTA.",
+    "message": "Good software takes people, not just tools. Come meet the humans behind ASTA.",
     "routes": ["/asta*"],
     "weight": 2,
     "actionLabel": "Meet the team",
@@ -41,10 +41,36 @@
   },
   {
     "id": "asta-project",
-    "message": "Need a software partner? Let’s talk.",
+    "message": "A new project starts with a useful conversation. What are you trying to make better?",
     "routes": ["/asta*"],
     "weight": 2,
     "actionLabel": "Start a project",
     "actionUrl": "mailto:business.astasoftwares@gmail.com"
+  },
+  {
+    "id": "portfolio-proof",
+    "message": "Don't just take my meow for it. The project stories explain the work, the decisions, and the results.",
+    "routes": ["/", "/portfolio"],
+    "weight": 2,
+    "actionLabel": "View selected work",
+    "actionUrl": "/portfolio#work"
+  },
+  {
+    "id": "portfolio-reading",
+    "message": "Reading a guide? Keep the steps handy, but adapt the setup to your own project. Even cats check the details.",
+    "routes": ["/portfolio/*"],
+    "weight": 2
+  },
+  {
+    "id": "asta-process",
+    "message": "Understand the problem, plan the work, build, then improve. I prefer a clear next step to a mountain of guesswork.",
+    "routes": ["/asta*"],
+    "weight": 2
+  },
+  {
+    "id": "asta-scope",
+    "message": "The goal, users, and constraints make a good starting brief. Tiny details can save big detours later.",
+    "routes": ["/asta*"],
+    "weight": 2
   }
 ]

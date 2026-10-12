@@ -8,7 +8,7 @@ export default function definition(record) {
     fields: [
       amount,
       field("name", "Name / source", "text", { required: true }),
-      { ...account, cashOnly: true },
+      { ...account, cashOnly: true, ...(record?.id && record.account == null ? { required: false, nullable: true, hint: "Leave empty to keep this entry unsettled. Choosing an account will assign the income." } : {}) },
       category,
       { ...date, max: undefined },
       field("payment_method", "Payment method", "select", {

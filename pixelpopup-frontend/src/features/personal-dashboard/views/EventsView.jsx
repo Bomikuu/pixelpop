@@ -209,13 +209,6 @@ export default function EventsView({ dashboard, month }) {
             ))}
           </div>
 
-          {data.summary.total > 0 && (
-            <div className="grid gap-5 xl:grid-cols-2">
-              <ActionChart rows={data.charts.timeline} />
-              <AreaChart rows={data.charts.areas} />
-            </div>
-          )}
-
           <Panel
             title="Event history"
             description="Newest first. Entries cannot be edited or deleted here."
@@ -245,6 +238,12 @@ export default function EventsView({ dashboard, month }) {
               </div>
             )}
           </Panel>
+          {data.summary.total > 0 && (
+            <div className="grid gap-5 xl:grid-cols-2">
+              <ActionChart rows={data.charts.timeline} />
+              <AreaChart rows={data.charts.areas} />
+            </div>
+          )}
         </>
       )}
     </div>

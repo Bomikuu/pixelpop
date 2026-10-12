@@ -1,0 +1,87 @@
+.stationary-cat-mascot {
+  /* Keep the public companion self-contained without loading dashboard styles. */
+  --pd-primary: #2f5bff;
+  --pd-border: #e2e8f0;
+  --pd-soft: #f1f5f9;
+  font-family: "Instrument Sans", Arial, sans-serif;
+  color-scheme: light;
+  --smokey-width: 84px;
+  --smokey-height: 112px;
+  --smokey-right: max(20px, env(safe-area-inset-right));
+  --smokey-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.stationary-cat-mascot__cat {
+  right: var(--smokey-right);
+  bottom: var(--smokey-bottom);
+  width: var(--smokey-width);
+  height: var(--smokey-height);
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.stationary-cat-mascot__pose {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("/mascot/smokey-senior-seated.png");
+  background-repeat: no-repeat;
+  background-size: calc(var(--smokey-width) * 8) calc(var(--smokey-width) * 16 / 3);
+  background-position: calc(var(--frame-column) * var(--smokey-width) * -1) calc(var(--frame-top) * var(--smokey-width) / -192);
+  image-rendering: pixelated;
+  opacity: 0;
+  transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1), filter 160ms ease-out;
+}
+
+.stationary-cat-mascot__pose[data-active="true"] { opacity: 1; }
+
+.stationary-cat-mascot__cat:hover .stationary-cat-mascot__pose,
+.stationary-cat-mascot__cat:focus-visible .stationary-cat-mascot__pose {
+  filter: drop-shadow(0 3px 3px rgb(15 23 42 / 0.15));
+}
+
+.stationary-cat-mascot__cat:active .stationary-cat-mascot__pose { filter: brightness(0.96); }
+
+.stationary-cat-mascot__messages {
+  right: var(--smokey-right);
+  bottom: calc(var(--smokey-bottom) + var(--smokey-height) + 12px);
+}
+
+.stationary-cat-mascot__bubble {
+  --smokey-bubble-border: var(--pd-primary);
+  border-color: var(--smokey-bubble-border);
+}
+
+.stationary-cat-mascot__bubble[data-tone="error"] {
+  --smokey-bubble-border: var(--color-rose-700, #be123c);
+}
+
+.stationary-cat-mascot__bubble::after {
+  content: "";
+  position: absolute;
+  right: calc(var(--smokey-width) / 2 - 6px);
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  border-right: 1px solid var(--smokey-bubble-border);
+  border-bottom: 1px solid var(--smokey-bubble-border);
+  background: white;
+  transform: rotate(45deg);
+}
+
+@media (max-width: 640px) {
+  .stationary-cat-mascot {
+    --smokey-width: 60px;
+    --smokey-height: 80px;
+    --smokey-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stationary-cat-mascot__pose { transition: none; }
+}
+
+@media print {
+  .stationary-cat-mascot { display: none; }
+}

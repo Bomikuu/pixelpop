@@ -8,6 +8,7 @@ import SummaryTiles from "../components/SummaryTiles";
 import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import AssetFinancingDialog from "../components/AssetFinancingDialog";
 import AssetPaymentDialog from "../components/AssetPaymentDialog";
+import AssetImage from "../components/assets/AssetImage";
 import { dateLabel, money, today, words } from "../lib/format";
 
 export default function AssetDetailView({ assetId, dashboard, month, openForm, notify }) {
@@ -42,7 +43,7 @@ export default function AssetDetailView({ assetId, dashboard, month, openForm, n
         <>
           <section className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-[var(--pd-border)] bg-white p-5 sm:p-6">
             <div className="flex min-w-0 items-start gap-4">
-              <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-blue-50 text-[var(--pd-primary)]"><House aria-hidden="true" /></span>
+              {asset.image_url ? <AssetImage src={asset.image_url} name={asset.name} kind={asset.kind} thumbnail variant="silhouette" className="size-24 shrink-0 rounded-full border border-[var(--pd-border)] sm:size-32" /> : <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-blue-50 text-[var(--pd-primary)]"><House aria-hidden="true" /></span>}
               <div className="min-w-0">
                 <h2 ref={heading} tabIndex={-1} className="break-words text-xl font-semibold tracking-tight text-slate-950 focus:outline-none">{asset.name}</h2>
                 <p className="mt-1 text-sm text-slate-600">{words(asset.kind)} · Valued {dateLabel(asset.valuation_date)}{!asset.active ? " · Archived" : ""}</p>

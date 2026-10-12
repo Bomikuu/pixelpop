@@ -1,4 +1,4 @@
-import { field, choices, amount, notes, date, category, account, contact } from "../formFields";
+import { field, choices, amount, notes, date, category, account } from "../formFields";
 
 export default function definition(record) {
   return {
@@ -8,12 +8,11 @@ export default function definition(record) {
     fields: [
       amount,
       field("name", "Expense name", "text", { required: true }),
-      account,
+      record?.id && record.account == null ? { ...account, required: false, nullable: true, hint: "Leave empty to keep this entry unsettled. Choosing an account will assign the payment." } : account,
       ...(record?.coverage
         ? [field("coverage", "Coverage", "select", { source: "coverages", required: true })]
         : []),
       category,
-      { ...contact, label: "Giving recipient (optional)", required: false, nullable: true },
       date,
       field("payment_method", "Payment method", "select", {
         default: "bank",

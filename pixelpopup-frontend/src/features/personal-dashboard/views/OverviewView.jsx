@@ -8,12 +8,17 @@ import {
   CalendarDays,
   ChevronRight,
   CircleCheck,
+  LayoutGrid,
+  ListTodo,
+  ReceiptText,
+  Table2,
   Lightbulb,
   TrendingUp,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -32,6 +37,7 @@ import { Panel, EmptyState } from "../components/Panel";
 import { money, monthLabel, today, words } from "../lib/format";
 import { useRecords } from "../hooks/useDashboardData";
 import UrgencyBadge from "../components/UrgencyBadge";
+import UnsettledReminder from "../components/quick-entry/UnsettledReminder";
 import { dateLabel } from "../lib/format";
 
 function deadlineGroup(row) {
@@ -48,11 +54,21 @@ function deadlineNeedsAttention(row) {
   return ["overdue", "today", "soon"].includes(row.urgency);
 }
 
+function DeadlineTypeBadge({ row }) {
+  const task = ["task", "reminder"].includes(row.kind);
+  const Icon = task ? ListTodo : ReceiptText;
+  return <Badge variant="outline" className={"shrink-0 gap-1 rounded-md bg-white/90 " + (task ? "border-blue-200 text-blue-700" : "border-slate-200 text-slate-600")}>
+    <Icon className="size-3" aria-hidden="true" />
+    {task ? "Task" : words(row.kind)}
+  </Badge>;
+}
+
 function deadlineAction(row) {
   if (row.system_key === "eod") return "Open EOD to log";
   if (row.system_key === "calories") return "Open nutrition to log";
   if (row.system_key === "expenses") return "Open transactions to log";
-  if (["task", "reminder"].includes(row.kind)) return "Confirm completion of task";
+  if (["task", "reminder"].includes(row.kind)) return "Complete task";
+  if (row.cash_loan_id) return "Open cash loan to record repayment";
   if (row.financing_asset_id) return "Open asset to record payment";
   if (row.settlement_kind === "loan_collection") return "Record collection";
   return "Pay bill";
@@ -135,6 +151,7 @@ export default function OverviewView({
 }) {
   const [settlingId, setSettlingId] = useState(null);
   const [taskToComplete, setTaskToComplete] = useState(null);
+  const [deadlineView, setDeadlineView] = useState("cards");
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60000);
@@ -267,6 +284,11 @@ export default function OverviewView({
       statusTone: dailyGuideOkay == null ? "neutral" : dailyGuideOkay ? "positive" : "negative",
       statusText: dailyGuideOkay == null ? undefined : dailyGuideOkay ? "Within daily guide" : "Above daily guide",
     },
+    ...(Number(o.cash_loans?.remaining_payments) > 0 || Number(o.cash_loans?.repayments) > 0 ? [
+      { label: "Cash-loan principal", value: money(o.cash_loans.principal), icon: "debt", hint: "Already included in credit-card debt—not added twice" },
+      { label: "Cash-loan payments this month", value: money(o.cash_loans.repayments), icon: "expenses", hint: "Explicit allocations of recorded card payments" },
+      { label: "Cash-loan installments due", value: money(o.cash_loans.scheduled), icon: "deadline", hint: "Unpaid selected-month obligations; linked statements counted once" },
+    ] : []),
   ];
   return (
     <div className="space-y-6">
@@ -294,14 +316,21 @@ export default function OverviewView({
         </TabsList>
         <TabsContent value="summary" className="space-y-6">
           <SummaryTiles items={tiles} primaryCount={4} tooltipWhenNoBaseline />
+          <UnsettledReminder summary={o.unsettled} user={dashboard.data.user} />
           <Panel
             title="Next deadlines"
             description="Outstanding items across all months, earliest first."
             action={
-              <Button variant="outline" onClick={() => navigate("deadlines")}>
-                View all
-                <ChevronRight aria-hidden="true" />
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" size="sm" variant="outline" aria-label={`Switch to ${deadlineView === "cards" ? "table" : "card"} view`} onClick={() => setDeadlineView((view) => view === "cards" ? "table" : "cards")}>
+                  {deadlineView === "cards" ? <Table2 size={15} aria-hidden="true" /> : <LayoutGrid size={15} aria-hidden="true" />}
+                  {deadlineView === "cards" ? "Table view" : "Card view"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => navigate("deadlines")}>
+                  View all
+                  <ChevronRight aria-hidden="true" />
+                </Button>
+              </div>
             }
           >
             {upcoming.loading ? (
@@ -313,6 +342,42 @@ export default function OverviewView({
                 title="Nothing outstanding"
                 message="Add a task or bill to plan ahead."
               />
+            ) : deadlineView === "table" ? (
+              <Table>
+                <caption className="sr-only">Next deadlines across all months, earliest first</caption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Item</TableHead>
+                    <TableHead scope="col">Type</TableHead>
+                    <TableHead scope="col">Due</TableHead>
+                    <TableHead scope="col" className="text-right">Amount</TableHead>
+                    <TableHead scope="col">Urgency</TableHead>
+                    <TableHead scope="col" className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {upcoming.data.results.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell className="min-w-40 max-w-72 whitespace-normal break-words font-medium">{r.title}</TableCell>
+                      <TableCell><DeadlineTypeBadge row={r} /></TableCell>
+                      <TableCell>
+                        <span className={deadlineNeedsAttention(r) ? "text-rose-700" : "text-emerald-700"}>{deadlineTimeLeft(r, now)}</span>
+                        <span className="mt-1 block text-xs text-slate-600">{dateLabel(r.due_date)}{r.due_time ? ` · ${r.due_time.slice(0, 5)} PHT` : ""}</span>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {["task", "reminder"].includes(r.kind) ? <span className="text-slate-500">—<span className="sr-only">No payment required</span></span> : r.amount == null ? <span className="text-xs text-slate-600">Not priced</span> : <>
+                          {money(r.financing_asset_id || r.cash_loan_id ? r.remaining_due : r.amount)}
+                          {(r.financing_asset_id || r.cash_loan_id) && <span className="mt-1 block text-xs text-slate-600">left of {money(r.amount)}</span>}
+                        </>}
+                      </TableCell>
+                      <TableCell><UrgencyBadge state={r.urgency} /></TableCell>
+                      <TableCell className="text-right"><Button type="button" variant="outline" size="sm" className="min-h-11" onClick={() => settle(r)} disabled={settlingId === r.id} aria-label={`${deadlineAction(r)}: ${r.title}`}>
+                        {deadlineAction(r)}<ChevronRight className="size-4" aria-hidden="true" />
+                      </Button></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 {groups
@@ -380,9 +445,7 @@ export default function OverviewView({
                               )}
                               <span className="relative z-10 flex w-full min-w-0 items-start justify-between gap-2">
                                 <span className="min-w-0 break-words font-semibold leading-5">{r.title}</span>
-                                <Badge variant="outline" className="rounded-md border-slate-200 bg-white/90 text-slate-600">
-                                  {words(r.kind)}
-                                </Badge>
+                                <DeadlineTypeBadge row={r} />
                               </span>
                               <span className="relative z-10 mt-2 text-xs leading-5 text-slate-600" title={`${dateLabel(r.due_date)}${r.due_time ? ` · ${r.due_time.slice(0, 5)} PHT` : ""}`}>
                                 {deadlineTimeLeft(r, now)}
@@ -394,12 +457,15 @@ export default function OverviewView({
                               )}
                               {r.amount != null && !["task", "reminder"].includes(r.kind) && (
                                 <span className="relative z-10 mt-1 text-xs leading-5 text-slate-600 tabular-nums">
-                                  {money(r.financing_asset_id ? r.remaining_due : r.amount)}
-                                  {r.financing_asset_id && " left of " + money(r.amount)}
+                                  {money(r.financing_asset_id || r.cash_loan_id ? r.remaining_due : r.amount)}
+                                  {(r.financing_asset_id || r.cash_loan_id) && " left of " + money(r.amount)}
                                 </span>
                               )}
                               <span className="relative z-10 mt-auto flex w-full items-center justify-between gap-2 pt-3">
                                 <UrgencyBadge state={r.urgency} />
+                              </span>
+                              <span className="relative z-10 mt-2 flex w-full items-center justify-between gap-2 border-t border-slate-200/70 pt-2 text-xs font-medium text-slate-700">
+                                {deadlineAction(r)}
                                 <ChevronRight
                                   size={18}
                                   aria-hidden="true"

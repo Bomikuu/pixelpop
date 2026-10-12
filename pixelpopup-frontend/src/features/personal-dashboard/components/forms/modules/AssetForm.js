@@ -21,6 +21,7 @@ export default function definition(record) {
         required: true,
       }),
       { ...date, name: "valuation_date", label: "Valuation date" },
+      field("image_upload", "Asset photo (optional)", "image", { existingImage: record?.image_url }),
       notes,
     ],
   };
