@@ -26,6 +26,9 @@ import GenerationResultBanner from "./GenerationResultBanner";
 import ApplicationOverview from "./ApplicationOverview";
 import ApplicationHeader from "./ApplicationHeader";
 import ResumeOptimization from "./ResumeOptimization";
+import SkillGapPreparationForm from "./SkillGapPreparationForm";
+import InterviewGapPreparation from "./InterviewGapPreparation";
+import TailoringClarificationForm, { priorityTailoringQuestion } from "./TailoringClarificationForm";
 import { jobApi, labels, packageKinds, fieldError, generationLabel, isResumeReport } from "./api";
 
 export default function ApplicationDetail({ applicationId, profile, settings, onBack, onProfile, onProfileChanged, onSettings, navigate, notify }) {
@@ -36,6 +39,8 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
   const [activity, setActivity] = useState(null);
   const [requirementFocus, setRequirementFocus] = useState(null);
   const [gapRow, setGapRow] = useState(null);
+  const [preparationRequest, setPreparationRequest] = useState(null);
+  const [tailoringQuestion, setTailoringQuestion] = useState(null);
   const [proposalFocus, setProposalFocus] = useState(null);
   const [resumeSectionFocus, setResumeSectionFocus] = useState(null);
   const resultBannerRef = useRef(null);
@@ -53,7 +58,7 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
   const provider = settings?.providers.find((item) => item.id === settings.settings.provider);
   const canGenerate = Boolean(profile?.sources_confirmed && provider?.configured);
   const generationBlockedReason = [!profile?.sources_confirmed && "Review your profile, tick the source confirmation and Save profile.", !provider?.configured && "Select a provider with a backend API key and Save AI settings."].filter(Boolean).join(" ");
-  const experienceBlockedReason = actionBusy ? "Wait for the current application action to finish." : hasUnsaved ? "Save your draft edits and proposal decisions first." : generationBlockedReason || (assessment?.requirements_stale ? "Reassess requirements against your current sources first." : !getArtifact("resume")?.body?.trim() ? "Save a résumé draft in Application package first; the proposal will preserve it and suggest additions only." : "");
+  const preparationBlockedReason = actionBusy ? "Wait for the current application action to finish." : hasUnsaved ? "Save your draft edits and proposal decisions first." : generationBlockedReason || (assessmentDirty || assessment?.requirements_stale ? "Reassess requirements against your current sources first." : !record?.requirement_decisions?.length ? "Compare requirements first to choose a focused example or study plan." : "");
   const packagePrepared = packageKinds.every((key) => getArtifact(key)?.body || pendingCount(key) || key === "answers" && !record?.questions.length);
   const actionMessage = activity?.message || progress || "Updating the application from Django. See the activity panel for the result.";
   const generationStatus = actionBusy ? actionMessage : generationBlockedReason || (hasUnsaved ? "Save your edited drafts or finish the proposal review before preparing more drafts." : packagePrepared ? "Each available section already has a draft or pending proposal. Review proposals or open a saved draft to request changes." : "Choose Prepare missing drafts, review the cost quote, then review the generated proposals. Nothing is submitted automatically.");
@@ -98,9 +103,10 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
   }
   function openFile(key) { changeSection(key === "interview_prep" ? "interview" : "drafts", key); }
   function editResumeSection(key) { setResumeSectionFocus({ key }); openFile("resume"); }
-  function openReview(key) { changeSection("review", key); }
+  function openReview(key, proposalId = null) { setProposalFocus(proposalId); changeSection("review", key); }
   function openAIResult(key, mode, proposalId) {
     if (hasUnsaved) { setError("Save your draft edits and review decisions before opening another AI result."); return; }
+    if (mode === "clarify") { setDialog("resume_clarifications"); return; }
     setKind(key); setProposalFocus(proposalId || null);
     changeSection(isResumeReport(mode) ? "checks" : key === "assessment" ? "requirements" : "review");
   }
@@ -142,14 +148,18 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
   }
   function requestGeneration(key = kind, mode = "routine") {
     if (mode === "fix") { setDialog("resume_clarifications"); return; }
+    if (mode === "tailor" && settings?.settings?.unconfirmed_claims !== "exclude" && !assessment?.requirements_stale) {
+      const question = priorityTailoringQuestion(record.requirement_decisions);
+      if (question) { setTailoringQuestion(question); return; }
+    }
     if (isResumeReport(mode)) { requestQuote([key], mode); return; }
     const current = getArtifact(key);
     if (current?.body || pendingCount(key)) setConfirm({ kind: key, mode }); else requestQuote([key], mode);
   }
-  async function requestQuote(keys, mode = "routine") {
+  async function requestQuote(keys, mode = "routine", selection) {
     setConfirm(null); setBusy(true); setError("");
     beginOperation("Checking request costs", `Requesting a quote for ${keys.map((key) => generationLabel(key, mode)).join(", ")}. Django checks sources, model pricing and your allowance; the AI provider has not been called.`);
-    try { setQuote(await jobApi(`applications/${applicationId}/quote/`, { method: "POST", body: { kinds: keys, mode } })); updateOperation("Cost quote received. Review the estimate in the dialog before approving an AI call.", "ready"); }
+    try { setQuote(await jobApi(`applications/${applicationId}/quote/`, { method: "POST", body: { kinds: keys, mode, ...(selection ? { selection } : {}) } })); updateOperation("Cost quote received. Review the estimate in the dialog before approving an AI call.", "ready"); }
     catch (issue) { setError(issue.message); updateOperation(`The cost quote could not be prepared: ${issue.message}`, "failed"); }
     finally { setBusy(false); setProgress(""); }
   }
@@ -237,8 +247,8 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
       <TabsContent value="drafts" className="mt-3 space-y-4">
         <details className="rounded-md border bg-white p-3 text-xs text-slate-600"><summary className="cursor-pointer font-medium">Profile sources available to the AI</summary><div className="mt-3 grid gap-4 lg:grid-cols-2"><section><h3 className="mb-2 font-medium">Experience & portfolio</h3><p className="max-h-56 overflow-y-auto whitespace-pre-wrap leading-6">{profile?.facts || "No experience facts added."}</p></section><section><h3 className="mb-2 font-medium">Reviewed résumé {profile?.resume_filename && `· ${profile.resume_filename}`}</h3><p className="max-h-56 overflow-y-auto whitespace-pre-wrap leading-6">{profile?.resume_text || "No résumé text added."}</p></section></div></details>
         <Panel title="Application materials" description="Choose a saved document to edit or preview. Review proposals separately; nothing is submitted automatically.">
-          <Tabs orientation="vertical" value={packageKinds.includes(kind) ? kind : "resume"} onValueChange={setKind} className="grid min-w-0 items-start gap-5 lg:grid-cols-[180px_minmax(0,1fr)]">
-            <TabsList className="h-auto! w-full items-stretch!" aria-label="Saved application materials">{packageKinds.map((key) => <TabsTrigger key={key} value={key} disabled={actionBusy} className="w-full justify-start! whitespace-normal py-3 text-left"><FileText size={15}/>{labels[key]}{pendingCount(key) > 0 && <span className="ml-auto text-xs">({pendingCount(key)})</span>}{getArtifact(key)?.body && <span className="sr-only"> · draft saved</span>}</TabsTrigger>)}</TabsList>
+          <Tabs value={packageKinds.includes(kind) ? kind : "resume"} onValueChange={setKind} className="min-w-0 gap-4">
+            <TabsList className="h-auto! max-w-full flex-wrap justify-start" aria-label="Saved application materials">{packageKinds.map((key) => <TabsTrigger key={key} value={key} disabled={actionBusy} className="flex-none px-3 py-2"><FileText size={15}/>{labels[key]}{pendingCount(key) > 0 && <span className="text-xs">({pendingCount(key)})</span>}{getArtifact(key)?.body && <span className="sr-only"> · draft saved</span>}</TabsTrigger>)}</TabsList>
             {packageKinds.map((key) => <TabsContent key={key} value={key} className="min-w-0">
               {key === "answers" && !record.questions.length ? <EmptyState icon={Info} title="No screening questions supplied" message="Add the actual questions from the application form to prepare answers." action={<Button variant="outline" onClick={() => setDialog("posting")}><Pencil size={15}/>Add questions</Button>}/> : <ArtifactEditor
                 applicationId={applicationId} kind={key} artifact={getArtifact(key)} body={edits[key] ?? getArtifact(key)?.body ?? ""} profile={profile} pendingCount={pendingCount(key)}
@@ -252,18 +262,21 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
           </Tabs>
         </Panel>
       </TabsContent>
-      <TabsContent value="interview" className="mt-3 space-y-4"><p className="flex items-start gap-2 text-xs leading-5 text-slate-600"><Info size={16} className="shrink-0"/>Optional practice material—not confirmed employer questions. Write manually or explicitly request a quoted AI proposal. This does not affect submission readiness.</p><Panel title="Interview preparation"><ArtifactEditor applicationId={applicationId} kind="interview_prep" artifact={getArtifact("interview_prep")} body={edits.interview_prep ?? getArtifact("interview_prep")?.body ?? ""} profile={profile} pendingCount={pendingCount("interview_prep")} onChange={(text) => setEdits((previous) => ({ ...previous, interview_prep: text }))} onSave={() => saveDraft("interview_prep")} onGenerate={(mode) => requestGeneration("interview_prep", mode)} onReview={() => markReviewed("interview_prep")} onOpenReview={() => openReview("interview_prep")} busy={actionBusy} busyMessage={actionMessage} canGenerate={canGenerate} generationBlockedReason={generationBlockedReason} notify={notify}/></Panel></TabsContent>
+      <TabsContent value="interview" className="mt-3 space-y-4">
+        <InterviewGapPreparation data={record.preparation_examples} rows={record.requirement_decisions} busy={actionBusy || hasUnsaved} blockedReason={preparationBlockedReason} onRequest={setPreparationRequest} onReview={(id) => openReview("interview_prep", id)} onConfirm={setGapRow}/>
+        <Panel title="Interview preparation"><ArtifactEditor applicationId={applicationId} kind="interview_prep" artifact={getArtifact("interview_prep")} body={edits.interview_prep ?? getArtifact("interview_prep")?.body ?? ""} profile={profile} pendingCount={pendingCount("interview_prep")} onChange={(text) => setEdits((previous) => ({ ...previous, interview_prep: text }))} onSave={() => saveDraft("interview_prep")} onGenerate={(mode) => requestGeneration("interview_prep", mode)} onReview={() => markReviewed("interview_prep")} onOpenReview={() => openReview("interview_prep")} busy={actionBusy} busyMessage={actionMessage} canGenerate={canGenerate} generationBlockedReason={generationBlockedReason} notify={notify}/></Panel>
+      </TabsContent>
       <TabsContent value="review" className="mt-3"><ProposalReview key={`proposal-${proposalFocus || "default"}`} applicationId={applicationId} kind={kind === "assessment" ? "resume" : kind} sourceDigest={record.source_digest} version={reviewVersion} targetProposalId={proposalFocus} onKindChange={setKind} onUpdated={reviewedDraftUpdated} onDirtyChange={setReviewDirty} onBusyChange={setReviewBusy} onActivity={reviewActivity} notify={notify} disabled={busy} draftDirty={hasDocumentUnsaved} onOpenDrafts={() => changeSection(kind === "interview_prep" ? "interview" : "drafts")}/></TabsContent>
     </Tabs>
     </TabsContent>
     <TabsContent value="requirements" className="mt-2"><Tabs value={section} onValueChange={changeSection}><TabsList aria-label="Requirements views"><TabsTrigger value="requirements"><FileSearch size={15}/>Evidence comparison</TabsTrigger><TabsTrigger value="posting"><BriefcaseBusiness size={15}/>Original posting</TabsTrigger></TabsList>
-      <TabsContent value="requirements" className="mt-3 space-y-4"><RequirementsComparison artifact={assessment} decisions={record.requirement_decisions} historical={record.historical_requirement_decisions} onResolve={setGapRow} focusRequest={requirementFocus} onFocusHandled={setRequirementFocus} canGenerate={canGenerate} busy={actionBusy || hasUnsaved} onGenerate={() => requestGeneration("assessment")} onProposeExperience={() => requestGeneration("resume", "experience")} experienceBlockedReason={experienceBlockedReason} onOpenAssessment={() => openFile("assessment")}/><details className="rounded-md border bg-white p-3"><summary className="cursor-pointer text-sm font-medium hover:text-blue-700">Assessment changes & comparison</summary><div className="mt-3"><AssessmentComparison comparison={record.assessment_comparison}/></div></details></TabsContent>
+      <TabsContent value="requirements" className="mt-3 space-y-4"><RequirementsComparison artifact={assessment} decisions={record.requirement_decisions} historical={record.historical_requirement_decisions} onResolve={setGapRow} focusRequest={requirementFocus} onFocusHandled={setRequirementFocus} canGenerate={canGenerate} busy={actionBusy || hasUnsaved} onGenerate={() => requestGeneration("assessment")} onProposeExperience={(row) => setPreparationRequest({ mode: "example", requirement_key: row?.requirement_key })} onPrepare={(row) => setPreparationRequest({ mode: "gapplan", requirement_key: row.requirement_key })} experienceBlockedReason={preparationBlockedReason} onOpenAssessment={() => openFile("assessment")}/><details className="rounded-md border bg-white p-3"><summary className="cursor-pointer text-sm font-medium hover:text-blue-700">Assessment changes & comparison</summary><div className="mt-3"><AssessmentComparison comparison={record.assessment_comparison}/></div></details></TabsContent>
       <TabsContent value="posting" className="mt-3"><Panel title="Reviewed job posting" action={<Button size="sm" variant="outline" onClick={() => setDialog("posting")}><Pencil size={15}/>Edit posting</Button>}><PostingHighlights posting={record.posting} requirements={assessment?.requirements_stale ? [] : assessment?.requirements || []} showSummary={false} collapsible/>{!!record.questions.length && <details className="mt-6 border-t pt-4"><summary className="cursor-pointer text-sm font-medium hover:text-blue-700">Screening questions ({record.questions.length})</summary><ol className="mt-3 list-decimal space-y-3 pl-5 text-sm">{record.questions.map((question, index) => <li key={index}>{question}</li>)}</ol></details>}</Panel></TabsContent>
     </Tabs></TabsContent>
     <TabsContent value="checks" className="mt-2 space-y-4">
       <ApplicationChecklist checklist={record.checklist} onAction={checklistAction} busy={actionBusy || reviewDirty}/>
       <Panel title="Résumé & recruiter checks" description="Source-backed preparation checks, not an ATS test or a hiring prediction.">
-        <ResumeOptimization opportunities={record.resume_opportunities} check={record.resume_check} dirty={edits.resume !== undefined && edits.resume !== (getArtifact("resume")?.body || "")} blockedReason={actionBusy ? actionMessage : hasUnsaved ? "Save your draft edits and proposal decisions before requesting another report or proposal." : generationBlockedReason} busy={actionBusy} saved={!!getArtifact("resume")?.body?.trim()} pendingCount={pendingCount("resume")} onGenerate={(mode) => requestGeneration("resume", mode)} onReview={() => openReview("resume")} onEditSection={editResumeSection}/>
+        <ResumeOptimization opportunities={record.resume_opportunities} check={record.resume_check} dirty={edits.resume !== undefined && edits.resume !== (getArtifact("resume")?.body || "")} blockedReason={actionBusy ? actionMessage : hasUnsaved ? "Save your draft edits and proposal decisions before requesting another report or proposal." : generationBlockedReason} busy={actionBusy} saved={!!getArtifact("resume")?.body?.trim()} pendingCount={pendingCount("resume")} onGenerate={(mode) => requestGeneration("resume", mode)} onReview={() => openReview("resume")} onEditSection={editResumeSection} preferences={settings?.settings} exampleBlockedReason={preparationBlockedReason || (!record.requirement_decisions?.some((row) => row.status !== "supported") ? "No unresolved requirements in the current assessment." : "")} onExample={() => setPreparationRequest({ mode: "example" })} onPreparation={() => openFile("interview_prep")} onSettings={() => { if (hasUnsaved) setConfirm({ settings: true }); else onSettings(); }}/>
       </Panel>
     </TabsContent>
     <TabsContent value="activity" className="mt-2 space-y-4">
@@ -275,10 +288,12 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
     </TabsContent>
     </Tabs>
     {dialog === "posting" && <ApplicationForm record={record} onCancel={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }} notify={notify}/>}
-    {dialog === "resume_clarifications" && record.resume_check && <ResumeClarificationForm record={record} onCancel={() => setDialog(null)} onSaved={async () => { await load(); setDialog(null); await requestQuote(["resume"], "fix"); }} notify={notify}/>}
+    {dialog === "resume_clarifications" && record.resume_check && <ResumeClarificationForm record={record} autoAnswerBlockedReason={generationBlockedReason || (hasUnsaved ? "Save your draft edits and review decisions before drafting answers." : "")} onCancel={() => setDialog(null)} onSaved={async () => { await load(); setDialog(null); await requestQuote(["resume"], "fix"); }} notify={notify}/>}
     {dialog === "activity" && <ApplicationActivityForm applicationId={applicationId} onCancel={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }} notify={notify}/>}
     {dialog === "conversion" && <ApplicationConversionForm record={record} onCancel={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }} notify={notify}/>}
     {gapRow && <RequirementDecisionForm record={record} row={gapRow} profile={profile} onCancel={() => setGapRow(null)} onSaved={async (result) => { if (result.profile_changed) await onProfileChanged(); await load(); setGapRow(null); }} notify={notify}/>}
+    {preparationRequest && <SkillGapPreparationForm record={record} profile={profile} request={preparationRequest} onCancel={() => setPreparationRequest(null)} onQuote={(mode, selection) => { setPreparationRequest(null); requestQuote(["interview_prep"], mode, selection); }}/>}
+    {tailoringQuestion && <TailoringClarificationForm record={record} row={tailoringQuestion} profile={profile} onCancel={() => setTailoringQuestion(null)} onContinue={() => { setTailoringQuestion(null); requestQuote(["resume"], "tailor"); }} onSaved={async (result) => { if (result.profile_changed) await onProfileChanged(); await load(); setTailoringQuestion(null); if (!result.profile_changed) await requestQuote(["resume"], "tailor"); }} notify={notify}/>}
     {dialog === "final_checks" && <SubmissionReviewForm record={record} onCancel={() => setDialog(null)} onSaved={async () => { await load(); setDialog(null); }} notify={notify}/>}
     {(dialog === "follow_up" || dialog === "reschedule") && <FollowUpForm record={record} mode={dialog === "reschedule" ? "reschedule" : "record"} onCancel={() => setDialog(null)} onSaved={async () => { await load(); setDialog(null); }} notify={notify}/>}
     {quote && <GenerationQuoteDialog quote={quote} busy={busy} onCancel={() => setQuote(null)} onConfirm={runGeneration}/>}

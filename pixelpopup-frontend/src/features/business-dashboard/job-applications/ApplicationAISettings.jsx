@@ -9,6 +9,7 @@ import ChoiceTiles from "../../personal-dashboard/components/ChoiceTiles";
 import { Field } from "../client-workflow/shared";
 import ApplicationUsage from "./ApplicationUsage";
 import ProviderSetupGuide from "./ProviderSetupGuide";
+import TailoringPreferences from "./TailoringPreferences";
 
 import { providerIcons } from "./ProviderIcon";
 
@@ -40,6 +41,7 @@ export default function ApplicationAISettings({ notify }) {
       {provider?.models.find((item) => item.id === draft.model)?.note && <p className="flex items-start gap-2 text-xs leading-5 text-slate-600"><Info size={15} className="shrink-0"/><span>{provider.models.find((item) => item.id === draft.model).note}</span></p>}
       <div className={`flex items-start gap-2 rounded-md border p-3 text-sm ${provider?.configured ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>{provider?.configured ? <CheckCircle2 size={18} className="shrink-0"/> : <Info size={18} className="shrink-0"/>}<div>{provider?.configured ? `${provider.label} credentials are configured.` : `Set ${provider?.key_name} in the Django backend environment to enable this provider.`}<p className="mt-1 text-xs">Your key stays on the server. Changing provider affects future generations. Saved drafts stay available.</p></div></div>
       <ProviderSetupGuide key={draft.provider} provider={provider} notify={notify}/>
+      <TailoringPreferences value={draft} onChange={(name, value) => setDraft((previous) => ({ ...previous, [name]: value }))} disabled={busy} errors={errors}/>
       <div className="flex items-center justify-between gap-3 border-t pt-3"><p className="text-xs text-slate-600">Refinement runs only when you request it. Usage estimates appear in each application.</p><Button type="submit" disabled={busy}><Save size={16}/>{busy ? "Saving…" : "Save AI settings"}</Button></div>
     </form>}
   </Panel><ApplicationUsage refreshKey={data?.settings?.version} notify={notify}/></div>;

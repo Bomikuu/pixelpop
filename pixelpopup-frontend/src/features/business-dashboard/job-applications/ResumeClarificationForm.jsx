@@ -3,6 +3,8 @@ import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, CircleHelp, Info, Mes
 import { Button } from "../../personal-dashboard/ui/button";
 import FormField from "../../personal-dashboard/components/forms/FormField";
 import FormModalShell from "../../personal-dashboard/components/forms/FormModalShell";
+import ClarificationAutoAnswers from "./ClarificationAutoAnswers";
+import ClarificationBatchReview from "./ClarificationBatchReview";
 import { fieldError, focusInvalidField, jobApi } from "./api";
 
 const statuses = [
@@ -26,7 +28,7 @@ function questionFor(finding) {
   return questions.length ? questions : ["What accurate facts, project examples or wording corrections can you provide to address this finding? If it needs information you do not have, leave it unresolved."];
 }
 
-export default function ResumeClarificationForm({ record, onCancel, onSaved, notify }) {
+export default function ResumeClarificationForm({ record, onCancel, onSaved, notify, autoAnswerBlockedReason = "" }) {
   const [baseline] = useState(() => ({ check_id: record.resume_check.id, source_digest: record.source_digest, expected_version: record.resume_clarifications?.version || 0 }));
   const [findings] = useState(record.resume_check.findings);
   const [initial] = useState(() => Object.fromEntries(findings.flatMap((_, index) => {
@@ -35,22 +37,41 @@ export default function ResumeClarificationForm({ record, onCancel, onSaved, not
   })));
   const [values, setValues] = useState(initial), [confirmed, setConfirmed] = useState(false);
   const [activeItem, setActiveItem] = useState(0);
-  const [busy, setBusy] = useState(false), [saved, setSaved] = useState(false), [error, setError] = useState(""), [errors, setErrors] = useState({});
+  const [saving, setBusy] = useState(false), [autoBusy, setAutoBusy] = useState(false);
+  const [saved, setSaved] = useState(false), [error, setError] = useState(""), [errors, setErrors] = useState({});
+  const [drafts, setDrafts] = useState({}), [batch, setBatch] = useState(false), [draftWarnings, setDraftWarnings] = useState([]);
+  const busy = saving || autoBusy;
   const set = (name, value) => {
     setValues((previous) => ({ ...previous, [name]: value })); setConfirmed(false);
+    const index = name.split("_")[1];
+    setDrafts((previous) => ({ ...previous, [index]: undefined }));
     setErrors((previous) => ({ ...previous, [name]: undefined, [name.replace(/^status_/, "answer_")]: undefined, accuracy_confirmed: undefined }));
   };
   const answered = findings.filter((_, index) => values[`status_${index}`] === "answered").length;
   const notUsed = findings.filter((_, index) => values[`status_${index}`] === "not_used").length;
   const needsAnswer = findings.filter((_, index) => values[`status_${index}`] === "answered" && !values[`answer_${index}`].trim()).length;
   function openItem(index) {
+    setBatch(false);
     setActiveItem(index);
     requestAnimationFrame(() => document.getElementById(`clarification-question-${index}`)?.focus());
+  }
+  function applyDrafts(rows, warnings) {
+    const updates = {}, applied = {};
+    rows.forEach((row) => {
+      const index = row.finding_index;
+      if (values[`status_${index}`] !== "unresolved" || values[`answer_${index}`].trim()) return;
+      updates[`status_${index}`] = row.status;
+      updates[`answer_${index}`] = row.answer;
+      applied[index] = row;
+    });
+    setValues((previous) => ({ ...previous, ...updates }));
+    setDrafts((previous) => ({ ...previous, ...applied }));
+    setDraftWarnings(warnings); setConfirmed(false); setErrors({}); setBatch(true); setActiveItem(null);
   }
   function showErrors(invalid, form) {
     setErrors(invalid);
     const field = Object.keys(invalid).find((name) => /^answer_\d+$/.test(name));
-    if (field) setActiveItem(Number(field.split("_")[1]));
+    if (field) { setBatch(false); setActiveItem(Number(field.split("_")[1])); }
     focusInvalidField(form);
   }
   async function submit(event) {
@@ -66,7 +87,7 @@ export default function ResumeClarificationForm({ record, onCancel, onSaved, not
     setBusy(true);
     try {
       await jobApi(`applications/${record.id}/resume-clarifications/`, { method: "POST", body: { ...baseline, answers, accuracy_confirmed: confirmed } });
-      setSaved(true); notify("Answers saved for this application. No AI call made yet.");
+      setSaved(true); notify("Answers saved for this application. No résumé-fix call made yet.");
       await onSaved();
     } catch (issue) {
       setError(issue.message);
@@ -74,17 +95,22 @@ export default function ResumeClarificationForm({ record, onCancel, onSaved, not
       showErrors({ ...issue.fields, ...(Array.isArray(nested) ? Object.fromEntries(nested.flatMap((row, index) => row?.answer ? [[`answer_${index}`, row.answer]] : [])) : {}) }, form);
     } finally { setBusy(false); }
   }
-  return <FormModalShell scrollBody title="Let's clarify your experience" description="One finding at a time. Answer what you know, or leave it unresolved. No AI call is made until you approve the cost." onSubmit={submit} onCancel={onCancel} busy={busy} dirty={!saved && (confirmed || JSON.stringify(values) !== JSON.stringify(initial))} error={error} submitDisabled={saved} saveLabel="Save answers & review cost" extraActions={saved && <Button type="button" disabled={busy} variant="outline" onClick={async () => { setBusy(true); try { await onSaved(); } catch (issue) { setError(issue.message); } finally { setBusy(false); } }}><ArrowRight size={15}/>Continue to cost review</Button>}>
+  return <FormModalShell scrollBody title="Resolve checklist findings" description="Auto-draft all answers or respond manually. Review once, confirm the facts, then approve the cost of a one-pass résumé fix." onSubmit={submit} onCancel={onCancel} busy={busy} busyLabel={autoBusy ? "Preparing answers…" : "Saving…"} dirty={!saved && (batch || confirmed || JSON.stringify(values) !== JSON.stringify(initial))} error={error} submitDisabled={saved || record.resume_check.stale} saveLabel="Save answers & review fix cost" extraActions={saved && <Button type="button" disabled={busy} variant="outline" onClick={async () => { setBusy(true); try { await onSaved(); } catch (issue) { setError(issue.message); } finally { setBusy(false); } }}><ArrowRight size={15}/>Continue to cost review</Button>}>
+    <ClarificationAutoAnswers record={record} baseline={baseline} disabled={busy || saved || !!autoAnswerBlockedReason || record.resume_check.stale} onBusyChange={setAutoBusy} onDrafts={applyDrafts} notify={notify}/>
+    {record.resume_check.stale && <p role="alert" className="flex items-start gap-2 text-xs leading-5 text-amber-900"><TriangleAlert size={15} className="mt-0.5 shrink-0"/>Run a fresh final check before drafting or saving answers to these findings.</p>}
+    {autoAnswerBlockedReason && <p className="flex items-start gap-2 text-xs leading-5 text-amber-900"><Info size={15} className="mt-0.5 shrink-0"/>{autoAnswerBlockedReason}</p>}
     <div className="space-y-2 border-b pb-3">
       <div role="status" className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-        <span className="flex items-center gap-1.5 text-emerald-800"><CheckCircle2 size={15} aria-hidden="true"/>{answered - needsAnswer} with facts</span>
+        <span className="flex items-center gap-1.5 text-emerald-800"><CheckCircle2 size={15} aria-hidden="true"/>{answered - needsAnswer} answers to review</span>
         <span className="flex items-center gap-1.5 text-slate-600"><Info size={15} aria-hidden="true"/>{notUsed} not applicable</span>
         <span className="flex items-center gap-1.5 text-slate-600"><CircleHelp size={15} aria-hidden="true"/>{findings.length - answered - notUsed} unresolved</span>
         {needsAnswer > 0 && <span className="flex items-center gap-1.5 text-amber-900"><TriangleAlert size={15} aria-hidden="true"/>{needsAnswer} need an answer</span>}
       </div>
       <p className="flex items-start gap-1.5 text-xs leading-5 text-slate-600"><Info size={14} className="mt-0.5 shrink-0" aria-hidden="true"/>Application-only answers. Your shared profile and saved résumé stay unchanged until you accept reviewed changes.</p>
     </div>
-    <div className="min-w-0 divide-y overflow-hidden rounded-md border bg-white">
+    {draftWarnings.length > 0 && <details className="text-xs leading-5 text-amber-900"><summary className="w-fit cursor-pointer rounded-sm focus-visible:outline-2 focus-visible:outline-blue-600">Review {draftWarnings.length} AI caution{draftWarnings.length === 1 ? "" : "s"}</summary><ul className="mt-2 list-disc space-y-1 pl-5">{draftWarnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></details>}
+    {Object.keys(drafts).length > 0 && <div className="flex gap-2"><Button type="button" size="sm" variant={batch ? "default" : "outline"} disabled={busy} aria-pressed={batch} onClick={() => setBatch(true)}>Batch review</Button><Button type="button" size="sm" variant={batch ? "outline" : "default"} disabled={busy} aria-pressed={!batch} onClick={() => { setBatch(false); setActiveItem(0); }}>Individual answers</Button></div>}
+    {batch ? <ClarificationBatchReview findings={findings} values={values} drafts={drafts} disabled={busy || saved} onEdit={openItem}/> : <div className="min-w-0 divide-y overflow-hidden rounded-md border bg-white">
       {findings.map((finding, index) => {
         const active = activeItem === index, status = values[`status_${index}`];
         const questions = active ? questionFor(finding) : [];
@@ -116,7 +142,7 @@ export default function ResumeClarificationForm({ record, onCancel, onSaved, not
           </div>
         </section>;
       })}
-    </div>
+    </div>}
     {answered > 0 && <div className="space-y-2 border-t pt-3"><label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1 accent-blue-600" checked={confirmed} disabled={busy || saved} onChange={(event) => setConfirmed(event.target.checked)} aria-invalid={!!errors.accuracy_confirmed} aria-describedby={errors.accuracy_confirmed ? "resume-clarification-confirm-error" : undefined}/><span>I confirm these answers describe my actual experience. *</span></label>{errors.accuracy_confirmed && <p id="resume-clarification-confirm-error" role="alert" className="text-sm text-red-800">{fieldError(errors, "accuracy_confirmed")}</p>}</div>}
     {saved && <p role="status" className="flex items-center gap-2 text-sm text-emerald-800"><CheckCircle2 size={16}/>Answers saved. Continue to cost review if the refresh did not finish.</p>}
   </FormModalShell>;

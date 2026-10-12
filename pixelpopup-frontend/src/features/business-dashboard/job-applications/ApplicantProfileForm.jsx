@@ -8,6 +8,8 @@ import FormModalShell from "../../personal-dashboard/components/forms/FormModalS
 import { fieldError, jobApi } from "./api";
 import MarkdownEditor from "../client-workflow/MarkdownEditor";
 import DocumentPage from "../client-workflow/DocumentPage";
+import ProfileSkillSuggestions from "./ProfileSkillSuggestions";
+import ProjectExperienceEditor from "./ProjectExperienceEditor";
 
 export default function ApplicantProfileForm({ profile, onCancel, onSaved, notify }) {
   const [draft, setDraft] = useState(profile);
@@ -49,7 +51,11 @@ export default function ApplicantProfileForm({ profile, onCancel, onSaved, notif
     { name: "resume_text", label: "Reviewed résumé text", type: "textarea", maxLength: 30000, className: "min-h-44", hint: draft.resume_filename ? `Imported from ${draft.resume_filename}. You can correct the extracted text.` : "Upload a résumé or paste its text. This supplements your experience above." }];
   return <FormModalShell title="Application profile" description="These are the sources used to prepare your applications. Review the facts and confirm them before generating. You can save unconfirmed work." error={error} busy={busy || uploading} dirty={JSON.stringify(draft) !== JSON.stringify(profile)} onSubmit={submit} onCancel={onCancel} saveLabel="Save profile">
     <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={busy || uploading} onClick={usePortfolio}><Link2 size={16} />Use my portfolio & ASTA experience</Button><Button type="button" variant="outline" disabled={busy || uploading} onClick={() => fileRef.current?.click()}><FileUp size={16}/>{uploading ? "Reading résumé…" : "Upload résumé"}</Button><Input ref={fileRef} type="file" accept=".pdf,.docx,.txt" aria-label="Upload résumé" className="sr-only" onChange={upload} tabIndex={-1} /></div>
-    <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => field.name !== "resume_text").map((field) => <div key={field.name} className={field.type === "textarea" || field.name === "portfolio_url" ? "sm:col-span-2" : ""}><FormField field={field} values={draft} onChange={set} layout="plain" idPrefix="applicant" error={fieldError(errors, field.name)} disabled={busy || uploading}/></div>)}</div>
+    <div className="grid gap-4 sm:grid-cols-2">{fields.filter((field) => field.name !== "resume_text").map((field) => <div key={field.name} className={field.type === "textarea" || field.name === "portfolio_url" ? "sm:col-span-2" : ""}>
+      {field.name === "facts" && <ProfileSkillSuggestions facts={draft.facts} onChange={(text) => set("facts", text)} disabled={busy || uploading}/>}
+      <FormField field={field} values={draft} onChange={set} layout="plain" idPrefix="applicant" error={fieldError(errors, field.name)} disabled={busy || uploading}/>
+    </div>)}</div>
+    <ProjectExperienceEditor value={draft.project_experience || []} onChange={(projects) => set("project_experience", projects)} disabled={busy || uploading} errors={errors.project_experience}/>
     <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
       <p id="applicant-resume-hint" className="text-xs text-slate-600">{draft.resume_filename ? `Imported from ${draft.resume_filename}. You can correct and format the extracted text.` : "Upload your résumé or paste and format its text below."}</p>
       <Button type="button" size="sm" variant="outline" aria-expanded={previewOpen} aria-controls="applicant-resume-preview" onClick={() => setPreviewOpen((open) => !open)}>{previewOpen ? <EyeOff size={15}/> : <Eye size={15}/>} {previewOpen ? "Hide preview" : "Show preview"}</Button>

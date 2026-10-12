@@ -15,6 +15,7 @@ from job_applications.models import ApplicationAISettings, GenerationRun
 from .pricing import output_limit_for, model_price, token_cost
 from .providers import SCHEMA, configured, validate_model
 from .review import ReviewConflict, profile_ready, source_fingerprint
+from .project_experience import answers_digest
 
 MANILA = ZoneInfo("Asia/Manila")
 QUOTE_SALT = "job-applications.generation-quote.v1"
@@ -57,11 +58,15 @@ def budget_block(usage, estimate):
     return ""
 
 
-def estimate_request(application, profile, preferences, kind, mode):
+def estimate_request(application, profile, preferences, kind, mode, selection=None):
     from .generation import generation_instructions, build_generation_content
     from .resume_optimization import RESUME_MODES, response_schema
+    if mode == "experience":
+        raise ValidationError("Hypothetical examples now live in Interview preparation. Use Generate experience examples to select parameters first.")
     if mode in ("experience", *RESUME_MODES) and kind != "resume":
         raise ValidationError("Résumé optimization and experience proposals apply only to the résumé.")
+    if mode in ("example", "gapplan") and kind != "interview_prep":
+        raise ValidationError("Examples and study plans must be saved in Interview preparation.")
     model = preferences.refinement_model if mode in ("refine", "tailor", "check", "fix") and preferences.refinement_model else preferences.model
     validate_model(preferences.provider, model)
     if not configured(preferences.provider):
@@ -73,7 +78,7 @@ def estimate_request(application, profile, preferences, kind, mode):
     artifact = application.artifacts.filter(kind=kind).first() or SimpleNamespace(body="", revision=0)
     if mode == "refine" and not artifact.body:
         raise ValidationError("Save an initial draft before refining it.")
-    content = build_generation_content(application, profile, artifact, kind, mode)
+    content = build_generation_content(application, profile, artifact, kind, mode, preferences, selection)
     payload = generation_instructions(mode) + content + json.dumps(response_schema(SCHEMA, mode), sort_keys=True)
     input_estimate = len(payload.encode("utf-8")) + 1024
     price = model_price(preferences.provider, model, timezone.localdate(timezone=MANILA))
@@ -85,21 +90,26 @@ def estimate_request(application, profile, preferences, kind, mode):
             "content_digest": hashlib.sha256(payload.encode()).hexdigest(), "month": month_window()[0].strftime("%Y-%m"),
             "input_estimate": input_estimate, "output_limit": output_limit, "price": price,
             "estimate_usd": str(estimate) if estimate is not None else None}
+    snapshot["answers_digest"] = answers_digest(application, profile)
+    if mode in ("example", "gapplan"):
+        snapshot["selection"] = selection
+        snapshot["assessment_revision"] = selection["assessment_revision"]
+        snapshot["requirement_label"] = json.loads(content)["skill_gap"]["requirement"]["text"]
     if mode == "experience":
         snapshot["assessment_revision"] = json.loads(content)["experience_proposal"]["assessment_revision"]
     if mode in RESUME_MODES:
         snapshot["resume_body_digest"] = hashlib.sha256((artifact.body or profile.resume_text).encode()).hexdigest()
         optimization = json.loads(content)["resume_optimization"]
         snapshot["clarification_id"] = optimization["clarification_id"]
-        if mode == "fix":
+        if mode in ("fix", "clarify"):
             snapshot["checklist_id"] = optimization["latest_checklist"]["id"]
     return snapshot
 
 
-def quote_generations(application, profile, preferences, kinds, mode):
+def quote_generations(application, profile, preferences, kinds, mode, selection=None):
     items = []
     for kind in kinds:
-        snapshot = estimate_request(application, profile, preferences, kind, mode)
+        snapshot = estimate_request(application, profile, preferences, kind, mode, selection)
         items.append({**snapshot, "quote_token": signing.dumps(snapshot, salt=QUOTE_SALT, compress=True),
                       "pricing_date": snapshot["price"]["effective_date"] if snapshot["price"] else None,
                       "assumptions": f"Approximate input: UTF-8 byte length plus 1,024 framing tokens; up to {snapshot['output_limit']:,} output tokens. Reasoning and provider billing may differ. This is not a guaranteed billing cap." + (f" {snapshot['price']['note']}" if snapshot["price"] and snapshot["price"].get("note") else "")})
@@ -113,7 +123,7 @@ def verify_quote(application, profile, preferences, data):
         saved = signing.loads(data["quote_token"], salt=QUOTE_SALT, max_age=600)
     except signing.BadSignature:
         raise ReviewConflict("This quote expired or is invalid. Request a fresh estimate before generating.") from None
-    current = estimate_request(application, profile, preferences, data["kind"], data["mode"])
+    current = estimate_request(application, profile, preferences, data["kind"], data["mode"], saved.get("selection"))
     if saved != current or current["expected_revision"] != data["expected_revision"]:
         raise ReviewConflict("Your sources, model, pricing or draft changed. Request a fresh estimate.")
     reason = budget_block(monthly_usage(application.owner, preferences=preferences), current["estimate_usd"])

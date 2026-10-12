@@ -42,3 +42,10 @@ def fix_context_changed(application, snapshot):
     latest_check = application.generations.filter(kind="resume", mode="check", status="completed").first()
     return (not record or record.pk != snapshot.get("clarification_id")
             or not latest_check or str(latest_check.pk) != snapshot.get("checklist_id"))
+
+
+def answer_context_changed(application, snapshot):
+    record = latest_clarifications(application, snapshot.get("checklist_id"))
+    latest_check = application.generations.filter(kind="resume", mode="check", status="completed").first()
+    return ((record.pk if record else None) != snapshot.get("clarification_id")
+            or not latest_check or str(latest_check.pk) != snapshot.get("checklist_id"))

@@ -36,6 +36,7 @@ from job_applications.services.timeline import record_application_changes
 from job_applications.services.budget import monthly_usage
 from job_applications.services.resume_optimization import report_state
 from job_applications.services.clarifications import clarification_state
+from job_applications.services.skill_gap_preparation import preparation_items
 from .serializers import ProfileSerializer, AISettingsSerializer, ApplicationSerializer, ArtifactSerializer, ActivitySerializer, GenerationSerializer, GenerateRequestSerializer
 
 
@@ -59,7 +60,15 @@ class ProfileView(PrivateMixin, APIView):
         profile = ApplicantProfile.objects.select_for_update().get(pk=profile.pk)
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        previous_projects = profile.project_experience
         serializer.save()
+        if profile.project_experience != previous_projects:
+            ApplicationActivity.objects.bulk_create([
+                ApplicationActivity(application_id=application_id, kind="reviewed", occurred_on=today(),
+                                    message="Updated shared project experience. Review source-dependent assessments and pending proposals before using them.",
+                                    details={"profile_projects_changed": True, "previous_count": len(previous_projects), "current_count": len(profile.project_experience)})
+                for application_id in JobApplication.objects.filter(owner=request.user).values_list("pk", flat=True)
+            ], batch_size=500)
         return Response(serializer.data)
 
 
@@ -159,6 +168,7 @@ class ApplicationViewSet(ApplicationClarificationActionsMixin, ApplicationRequir
                          "resume_opportunities": report_state(record, context["profile"], next((item for item in artifacts if item.kind == "resume"), None), "discover"),
                          "resume_check": resume_check,
                          "resume_clarifications": clarification_state(record, resume_check),
+                         "preparation_examples": preparation_items(record, context["profile"]),
                          "pending_proposals": list(pending),
                          "artifacts": ArtifactSerializer(artifacts, many=True, context=context).data,
                          "activities": ActivitySerializer(record.activities.all()[:30], many=True).data,

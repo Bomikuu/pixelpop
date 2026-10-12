@@ -12,6 +12,7 @@ class ApplicantProfile(models.Model):
     location = models.CharField(max_length=160, blank=True)
     portfolio_url = models.URLField(blank=True)
     facts = models.TextField(max_length=30000, blank=True)
+    project_experience = models.JSONField(default=list, blank=True)
     resume_text = models.TextField(max_length=30000, blank=True)
     resume_filename = models.CharField(max_length=200, blank=True)
     sources_confirmed = models.BooleanField(default=False)
@@ -24,6 +25,8 @@ class ApplicationAISettings(models.Model):
     model = models.CharField(max_length=100, default="gpt-6-luna")
     refinement_model = models.CharField(max_length=100, blank=True)
     monthly_budget_usd = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    tailoring_emphasis = models.CharField(max_length=20, choices=[("conservative", "Conservative"), ("strong", "Strong")], default="conservative")
+    unconfirmed_claims = models.CharField(max_length=20, choices=[("review_questions", "Review questions"), ("exclude", "Exclude")], default="review_questions")
     version = models.PositiveIntegerField(default=1)
     updated_at = models.DateTimeField(auto_now=True)
 

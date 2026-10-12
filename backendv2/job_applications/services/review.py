@@ -7,6 +7,7 @@ from rest_framework.exceptions import APIException, ValidationError
 
 from job_applications.models import ApplicationActivity, ArtifactRevision
 from .sections import assemble_sections
+from .project_experience import answers_digest, project_experience_text, tailoring_context
 
 
 class ReviewConflict(APIException):
@@ -17,11 +18,13 @@ class ReviewConflict(APIException):
 def source_fingerprint(application, profile):
     snapshot = {"job": {key: getattr(application, key) for key in ("role", "company", "posting", "questions")},
                 "profile": {key: getattr(profile, key) for key in ("full_name", "email", "phone", "location", "portfolio_url", "facts", "resume_text")}}
+    if getattr(profile, "project_experience", []):
+        snapshot["profile"]["project_experience"] = profile.project_experience
     return hashlib.sha256(json.dumps(snapshot, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def profile_ready(profile):
-    return profile.sources_confirmed and bool(profile.facts.strip() or profile.resume_text.strip())
+    return profile.sources_confirmed and bool(profile.facts.strip() or profile.resume_text.strip() or project_experience_text(profile))
 
 
 def artifact_review_state(artifact, application, profile):
@@ -55,10 +58,16 @@ def require_current_proposal(proposal, expected_version, application, profile):
         raise ReviewConflict("A newer review was saved in another tab. Refresh before saving these decisions.")
     if proposal.base_revision != proposal.artifact.revision or proposal.source_digest != source_fingerprint(application, profile):
         raise ReviewConflict()
+    snapshot = proposal.generation.quote_snapshot
+    if snapshot.get("answers_digest") and snapshot["answers_digest"] != answers_digest(application, profile):
+        raise ReviewConflict("Your requirement answers changed. Generate a new proposal using your current answers.")
     if proposal.generation.mode == "fix":
         from .clarifications import fix_context_changed
         if fix_context_changed(application, proposal.generation.quote_snapshot):
             raise ReviewConflict("The checklist answers changed. Generate a new proposal using your current answers.")
+    if proposal.generation.mode in ("example", "gapplan"):
+        from .skill_gap_preparation import skill_gap_context
+        skill_gap_context(application, profile, snapshot.get("selection"), proposal.generation.mode)
     if not profile_ready(profile):
         raise ValidationError("Review and confirm profile sources before reviewing this proposal.")
 
@@ -66,6 +75,8 @@ def require_current_proposal(proposal, expected_version, application, profile):
 def accept_proposal(proposal, expected_version, application, profile):
     # Caller holds the application/profile/artifact/proposal locks in that order.
     require_current_proposal(proposal, expected_version, application, profile)
+    if proposal.generation.mode == "experience":
+        raise ValidationError("This legacy hypothetical résumé proposal cannot be accepted as work history. Generate a separate preparation example, or supply confirmed actual contributions for tailoring.")
     if any(item["decision"] == "unreviewed" for item in proposal.sections):
         raise ValidationError("Choose what to keep for every changed section before accepting.")
     body = assemble_sections(proposal.sections)
@@ -81,6 +92,11 @@ def accept_proposal(proposal, expected_version, application, profile):
     proposal.version += 1
     proposal.save(update_fields=["status", "version", "updated_at"])
     record_activity(application, "reviewed", f"Accepted reviewed {artifact.get_kind_display()} revision {artifact.revision}.")
+    if proposal.generation.mode == "example":
+        from .skill_gap_preparation import approved_preparation_body
+        if approved_preparation_body(proposal):
+            record_activity(application, "reviewed", "Approved hypothetical wording for preparation only. No résumé facts or evidence coverage changed.",
+                            details={"example_proposal_id": proposal.pk, "wording_approved": True, "experience_confirmed": False})
     return artifact
 
 
@@ -117,6 +133,8 @@ def normalize_requirements(requirements, application, profile):
 
     posting = normalized(application.posting)
     sources = {key: normalized(getattr(profile, key)) for key in ("facts", "resume_text")}
+    sources["project_experience"] = normalized(project_experience_text(profile))
+    sources["clarifications"] = normalized("\n\n".join(item["note"] for item in tailoring_context(application, profile, None)["applicant_answers"]))
     rows = []
     for item in requirements:
         quoted = normalized(item["posting_excerpt"])

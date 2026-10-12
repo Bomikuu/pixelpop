@@ -5,10 +5,16 @@ from job_applications.services.providers import CATALOG, validate_model
 from job_applications.services.review import artifact_review_state, profile_ready, source_fingerprint
 from job_applications.services.resumes import structure_resume
 from job_applications.services.sections import split_sections
+from job_applications.services.project_experience import answers_digest
+from .project_serializers import ProjectExperienceSerializer, validate_projects
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     resume_sections = serializers.SerializerMethodField()
+    project_experience = ProjectExperienceSerializer(many=True, max_length=30, required=False)
+
+    def validate_project_experience(self, value):
+        return validate_projects(value)
 
     def get_resume_sections(self, obj):
         # Read-only structure also works for résumé text saved before heading import.
@@ -21,10 +27,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         changed = any(name in data and data[name] != getattr(self.instance, name) for name in
-                      ("full_name", "email", "phone", "location", "portfolio_url", "facts", "resume_text"))
+                      ("full_name", "email", "phone", "location", "portfolio_url", "facts", "resume_text", "project_experience"))
         if changed and not data.get("sources_confirmed", False):
             data["sources_confirmed"] = False
-        if data.get("sources_confirmed") and not (data.get("facts", self.instance.facts).strip() or data.get("resume_text", self.instance.resume_text).strip()):
+        confirmed_projects = any(item["status"] == "confirmed" for item in data.get("project_experience", self.instance.project_experience))
+        if data.get("sources_confirmed") and not (data.get("facts", self.instance.facts).strip() or data.get("resume_text", self.instance.resume_text).strip() or confirmed_projects):
             raise serializers.ValidationError({"facts": "Add experience or résumé text before confirming sources."})
         return data
 
@@ -106,8 +113,16 @@ class ProposalSerializer(serializers.ModelSerializer):
 
     def get_stale(self, obj):
         from job_applications.services.clarifications import fix_context_changed
+        if obj.generation.mode in ("example", "gapplan"):
+            from job_applications.services.skill_gap_preparation import skill_gap_context
+            from job_applications.services.review import ReviewConflict
+            try:
+                skill_gap_context(self.context["application"], self.context["profile"], obj.generation.quote_snapshot.get("selection"), obj.generation.mode)
+            except (ReviewConflict, serializers.ValidationError):
+                return True
         return (obj.base_revision != obj.artifact.revision or not profile_ready(self.context["profile"])
                 or obj.source_digest != source_fingerprint(self.context["application"], self.context["profile"])
+                or (bool(obj.generation.quote_snapshot.get("answers_digest")) and obj.generation.quote_snapshot["answers_digest"] != answers_digest(self.context["application"], self.context["profile"]))
                 or obj.generation.mode == "fix" and fix_context_changed(self.context["application"], obj.generation.quote_snapshot))
 
     def get_warnings(self, obj):
@@ -176,12 +191,14 @@ class GenerationSerializer(serializers.ModelSerializer):
 class GenerateRequestSerializer(serializers.Serializer):
     request_id = serializers.UUIDField()
     kind = serializers.ChoiceField(choices=[item[0] for item in ApplicationArtifact.KINDS])
-    mode = serializers.ChoiceField(choices=["routine", "refine", "experience", "discover", "tailor", "check", "fix"], default="routine")
+    mode = serializers.ChoiceField(choices=["routine", "refine", "experience", "discover", "tailor", "check", "fix", "clarify", "example", "gapplan"], default="routine")
     expected_revision = serializers.IntegerField(min_value=0)
     confirm_replace = serializers.BooleanField(default=False)
     quote_token = serializers.CharField(max_length=12000)
 
     def validate(self, data):
-        if data["mode"] in ("experience", "discover", "tailor", "check", "fix") and data["kind"] != "resume":
+        if data["mode"] in ("example", "gapplan") and data["kind"] != "interview_prep":
+            raise serializers.ValidationError({"kind": "Hypothetical examples and study plans belong to Interview preparation, not the résumé."})
+        if data["mode"] in ("experience", "discover", "tailor", "check", "fix", "clarify") and data["kind"] != "resume":
             raise serializers.ValidationError({"kind": "Résumé optimization and experience proposals apply only to the résumé."})
         return data

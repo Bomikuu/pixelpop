@@ -15,6 +15,10 @@ from .pricing import token_cost
 from .budget import month_window, verify_quote
 from .experience_proposals import EXPERIENCE_INSTRUCTIONS, append_experience_proposal, experience_context
 from .resume_optimization import REPORT_MODES, RESUME_MODES, INSTRUCTIONS as RESUME_INSTRUCTIONS, annotate_changes, normalize_result, response_schema, resume_context
+from .project_experience import answers_digest, tailoring_context
+from .clarification_drafts import INSTRUCTIONS as CLARIFICATION_INSTRUCTIONS
+from .clarifications import answer_context_changed
+from .skill_gap_preparation import MODES as PREPARATION_MODES, INSTRUCTIONS as PREPARATION_INSTRUCTIONS, append_preparation, skill_gap_context
 
 
 GenerationConflict = ReviewConflict
@@ -41,20 +45,26 @@ Do not invent screening questions. Unknown contact details should be omitted rat
 
 
 def generation_instructions(mode):
-    extra = EXPERIENCE_INSTRUCTIONS if mode == "experience" else RESUME_INSTRUCTIONS.get(mode, "")
+    extra = CLARIFICATION_INSTRUCTIONS if mode == "clarify" else EXPERIENCE_INSTRUCTIONS if mode == "experience" else RESUME_INSTRUCTIONS.get(mode, "")
+    source_rules = " Confirmed project experience is a user-reported source, not independent verification. Cite exact project quotations as source=project_experience and current applicant answer notes as source=clarifications. Hypothetical preparation is not an applicant source. For strong tailoring emphasis prioritize relevant confirmed independent/ASTA contributions and naturally matching terminology without adding unsupported claims. For conservative emphasis retain restrained wording. Never infer scale, proficiency, years or outcomes from a tool list."
     if mode in RESUME_MODES:
         # The mode-specific schema has an additional structured field.
-        return INSTRUCTIONS.replace("with exactly body", "with body") + extra + " Application-only applicant_answers marked answered are user-confirmed sources, not independently verified facts. Do not claim unresolved or not_used answers as experience. Use source=clarifications for exact answer quotes. Return every field in the supplied JSON schema."
-    return INSTRUCTIONS + extra
+        return INSTRUCTIONS.replace("with exactly body", "with body") + source_rules + extra + " Application-only applicant_answers marked answered are user-confirmed sources, not independently verified facts. Do not claim unresolved or not_used answers as experience. Use source=clarifications for exact answer quotes. Return every field in the supplied JSON schema."
+    if mode in PREPARATION_MODES:
+        return INSTRUCTIONS + source_rules + PREPARATION_INSTRUCTIONS[mode]
+    return INSTRUCTIONS + source_rules + extra
 
 
-def build_generation_content(application, profile, artifact, kind, mode):
+def build_generation_content(application, profile, artifact, kind, mode, preferences=None, selection=None):
     content = {"artifact": kind, "mode": mode, "applicant": {
         "full_name": profile.full_name, "email": profile.email, "phone": profile.phone,
         "location": profile.location, "portfolio_url": profile.portfolio_url,
         "approved_profile_facts": profile.facts, "reviewed_resume_text": profile.resume_text,
     }, "job": {"role": application.role, "company": application.company, "posting": application.posting,
                "questions": application.questions}, "existing_draft": artifact.body if mode in ("refine", "experience", *RESUME_MODES) else ""}
+    content["tailoring"] = tailoring_context(application, profile, preferences)
+    if mode in PREPARATION_MODES:
+        content["skill_gap"] = skill_gap_context(application, profile, selection, mode)
     if kind == "resume":
         content["resume_format"] = {"reference": "Mico_Ang_Senior_Software_Developer.pdf",
                                     "section_labels": ["Links", "Profile", "Core strength", "Education history", "Skills & specialization", "Project involvement", "Professional experience"],
@@ -97,6 +107,8 @@ def generate_artifact(application, profile, preferences, data):
         if mode == "fix":
             from .clarifications import fix_context_changed
             sources_changed = sources_changed or fix_context_changed(locked_application, snapshot)
+        if mode == "clarify":
+            sources_changed = sources_changed or answer_context_changed(locked_application, snapshot)
         if artifact.revision != data["expected_revision"] or sources_changed:
             raise GenerationConflict()
         if artifact.body and mode not in REPORT_MODES and not data["confirm_replace"]:
@@ -114,7 +126,7 @@ def generate_artifact(application, profile, preferences, data):
             raise GenerationConflict("This request ID was already used. Refresh before retrying.") from None
         if month_window(run.created_at)[0].strftime("%Y-%m") != snapshot["month"]:
             raise GenerationConflict("The allowance month changed. Request a fresh estimate.")
-        content = build_generation_content(locked_application, locked_profile, artifact, kind, mode)
+        content = build_generation_content(locked_application, locked_profile, artifact, kind, mode, locked_preferences, snapshot.get("selection"))
     try:
         schema = response_schema(SCHEMA, mode)
         arguments = (run.provider, model, generation_instructions(mode), content)
@@ -123,6 +135,8 @@ def generate_artifact(application, profile, preferences, data):
         result = normalize_result(result, locked_application, locked_profile, artifact, mode, schema, json.loads(content).get("resume_optimization"))
         if mode == "experience":
             result = append_experience_proposal(result, artifact.body)
+        if mode in PREPARATION_MODES:
+            result = append_preparation(result, artifact.body, json.loads(content)["skill_gap"], mode)
         if kind == "resume" and mode not in (*REPORT_MODES, "experience"):
             result["body"], restored = preserve_resume_sections(artifact.body or locked_profile.resume_text, result["body"])
             if restored:
@@ -146,12 +160,21 @@ def generate_artifact(application, profile, preferences, data):
         run.result, run.input_tokens, run.output_tokens = result, input_tokens, output_tokens
         run.cost_version += 1
         sources_changed = source_fingerprint(locked_application, locked_profile) != digest or not profile_ready(locked_profile)
+        sources_changed = sources_changed or snapshot.get("answers_digest") != answers_digest(locked_application, locked_profile)
         if mode == "fix":
             from .clarifications import fix_context_changed
             sources_changed = sources_changed or fix_context_changed(locked_application, snapshot)
-        if mode == "experience":
+        if mode == "clarify":
+            sources_changed = sources_changed or answer_context_changed(locked_application, snapshot)
+        if mode in ("experience", *PREPARATION_MODES):
             assessment_revision = locked_application.artifacts.filter(kind="assessment").values_list("revision", flat=True).first()
             sources_changed = sources_changed or assessment_revision != snapshot["assessment_revision"]
+        if mode in PREPARATION_MODES and not sources_changed:
+            try:
+                current_context = skill_gap_context(locked_application, locked_profile, snapshot["selection"], mode)
+                sources_changed = current_context != json.loads(content)["skill_gap"]
+            except (ReviewConflict, ValidationError):
+                sources_changed = True
         if artifact.revision != data["expected_revision"] or sources_changed:
             run.status = "conflict"
             run.save()
@@ -173,7 +196,7 @@ def generate_artifact(application, profile, preferences, data):
             run.status = "completed"
             run.result["completed_at"] = timezone.now().isoformat()
             run.save()
-            action_label = {"discover": "Found résumé keyword opportunities", "check": "Ran final résumé recruiter check"}.get(mode)
+            action_label = {"discover": "Found résumé keyword opportunities", "check": "Ran final résumé recruiter check", "clarify": "Drafted batch clarification answers for review"}.get(mode)
             record_activity(application, "generated", f"{action_label or ('Generated assessment' if kind == 'assessment' else 'Prepared a review proposal for ' + artifact.get_kind_display())} with {CATALOG[run.provider]['label']} / {model}.")
     if run.status == "conflict":
         raise GenerationConflict({"detail": "Newer edits were kept. The generated alternative is saved in generation history.", "generation_id": str(run.id)})

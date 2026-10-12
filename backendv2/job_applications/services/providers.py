@@ -43,7 +43,7 @@ SCHEMA = {"type": "object", "properties": {
         "status": {"type": "string", "enum": ["supported", "partial", "not_evidenced"]},
         "explanation": {"type": "string"},
         "sources": {"type": "array", "maxItems": 8, "items": {"type": "object", "properties": {
-            "source": {"type": "string", "enum": ["facts", "resume_text"]}, "excerpt": {"type": "string"},
+            "source": {"type": "string", "enum": ["facts", "resume_text", "project_experience", "clarifications"]}, "excerpt": {"type": "string"},
         }, "required": ["source", "excerpt"], "additionalProperties": False}},
     }, "required": ["text", "posting_excerpt", "importance", "status", "explanation", "sources"], "additionalProperties": False}},
 }, "required": ["body", "warnings", "evidence", "requirements"], "additionalProperties": False}
@@ -163,7 +163,7 @@ def generate(provider, model, instructions, content, schema=None, output_limit=O
             if not isinstance(item.get("sources"), list) or len(item["sources"]) > 8:
                 raise ValueError()
             for source in item["sources"]:
-                if not isinstance(source, dict) or source.get("source") not in ("facts", "resume_text") or not isinstance(source.get("excerpt"), str) or not source["excerpt"].strip() or len(source["excerpt"]) > 2000:
+                if not isinstance(source, dict) or source.get("source") not in ("facts", "resume_text", "project_experience", "clarifications") or not isinstance(source.get("excerpt"), str) or not source["excerpt"].strip() or len(source["excerpt"]) > 2000:
                     raise ValueError()
     except (ValueError, TypeError):
         raise ValidationError("The AI returned an invalid draft. Previous drafts were retained. Try regenerating this section.") from None

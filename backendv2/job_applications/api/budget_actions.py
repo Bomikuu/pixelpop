@@ -15,11 +15,13 @@ from job_applications.services.budget import month_window, monthly_usage, quote_
 from job_applications.services.review import ReviewConflict, record_activity
 from .serializers import GenerationSerializer
 from .timeline_actions import WorkflowPagination
+from .skill_gap_serializers import SkillGapSelectionSerializer
 
 
 class QuoteSerializer(serializers.Serializer):
     kinds = serializers.ListField(child=serializers.ChoiceField(choices=[kind for kind, _ in ApplicationArtifact.KINDS]), min_length=1, max_length=4)
-    mode = serializers.ChoiceField(choices=["routine", "refine", "experience", "discover", "tailor", "check", "fix"], default="routine")
+    mode = serializers.ChoiceField(choices=["routine", "refine", "experience", "discover", "tailor", "check", "fix", "clarify", "example", "gapplan"], default="routine")
+    selection = SkillGapSelectionSerializer(required=False)
 
     def validate_kinds(self, value):
         if len(set(value)) != len(value):
@@ -27,7 +29,12 @@ class QuoteSerializer(serializers.Serializer):
         return value
 
     def validate(self, data):
-        if data["mode"] in ("experience", "discover", "tailor", "check", "fix") and data["kinds"] != ["resume"]:
+        if data["mode"] in ("example", "gapplan"):
+            if data["kinds"] != ["interview_prep"] or "selection" not in data:
+                raise serializers.ValidationError({"selection": "Select a requirement for Interview preparation."})
+        elif "selection" in data:
+            raise serializers.ValidationError({"selection": "Preparation parameters apply only to examples and study plans."})
+        if data["mode"] in ("experience", "discover", "tailor", "check", "fix", "clarify") and data["kinds"] != ["resume"]:
             raise serializers.ValidationError({"kinds": "Choose only the résumé for optimization or experience proposals."})
         return data
 

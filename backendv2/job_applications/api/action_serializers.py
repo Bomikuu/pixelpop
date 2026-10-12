@@ -17,6 +17,8 @@ class RequirementDecisionSerializer(serializers.Serializer):
     def validate(self, data):
         if data["decision"] != "needs_review" and not data["note"].strip():
             raise serializers.ValidationError({"note": "Add a factual example or explain the limitation."})
+        if data["decision"] == "evidence_added" and not data["accuracy_confirmed"]:
+            raise serializers.ValidationError({"accuracy_confirmed": "Confirm that this contribution describes work you actually did."})
         if data["append_to_profile"]:
             if data["decision"] != "evidence_added" or not data["accuracy_confirmed"]:
                 raise serializers.ValidationError({"accuracy_confirmed": "Confirm this example is accurate before adding it to your profile."})

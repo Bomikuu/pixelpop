@@ -47,8 +47,8 @@ export function downloadFile({ blob, filename }) {
 export const statuses = ["draft", "ready", "applied", "interviewing", "offer", "rejected", "withdrawn"];
 export const packageKinds = ["assessment", "resume", "cover_letter", "answers"];
 export const labels = { assessment: "Fit assessment", resume: "Tailored résumé", cover_letter: "Cover letter", answers: "Screening answers", interview_prep: "Interview preparation" };
-export const isResumeReport = (mode) => ["discover", "check"].includes(mode);
-export const generationLabel = (kind, mode) => ({ discover: "Keyword opportunities", tailor: "Role-tailored résumé proposal", fix: "One-pass checklist fix proposal", check: "Final recruiter check", experience: "Experience suggestions" }[mode] || labels[kind]);
+export const isResumeReport = (mode) => ["discover", "check", "clarify"].includes(mode);
+export const generationLabel = (kind, mode) => ({ discover: "Keyword opportunities", tailor: "Role-tailored résumé proposal", fix: "One-pass checklist fix proposal", check: "Final recruiter check", clarify: "Batch clarification answers", experience: "Experience suggestions", example: "Hypothetical experience example", gapplan: "Targeted interview study plan" }[mode] || labels[kind]);
 export const fieldError = (errors, key) => Array.isArray(errors?.[key]) ? errors[key].join(" ") : typeof errors?.[key] === "string" ? errors[key] : "";
 
 export function focusInvalidField(form) {

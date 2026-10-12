@@ -1,0 +1,13 @@
+import ReactMarkdown from "react-markdown";
+import { BookOpen, CheckCircle2, FileCheck2, Info } from "lucide-react";
+import { Button } from "../../personal-dashboard/ui/button";
+
+export default function ExperienceExampleReview({ item, row, busy, preparationDisabled, onReview, onPrepare, onConfirm }) {
+  const hypothetical = item.mode === "example";
+  return <li className="min-w-0 border-t py-3">
+    <div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h4 className="break-words text-sm font-medium">{row?.text || "Earlier requirement"}</h4><p className="mt-1 text-xs text-slate-600">{hypothetical ? "Hypothetical example" : "Interview study plan"} · {item.status === "accepted" ? "Wording approved for preparation" : item.status === "pending" ? "Awaiting wording review" : "Discarded"} · {new Date(item.created_at).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" })}</p></div><span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-700"><Info size={14}/>{hypothetical ? "Not verified history" : "Practice material"}</span></div>
+    {item.stale && <p className="mt-2 text-xs text-amber-900">Sources or revisions changed. Keep this as historical preparation; reassess before requesting a new example.</p>}
+    <details className="mt-3 text-sm"><summary className="cursor-pointer text-slate-600 hover:text-blue-700">Read {hypothetical ? "example" : "study plan"}</summary><div className="mt-3 max-w-prose space-y-3 break-words text-sm leading-6 text-slate-700"><ReactMarkdown components={{ img: () => null, h1: ({ children }) => <h5 className="font-semibold">{children}</h5>, h2: ({ children }) => <h5 className="font-semibold">{children}</h5>, h3: ({ children }) => <h5 className="pt-2 font-medium">{children}</h5>, ul: ({ children }) => <ul className="list-disc space-y-1 pl-5">{children}</ul>, ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5">{children}</ol> }}>{item.body}</ReactMarkdown></div></details>
+    <div className="mt-3 flex flex-wrap gap-2">{item.status === "pending" && <Button type="button" size="sm" variant="outline" disabled={busy || item.stale} onClick={() => onReview(item.id)}><FileCheck2 size={15}/>Review wording</Button>}{hypothetical && item.status === "accepted" && <><Button type="button" size="sm" variant="outline" disabled={busy || preparationDisabled || item.stale || !row} onClick={() => onPrepare(item)}><BookOpen size={15}/>Prepare for this example</Button><Button type="button" size="sm" variant="ghost" disabled={busy || item.stale || !row} onClick={() => onConfirm(row)}><CheckCircle2 size={15}/>Record my actual contribution</Button></>}</div>
+  </li>;
+}

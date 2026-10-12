@@ -8,11 +8,12 @@ from rest_framework.exceptions import ValidationError
 from .review import profile_ready, source_fingerprint
 from .sections import split_sections
 from .clarifications import accepted_clarifications, confirmed_answers, latest_clarifications
+from .project_experience import project_experience_text, tailoring_context
 
-REPORT_MODES = ("discover", "check")
+REPORT_MODES = ("discover", "check", "clarify")
 RESUME_MODES = (*REPORT_MODES, "tailor", "fix")
 SOURCE_SCHEMA = {"type": "array", "maxItems": 8, "items": {"type": "object", "properties": {
-    "source": {"type": "string", "enum": ["facts", "resume_text", "clarifications"]}, "excerpt": {"type": "string"},
+    "source": {"type": "string", "enum": ["facts", "resume_text", "clarifications", "project_experience"]}, "excerpt": {"type": "string"},
 }, "required": ["source", "excerpt"], "additionalProperties": False}}
 
 INSTRUCTIONS = {
@@ -41,6 +42,9 @@ Use applicant_answers to resolve uncertainty, retaining previously_accepted_answ
 def response_schema(base, mode):
     if mode not in RESUME_MODES:
         return base
+    if mode == "clarify":
+        from .clarification_drafts import answer_schema
+        return answer_schema(base, SOURCE_SCHEMA)
     schema = deepcopy(base)
     if mode == "discover":
         field, properties = "opportunities", {
@@ -66,14 +70,15 @@ def response_schema(base, mode):
 
 
 def resume_context(profile, artifact, mode, application=None):
-    if mode in ("check", "fix") and not artifact.body.strip():
+    if mode in ("check", "fix", "clarify") and not artifact.body.strip():
         raise ValidationError("Save a résumé draft before running a final check or requesting fixes.")
     body = artifact.body or profile.resume_text
     if not body.strip():
         raise ValidationError("Add reviewed résumé text to your profile, or save a résumé draft first.")
     context = {"saved_revision": artifact.revision, "resume_sections": split_sections(body)}
     answers = accepted_clarifications(application, profile) if application else None
-    if mode == "fix":
+    accepted_answers = answers
+    if mode in ("fix", "clarify"):
         report = report_state(application, profile, artifact, "check") if application else None
         if not report or report["stale"]:
             raise ValidationError("Run a fresh final check on the saved résumé before requesting a fix proposal.")
@@ -81,12 +86,15 @@ def resume_context(profile, artifact, mode, application=None):
             raise ValidationError("The latest checklist has no actionable findings. Review its cautions instead.")
         context["latest_checklist"] = {key: report[key] for key in ("id", "revision", "body", "warnings", "findings")}
         answers = latest_clarifications(application, report["id"])
-        if (not answers or answers.details.get("source_digest") != source_fingerprint(application, profile)
+        if mode == "fix" and (not answers or answers.details.get("source_digest") != source_fingerprint(application, profile)
                 or answers.details.get("revision") != artifact.revision):
             raise ValidationError("Answer the latest checklist questions before requesting a fix proposal.")
     context["clarification_id"] = answers.pk if answers else None
     context["applicant_answers"] = answers.details.get("answers", []) if mode == "fix" and answers else confirmed_answers(answers)
     context["previously_accepted_answers"] = answers.details.get("previous_answers", []) if mode == "fix" and answers else []
+    if mode == "clarify":
+        context["applicant_answers"] = confirmed_answers(answers or accepted_answers)
+        context["requirement_answers"] = tailoring_context(application, profile, None)["applicant_answers"]
     return context
 
 
@@ -99,9 +107,9 @@ def traced_sources(rows, profile, clarification_text=""):
         raise ValidationError("The AI returned invalid résumé source references. Your saved résumé was kept.")
     valid = []
     for row in rows:
-        if not isinstance(row, dict) or row.get("source") not in ("facts", "resume_text", "clarifications") or not isinstance(row.get("excerpt"), str) or not 0 < len(row["excerpt"]) <= 2000:
+        if not isinstance(row, dict) or row.get("source") not in ("facts", "resume_text", "clarifications", "project_experience") or not isinstance(row.get("excerpt"), str) or not 0 < len(row["excerpt"]) <= 2000:
             raise ValidationError("The AI returned invalid résumé source references. Your saved résumé was kept.")
-        text = clarification_text if row["source"] == "clarifications" else getattr(profile, row["source"])
+        text = clarification_text if row["source"] == "clarifications" else project_experience_text(profile) if row["source"] == "project_experience" else getattr(profile, row["source"])
         if normalized(row["excerpt"]) and normalized(row["excerpt"]) in normalized(text):
             valid.append(row)
     return valid
@@ -111,6 +119,9 @@ def normalize_result(result, application, profile, artifact, mode, schema, conte
     """Validate shape, then strip untraceable references rather than trusting AI citations."""
     if mode not in RESUME_MODES:
         return result
+    if mode == "clarify":
+        from .clarification_drafts import normalize_answers
+        return normalize_answers(result, profile, context)
     field = {"discover": "opportunities", "tailor": "changes", "fix": "changes", "check": "findings"}[mode]
     spec = schema["properties"][field]
     rows = result.get(field)
@@ -119,6 +130,7 @@ def normalize_result(result, application, profile, artifact, mode, schema, conte
     sections = {item["key"]: item for item in split_sections(artifact.body or profile.resume_text)}
     context = context or resume_context(profile, artifact, mode, application)
     clarification_text = "\n\n".join(row["answer"] for row in [*context["applicant_answers"], *context.get("previously_accepted_answers", [])] if row["status"] == "answered")
+    clarification_text += "\n\n" + "\n\n".join(row["note"] for row in tailoring_context(application, profile, None)["applicant_answers"])
     validated = []
     for row in rows:
         if not isinstance(row, dict):
