@@ -4,6 +4,7 @@ from django.db.models.functions import TruncMonth
 from finance.models import Account, Asset, Category, Deadline, LoanReceivable, RecurringSchedule, Transaction, MoneyMovement
 from .balances import account_balance, outstanding, ZERO
 from .queries import filtered, month_range
+from .cash_loans.reports import cost_rebates
 
 
 def _bounded(rows):
@@ -49,6 +50,16 @@ def record_charts(qs, base, params, date_field=None, search_fields=()):
                 key = "expenses" if group["kind"] == "expense" else "expected" if group["receipt_state"] == "expected" else "income"
                 by_month[str(group["period"])[:7]][key] += group["amount"]
             breakdown = _group(qs, "category__name")
+            rebates = cost_rebates(compare_params).filter(date__range=(months[0][0], months[-1][1]))
+            for rebate in rebates:
+                by_month[str(rebate.date)[:7]]["expenses"] += rebate.interest + rebate.fees
+            amount = sum((row.interest + row.fees for row in cost_rebates(params)), ZERO)
+            if amount:
+                other = next((row for row in breakdown if row["label"] == "Uncategorized"), None)
+                if other is None:
+                    other = {"label": "Uncategorized", "amount": ZERO}
+                    breakdown.append(other)
+                other["amount"] += amount
             fields = ["income", "expected"] if params.get("kind") == "income" else ["expenses"] if params.get("kind") == "expense" else ["income", "expected", "expenses"]
             return {"monthly": rows, "fields": fields, "breakdown": breakdown, "breakdown_title": "Amount by category", "monetary": True}
         for item in series:

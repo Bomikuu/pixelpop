@@ -1,11 +1,15 @@
+from decimal import Decimal
+from hashlib import sha256
+
 from rest_framework import serializers
 from django.db import transaction
 
 from finance import models
 from finance.services.balances import account_balance, outstanding, today
 from finance.services.summaries import urgency
-from finance.services.asset_financing import financing_balance, installment_paid
+from finance.services.asset_financing import financing_balance, installment_paid, terms_on
 from finance.services.people import person_key
+from finance.services.asset_images import normalize_asset_image
 
 
 class StrictSerializer(serializers.ModelSerializer):
@@ -17,7 +21,7 @@ class StrictSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         account = attrs.get("account", getattr(self.instance, "account", None))
-        if account and not account.active:
+        if account and not account.active and not self.context.get("quick_entry_replay_validation"):
             raise serializers.ValidationError({"account": "Choose an active account."})
         return attrs
 
@@ -80,15 +84,26 @@ class PersonSerializer(StrictSerializer):
 
 class AccountSerializer(StrictSerializer):
     balance = serializers.SerializerMethodField()
+    available_credit = serializers.SerializerMethodField()
+    additional_reservation = serializers.SerializerMethodField()
     opening_balance = serializers.DecimalField(max_digits=14, decimal_places=2, write_only=True, required=False, default=0)
     opening_date = serializers.DateField(write_only=True, required=False, default=today)
 
     class Meta:
         model = models.Account
-        fields = ("id", "name", "kind", "institution", "last_four", "card_expiry", "card_network", "fund_type", "credit_limit", "active", "balance", "opening_balance", "opening_date")
+        fields = ("id", "name", "kind", "institution", "last_four", "card_expiry", "card_network", "fund_type", "credit_limit", "active", "balance", "available_credit", "additional_reservation", "opening_balance", "opening_date")
+
+    def get_available_credit(self, obj):
+        from finance.services.cash_loans.ledger import available_credit
+        value = available_credit(obj)
+        return str(value.quantize(Decimal("0.01"))) if value is not None else None
+
+    def get_additional_reservation(self, obj):
+        from finance.services.cash_loans.ledger import additional_credit_reservation
+        return str(additional_credit_reservation(obj.pk)) if obj.kind == "credit_card" else "0.00"
 
     def get_balance(self, obj):
-        return str(account_balance(obj))
+        return str(account_balance(obj).quantize(Decimal("0.01")))
 
     def validate(self, attrs):
         if attrs.get("opening_date", today()) > today():
@@ -124,7 +139,7 @@ class AccountSerializer(StrictSerializer):
 
 
 class TransactionSerializer(StrictSerializer):
-    account_name = serializers.CharField(source="account.name", read_only=True)
+    account_name = serializers.CharField(source="account.name", read_only=True, default="Other Account")
     category_name = serializers.CharField(source="category.name", read_only=True, default="Other")
     shared_bill_id = serializers.IntegerField(source="shared_payment.bill_id", read_only=True, default=None)
 
@@ -139,7 +154,13 @@ class TransactionSerializer(StrictSerializer):
         day = attrs.get("date", getattr(self.instance, "date", today()))
         account = attrs.get("account", getattr(self.instance, "account", None))
         coverage = attrs.get("coverage", getattr(self.instance, "coverage", None))
+        if account is None and not self.context.get("allow_unassigned") and (
+            self.instance is None or self.instance.account_id is not None
+        ):
+            raise serializers.ValidationError({"account": "Choose an account. Use Quick Entry to save an unsettled transaction."})
         state = attrs.get("receipt_state", getattr(self.instance, "receipt_state", "received"))
+        if account is None and state == "expected":
+            raise serializers.ValidationError({"account": "Choose an account for expected income. Unsettled entries represent already received money."})
         contact = attrs.get("contact", getattr(self.instance, "contact", None))
         recipient = attrs.get("recipient", getattr(self.instance, "recipient", "")).strip()
         if "contact" in attrs and contact:
@@ -168,6 +189,8 @@ class TransactionSerializer(StrictSerializer):
             raise serializers.ValidationError("Shared-bill payment history is read-only. Use an explicit account correction.")
         if self.instance and self.instance.asset_financing_payment_id:
             raise serializers.ValidationError("Financing interest and fees belong to their payment history and cannot be edited separately.")
+        if self.instance and self.instance.cash_loan_posting_id:
+            raise serializers.ValidationError("Cash-loan costs must be corrected through the loan's recorded history.")
         return attrs
 
     @transaction.atomic
@@ -191,14 +214,19 @@ class DeadlineSerializer(StrictSerializer):
     remaining_due = serializers.SerializerMethodField()
     system_key = serializers.CharField(source="schedule.system_key", read_only=True, default=None)
     financing_asset_id = serializers.IntegerField(source="asset_financing.asset_id", read_only=True, default=None)
+    cash_loan_id = serializers.IntegerField(read_only=True, default=None)
+    cash_loan_installment_id = serializers.IntegerField(source="cash_loan_installment.id", read_only=True, default=None)
     category_name = serializers.CharField(source="category.name", read_only=True, default="Other")
 
     class Meta:
         model = models.Deadline
-        fields = ("id", "title", "kind", "priority", "important", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "system_key", "credit_card", "loan", "asset_financing", "financing_asset_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
+        fields = ("id", "title", "kind", "priority", "important", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "system_key", "credit_card", "loan", "asset_financing", "financing_asset_id", "cash_loan_id", "cash_loan_installment_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
         read_only_fields = ("status", "schedule", "system_key", "asset_financing", "installment_index", "completed_at")
 
     def get_remaining_due(self, obj):
+        if obj.cash_loan_id and hasattr(obj, "cash_loan_installment"):
+            from finance.services.cash_loans.ledger import remaining_components
+            return str(sum(remaining_components(obj.cash_loan_installment).values(), Decimal("0")))
         return str(max(0, obj.amount - installment_paid(obj))) if obj.asset_financing_id and obj.amount is not None else None
 
     def get_urgency(self, obj):
@@ -218,6 +246,8 @@ class DeadlineSerializer(StrictSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        if self.instance and self.instance.cash_loan_id:
+            raise serializers.ValidationError("Change this cash-loan obligation from its loan page.")
         item_kind = attrs.get("kind", getattr(self.instance, "kind", "task"))
         if attrs.get("important", getattr(self.instance, "important", False)) and item_kind not in ("task", "reminder"):
             raise serializers.ValidationError({"important": "Only tasks and reminders can be important."})
@@ -358,10 +388,51 @@ class CategorySerializer(StrictSerializer):
 
 class AssetSerializer(StrictSerializer):
     financing_id = serializers.SerializerMethodField()
+    financing_progress = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
+    image_upload = serializers.CharField(write_only=True, required=False, allow_null=True, max_length=350000, trim_whitespace=False)
 
     class Meta:
         model = models.Asset
-        fields = ("id", "name", "kind", "value", "valuation_date", "notes", "active", "financing_id")
+        fields = ("id", "name", "kind", "value", "valuation_date", "notes", "active", "financing_id", "financing_progress", "image_url", "image_upload")
+
+    def get_image_url(self, obj):
+        return f"/api/v1/finance/assets/{obj.pk}/image/?v={obj.image_hash}" if obj.image_hash else None
+
+    def validate_image_upload(self, value):
+        return normalize_asset_image(value)
+
+    def get_financing_progress(self, obj):
+        if not hasattr(obj, "financing"):
+            return None
+        financing = obj.financing
+        installments = list(financing.installments.all())
+        paid = sum(item.status != "pending" for item in installments)
+        balance = financing_balance(financing)
+        day = today()
+        _, monthly_due = terms_on(financing, day)
+        return {
+            "paid": paid, "total": financing.remaining_months,
+            "remaining_principal": str(balance), "monthly_due": str(monthly_due),
+            "lender": financing.lender,
+            "paid_off": balance == 0,
+            "overdue": balance > 0 and any(
+                item.status == "pending" and item.due_date < day for item in installments
+            ),
+        }
+
+    def _image_fields(self, data):
+        if "image_upload" in data:
+            image = data.pop("image_upload")
+            data["image_blob"] = image
+            data["image_hash"] = sha256(image).hexdigest() if image else ""
+        return data
+
+    def create(self, validated_data):
+        return super().create(self._image_fields(validated_data))
+
+    def update(self, instance, validated_data):
+        return super().update(instance, self._image_fields(validated_data))
 
     def get_financing_id(self, obj):
         return obj.financing.pk if hasattr(obj, "financing") else None

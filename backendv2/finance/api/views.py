@@ -2,8 +2,10 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import ProtectedError, Q
+from django.db.models import BigIntegerField, ProtectedError, Q
+from django.db.models.functions import Cast
 from django.middleware.csrf import get_token
+from django.http import HttpResponse, Http404
 from rest_framework import status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
@@ -23,6 +25,8 @@ from finance.services.charts import record_charts
 from finance.services.account_detail import account_ledger, account_summary
 from finance.services.asset_financing import financing_balance, financing_projection, installment_paid, materialize_installments, record_payment, terms_on
 from finance.services.audit import log_record, snapshot_record, record_label
+from finance.services.quick_entry import save_quick_entries, settle_transactions, unsettled_summary
+from .quick_entry import QuickEntryRowSerializer, SettlementRowSerializer, validate_batch
 from .serializers import AccountSerializer, AssetFinancingPaymentSerializer, AssetFinancingSerializer, AssetFinancingTermsSerializer, AssetSerializer, CategorySerializer, DeadlineSerializer, LoanSerializer, MovementSerializer, PersonSerializer, ScheduleSerializer, SettingsSerializer, TransactionSerializer
 
 
@@ -316,7 +320,57 @@ class TransactionViewSet(FinanceViewSet):
         return qs.filter(account_id=identifier)
 
     def summary(self, qs):
-        return transaction_summary(qs)
+        return transaction_summary(qs, params=self.request.query_params)
+
+    @action(detail=False, methods=["post"], url_path="quick-entry")
+    def quick_entry(self, request):
+        rows = validate_batch(request.data, "transactions", QuickEntryRowSerializer, "request_id",
+                              {"request": request, "allow_unassigned": True, "quick_entry_replay_validation": True})
+        result = save_quick_entries(rows, request.user)
+        return Response({"results": self.get_serializer(result.pop("records"), many=True).data, **result},
+                        status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["get"])
+    def unsettled(self, request):
+        qs = self.queryset.filter(account__isnull=True).order_by("-date", "-id")
+        q = request.query_params.get("q", "").strip()
+        if len(q) > 160:
+            raise ValidationError({"q": "Use at most 160 characters."})
+        if q:
+            qs = qs.filter(Q(name__icontains=q) | Q(category__name__icontains=q))
+        kind = request.query_params.get("kind")
+        if kind:
+            if kind not in {"income", "expense"}:
+                raise ValidationError({"kind": "Choose income or expense."})
+            qs = qs.filter(kind=kind)
+        page = self.paginate_queryset(qs)
+        response = self.get_paginated_response(self.get_serializer(page, many=True).data)
+        response.data["summary"] = json_money(unsettled_summary())
+        return response
+
+    @action(detail=False, methods=["get"], url_path="quick-entry-records")
+    def quick_entry_records(self, request):
+        # Reuse durable audit provenance; UUIDs alone do not identify the entry source.
+        identifiers = models.AuditEvent.objects.filter(
+            source="quick_entry", subject_type="Transaction", subject_id__regex=r"^\d+$",
+        ).annotate(transaction_id=Cast("subject_id", BigIntegerField())).values("transaction_id")
+        qs = self.queryset.filter(Q(account__isnull=True) | Q(pk__in=identifiers)).order_by("-date", "-id")
+        settlement = request.query_params.get("settlement", "all")
+        if settlement not in {"all", "unsettled", "settled"}:
+            raise ValidationError({"settlement": "Choose all, unsettled or settled."})
+        if settlement != "all":
+            qs = qs.filter(account__isnull=settlement == "unsettled")
+        page = self.paginate_queryset(qs)
+        response = self.get_paginated_response(self.get_serializer(page, many=True).data)
+        response.data["summary"] = json_money(transaction_summary(qs))
+        response.data["summary"]["unsettled_count"] = qs.filter(account__isnull=True).count()
+        return response
+
+    @action(detail=False, methods=["post"])
+    def settle(self, request):
+        rows = validate_batch(request.data, "assignments", SettlementRowSerializer, "id")
+        records = settle_transactions(rows, request.user)
+        return Response({"results": self.get_serializer(records, many=True).data})
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -331,19 +385,20 @@ class TransactionViewSet(FinanceViewSet):
         previous = serializer.instance
         old_account_id, old_amount, old_date, old_kind = previous.account_id, previous.amount, previous.date, previous.kind
         next_account = serializer.validated_data.get("account", previous.account)
+        account_ids = {identifier for identifier in (old_account_id, next_account.pk if next_account else None) if identifier is not None}
         locked = {
             account.pk: account for account in models.Account.objects.select_for_update()
-            .filter(pk__in={old_account_id, next_account.pk}).order_by("pk")
+            .filter(pk__in=account_ids).order_by("pk")
         }
         entry = serializer.save()
-        if entry.kind == "expense" and not (
+        if entry.account_id is not None and entry.kind == "expense" and not (
             old_kind == "expense" and entry.account_id == old_account_id
             and entry.amount <= old_amount and entry.date >= old_date
         ):
             ensure_account_capacity(locked[entry.account_id], entry.date)
 
     def perform_destroy(self, instance):
-        if instance.deadline_id or instance.schedule_id or instance.asset_financing_payment_id or hasattr(instance, "shared_payment"):
+        if instance.deadline_id or instance.schedule_id or instance.asset_financing_payment_id or instance.cash_loan_posting_id or hasattr(instance, "shared_payment"):
             raise ValidationError("Linked settlement/schedule history cannot be deleted. Use an explicit correction.")
         super().perform_destroy(instance)
 
@@ -390,7 +445,7 @@ class DeadlineViewSet(FinanceViewSet):
         return Response(self.get_serializer(result).data)
 
     def perform_destroy(self, instance):
-        if instance.status != "pending" or instance.schedule_id or instance.loan_id or instance.asset_financing_id:
+        if instance.status != "pending" or instance.schedule_id or instance.loan_id or instance.asset_financing_id or instance.cash_loan_id:
             raise ValidationError("Settled, recurring or loan-linked history cannot be deleted.")
         super().perform_destroy(instance)
 
@@ -441,9 +496,18 @@ class LoanViewSet(FinanceViewSet):
 
 
 class AssetViewSet(FinanceViewSet):
-    queryset = models.Asset.objects.select_related("financing")
+    queryset = models.Asset.objects.select_related("financing").defer("image_blob").prefetch_related("financing__installments")
     serializer_class = AssetSerializer
     search_fields = ("name", "notes")
+
+    @action(detail=True, methods=["get"], url_path="image")
+    def image(self, request, pk=None):
+        asset = self.get_object()
+        if not asset.image_hash or not asset.image_blob:
+            raise Http404
+        response = HttpResponse(bytes(asset.image_blob), content_type="image/webp")
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
 
     def perform_update(self, serializer):
         asset = serializer.save()

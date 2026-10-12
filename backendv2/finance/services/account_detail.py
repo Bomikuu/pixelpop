@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.db.models import Q
 
-from finance.models import AssetFinancingPayment, BalanceAdjustment, MoneyMovement, Transaction
+from finance.models import AssetFinancingPayment, BalanceAdjustment, CashLoanPosting, MoneyMovement, Transaction
 
 from .balances import ZERO, account_balance, today, total
 from .queries import month_range
@@ -22,7 +22,7 @@ def account_ledger(account, month=None):
     transactions = dated(
         Transaction.objects.filter(account=account)
         .filter(Q(kind="expense") | Q(kind="income", receipt_state="received"))
-        .exclude(asset_financing_payment__isnull=False)
+        .exclude(asset_financing_payment__isnull=False).exclude(cash_loan_posting__isnull=False)
     ).select_related("category")
     for row in transactions:
         if account.kind == "credit_card" and row.kind != "expense":
@@ -78,6 +78,9 @@ def account_ledger(account, month=None):
             "effect": row.amount,
         })
 
+    for row in dated(CashLoanPosting.objects.filter(account=account)).select_related("loan"):
+        entries.append({"id": row.pk, "date": row.date.isoformat(), "created_at": row.created_at.isoformat(), "kind": "cash_loan_" + row.kind, "name": row.loan.name, "counterparty": "Credit-card financing", "note": row.notes or row.kind.replace("_", " ").title(), "amount": abs(row.effect), "effect": row.effect})
+
     if account.kind != "credit_card":
         payments = dated(
             AssetFinancingPayment.objects.filter(account=account, historical=False, cash_amount__gt=0)
@@ -118,21 +121,25 @@ def account_summary(account, month):
 
     balance = account_balance(account)
     limit = account.credit_limit
+    from .cash_loans.ledger import additional_credit_reservation, available_credit, borrowing_rebates
+    rebates = borrowing_rebates(start, through, account.pk)
     summary = {
         "selected_month": month,
         "balance": balance,
         "received_income": total(transactions.filter(kind="income", receipt_state="received")),
         "expected_income": total(transactions.filter(kind="income", receipt_state="expected")),
-        "expenses": total(transactions.filter(kind="expense")),
+        "expenses": total(transactions.filter(kind="expense")) - rebates,
         "transfers_in": total(incoming.filter(kind="transfer")),
         "transfers_out": total(outgoing.filter(kind="transfer")),
         "financing_cash": total(AssetFinancingPayment.objects.filter(account=account, historical=False, date__range=(start, through)), "cash_amount"),
-        "card_charges": total(transactions.filter(kind="expense")) if account.kind == "credit_card" else ZERO,
+        "card_charges": total(transactions.filter(kind="expense")) - rebates if account.kind == "credit_card" else ZERO,
         "card_payments": total(incoming.filter(kind="credit_card_payment")) if account.kind == "credit_card" else ZERO,
         "contributions": total(incoming.filter(kind="fund_contribution")) if account.kind == "fund" else ZERO,
         "withdrawals": total(outgoing.filter(kind="fund_withdrawal")) if account.kind == "fund" else ZERO,
         "net_change": monthly_effect,
         "credit_limit": limit,
+        "available_credit": available_credit(account),
+        "additional_reservation": additional_credit_reservation(account.pk) if account.kind == "credit_card" else ZERO,
         "utilization": (balance / limit * Decimal("100")) if account.kind == "credit_card" and limit else None,
     }
 

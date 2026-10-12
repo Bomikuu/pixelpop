@@ -6,6 +6,8 @@ from . import nutrition
 from . import activity
 from . import events
 from . import reminders
+from . import cash_loans
+from . import account_access
 
 router = DefaultRouter()
 for prefix, view in (
@@ -18,6 +20,23 @@ for prefix, view in (
     router.register(prefix, view, basename="finance-" + prefix)
 
 urlpatterns = [
+    path("session/login/", account_access.LoginView.as_view()),
+    path("session/logout/", account_access.LogoutView.as_view()),
+    path("accounts/reconcile-balances/", account_access.BalanceReconciliationView.as_view()),
+    path("cash-loans/quote/", cash_loans.CashLoanQuoteView.as_view()),
+    path("cash-loans/compare/", cash_loans.CashLoanCompareView.as_view()),
+    path("cash-loans/", cash_loans.CashLoanListView.as_view()),
+    path("cash-loans/<int:pk>/", cash_loans.CashLoanDetailView.as_view()),
+    path("cash-loans/<int:pk>/history/", cash_loans.CashLoanActionView.as_view(action="history")),
+    path("cash-loans/<int:pk>/payment-candidates/", cash_loans.CashLoanActionView.as_view(action="payment-candidates")),
+    path("cash-loans/<int:pk>/payments/", cash_loans.CashLoanActionView.as_view(action="payments")),
+    path("cash-loans/<int:pk>/post/", cash_loans.CashLoanActionView.as_view(action="post")),
+    path("cash-loans/<int:pk>/settlement-preview/", cash_loans.CashLoanActionView.as_view(action="settlement-preview")),
+    path("cash-loans/<int:pk>/settle/", cash_loans.CashLoanActionView.as_view(action="settle")),
+    path("cash-loans/<int:pk>/amend/", cash_loans.CashLoanActionView.as_view(action="amend")),
+    path("cash-loans/<int:pk>/cancel/", cash_loans.CashLoanActionView.as_view(action="cancel")),
+    path("cash-loans/<int:pk>/link-statement/", cash_loans.CashLoanActionView.as_view(action="link-statement")),
+    path("cash-loans/<int:pk>/allocations/<int:allocation_id>/reverse/", cash_loans.CashLoanAllocationReverseView.as_view()),
     path("reminders/checklist/", reminders.ReminderChecklistView.as_view()),
     path("reminders/items/<int:pk>/toggle/", reminders.ReminderItemToggleView.as_view()),
     path("reminders/status/", reminders.ReminderStatusView.as_view()),

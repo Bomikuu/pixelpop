@@ -24,13 +24,15 @@ def account_balance(account, as_of=None):
     result = total(BalanceAdjustment.objects.filter(account=account, date__lte=as_of))
     transactions = Transaction.objects.filter(account=account, date__lte=as_of)
     # Financing costs are expenses, but the full payment is deducted below once.
-    spending = total(transactions.filter(kind="expense", asset_financing_payment__isnull=True))
+    spending = total(transactions.filter(kind="expense", asset_financing_payment__isnull=True, cash_loan_posting__isnull=True))
+    from .cash_loans.ledger import loan_account_effect
+    loan_effect = loan_account_effect(account.pk, as_of)
     incoming = total(MoneyMovement.objects.filter(destination=account, date__lte=as_of))
     outgoing = total(MoneyMovement.objects.filter(source=account, date__lte=as_of))
     financing_cash = total(AssetFinancingPayment.objects.filter(account=account, historical=False, date__lte=as_of), "cash_amount")
     if account.kind == "credit_card":
-        return result + spending - incoming
-    return result + total(transactions.filter(kind="income", receipt_state="received")) - spending + incoming - outgoing - financing_cash
+        return result + spending - incoming + loan_effect
+    return result + total(transactions.filter(kind="income", receipt_state="received")) - spending + incoming - outgoing - financing_cash + loan_effect
 
 
 def ensure_account_capacity(account, date, field="account"):
@@ -40,7 +42,8 @@ def ensure_account_capacity(account, date, field="account"):
         if account.kind == "credit_card":
             if account.credit_limit is None:
                 raise ValidationError({field: "Set a credit limit for this card before recording a charge."})
-            if balance > account.credit_limit:
+            from .cash_loans.ledger import additional_credit_reservation
+            if balance + additional_credit_reservation(account.pk, day) > account.credit_limit:
                 raise ValidationError({field: "This payment exceeds the card's available credit. Use another account or a smaller amount."})
         elif balance < ZERO:
             raise ValidationError({field: "This payment exceeds the account's available balance. Use another account or a smaller amount."})

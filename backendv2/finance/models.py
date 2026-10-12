@@ -120,6 +120,8 @@ class Asset(Record):
     valuation_date = models.DateField()
     notes = models.TextField(blank=True, max_length=4000)
     active = models.BooleanField(default=True)
+    image_blob = models.BinaryField(null=True, blank=True, editable=False)
+    image_hash = models.CharField(max_length=64, blank=True, editable=False)
 
 
 class AssetFinancing(Record):
@@ -216,6 +218,7 @@ class Deadline(Record):
     credit_card = models.ForeignKey(Account, null=True, blank=True, on_delete=models.PROTECT)
     loan = models.ForeignKey(LoanReceivable, null=True, blank=True, on_delete=models.PROTECT, related_name="deadlines")
     asset_financing = models.ForeignKey(AssetFinancing, null=True, blank=True, on_delete=models.PROTECT, related_name="installments")
+    cash_loan = models.ForeignKey("CashLoan", null=True, blank=True, on_delete=models.PROTECT, related_name="deadlines")
     installment_index = models.PositiveSmallIntegerField(null=True, blank=True)
     settlement_kind = models.CharField(max_length=25, choices=[("expense", "Expense"), ("credit_card_payment", "Card payment"), ("loan_collection", "Loan collection")], default="expense")
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -235,7 +238,7 @@ class Transaction(Record):
     recipient = models.CharField(max_length=120, blank=True)
     contact = models.ForeignKey(Person, null=True, blank=True, on_delete=models.PROTECT, related_name="giving_transactions")
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.PROTECT)
-    account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="transactions")
+    account = models.ForeignKey(Account, null=True, blank=True, on_delete=models.PROTECT, related_name="transactions")
     coverage = models.ForeignKey(Account, null=True, blank=True, on_delete=models.PROTECT, related_name="premium_payments")
     date = models.DateField(db_index=True)
     payment_method = models.CharField(max_length=20, choices=[(v, v.title()) for v in ("cash", "bank", "credit_card", "debit_card", "gcash", "maya", "other")], default="bank")
@@ -243,6 +246,7 @@ class Transaction(Record):
     notes = models.TextField(blank=True, max_length=4000)
     deadline = models.OneToOneField(Deadline, null=True, blank=True, on_delete=models.PROTECT, related_name="expense")
     asset_financing_payment = models.OneToOneField(AssetFinancingPayment, null=True, blank=True, on_delete=models.PROTECT, related_name="expense")
+    cash_loan_posting = models.OneToOneField("CashLoanPosting", null=True, blank=True, on_delete=models.PROTECT, related_name="expense")
     schedule = models.ForeignKey(RecurringSchedule, null=True, blank=True, on_delete=models.PROTECT)
     scheduled_date = models.DateField(null=True, blank=True)
     request_id = models.UUIDField(default=uuid.uuid4, unique=True)
@@ -268,6 +272,82 @@ class MoneyMovement(Record):
 
     class Meta:
         constraints = [models.CheckConstraint(condition=models.Q(amount__gt=0), name="finance_movement_positive")]
+
+
+class CashLoan(Record):
+    name = models.CharField(max_length=160)
+    card = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="cash_loans")
+    receiving_account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="received_cash_loans")
+    terms = models.JSONField()
+    version = models.PositiveIntegerField(default=1)
+    cancelled = models.BooleanField(default=False)
+
+
+class CashLoanSchedule(Record):
+    loan = models.ForeignKey(CashLoan, on_delete=models.PROTECT, related_name="schedules")
+    version = models.PositiveIntegerField()
+    terms = models.JSONField()
+    quote = models.JSONField()
+    effective_date = models.DateField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["loan", "version"], name="finance_cash_schedule_version")]
+
+
+class CashLoanInstallment(Record):
+    loan = models.ForeignKey(CashLoan, on_delete=models.PROTECT, related_name="installments")
+    schedule = models.ForeignKey(CashLoanSchedule, on_delete=models.PROTECT, related_name="installments")
+    index = models.PositiveIntegerField()
+    due_date = models.DateField(db_index=True)
+    principal = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    interest = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    fees = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    remaining_principal = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    active = models.BooleanField(default=True)
+    deadline = models.OneToOneField(Deadline, null=True, on_delete=models.PROTECT, related_name="cash_loan_installment")
+    statement = models.ForeignKey(Deadline, null=True, blank=True, on_delete=models.PROTECT, related_name="cash_installments")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["schedule", "index"], name="finance_cash_installment_index")]
+
+
+class CashLoanPosting(Record):
+    loan = models.ForeignKey(CashLoan, on_delete=models.PROTECT, related_name="postings")
+    installment = models.ForeignKey(CashLoanInstallment, null=True, on_delete=models.PROTECT, related_name="postings")
+    account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name="cash_loan_postings")
+    date = models.DateField(db_index=True)
+    kind = models.CharField(max_length=30)
+    effect = models.DecimalField(max_digits=14, decimal_places=2)
+    interest = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    fees = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    notes = models.CharField(max_length=1000, blank=True)
+
+
+class CashLoanAllocation(Record):
+    loan = models.ForeignKey(CashLoan, on_delete=models.PROTECT, related_name="allocations")
+    installment = models.ForeignKey(CashLoanInstallment, null=True, on_delete=models.PROTECT, related_name="allocations")
+    movement = models.ForeignKey(MoneyMovement, on_delete=models.PROTECT, related_name="cash_loan_allocations")
+    principal = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    interest = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    fees = models.DecimalField(max_digits=14, decimal_places=2, validators=NONNEGATIVE)
+    reversed_on = models.DateField(null=True)
+
+
+class CashLoanAdjustment(Record):
+    loan = models.ForeignKey(CashLoan, on_delete=models.PROTECT, related_name="adjustments")
+    installment = models.ForeignKey(CashLoanInstallment, null=True, on_delete=models.PROTECT, related_name="adjustments")
+    date = models.DateField()
+    principal = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    interest = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    fees = models.DecimalField(max_digits=14, decimal_places=2, default=0, validators=NONNEGATIVE)
+    notes = models.CharField(max_length=1000)
+
+
+class CashLoanOperation(Record):
+    request_id = models.UUIDField(unique=True)
+    action = models.CharField(max_length=30)
+    payload_hash = models.CharField(max_length=64)
+    result = models.JSONField(default=dict)
 
 
 class SharedBill(Record):

@@ -15,7 +15,7 @@ FIELDS = {
     "BrainstormGroup": ("board", "name", "description", "sort_order"),
     "BrainstormIdea": ("board", "group", "title", "description", "urgency", "status", "tags", "sort_order", "task"),
     "Account": ("name", "kind", "institution", "last_four", "card_expiry", "card_network", "fund_type", "credit_limit", "active"),
-    "Asset": ("name", "kind", "value", "valuation_date", "notes", "active"),
+    "Asset": ("name", "kind", "value", "valuation_date", "notes", "active", "image_hash"),
     "AssetFinancing": ("asset", "lender", "opening_principal", "balance_as_of", "next_due_date", "monthly_due", "annual_rate", "remaining_months"),
     "AssetFinancingTerms": ("effective_date", "annual_rate", "monthly_due"),
     "AssetFinancingPayment": ("date", "account", "cash_amount", "advance_applied", "principal", "extra_principal", "interest", "fees", "advance_reserved", "historical", "notes"),

@@ -115,6 +115,8 @@ def move_money(data, user, deadline=None, shared_bill=False):
 @db_transaction.atomic
 def settle_deadline(pk, data, user):
     item = Deadline.objects.select_for_update().get(pk=pk)
+    if item.cash_loan_id:
+        raise ValidationError({"deadline": "Record or allocate a card payment from the cash-loan page; this is not an ordinary purchase expense."})
     if item.asset_financing_id:
         raise ValidationError({"deadline": "Record this installment from its asset page so principal and interest stay separate."})
     if item.status != "pending":
