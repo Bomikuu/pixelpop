@@ -365,11 +365,11 @@ export default function CalendarDialog({
                               {!["task", "reminder"].includes(row.kind) && (
                                 <>
                                   {" · "}
-                                  {row.amount == null
+                                  {row.amount == null && row.confirmed_amount == null
                                     ? "Amount not set"
-                                    : (row.financing_asset_id || row.cash_loan_id) && row.status === "pending"
+                                    : (row.financing_asset_id || row.cash_loan_id || row.subscription_id) && row.status === "pending"
                                       ? money(row.remaining_due) + " left of " + money(row.amount)
-                                      : money(row.amount)}
+                                      : money(row.confirmed_amount ?? row.amount)}
                                 </>
                               )}
                               {row.due_time

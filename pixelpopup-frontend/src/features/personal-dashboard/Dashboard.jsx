@@ -63,6 +63,9 @@ import OverviewView from "./views/OverviewView";
 import InsightsView from "./views/InsightsView";
 import CalendarView from "./views/CalendarView";
 import FundsView from "./views/FundsView";
+import BillsView from "./views/BillsView";
+import SubscriptionView from "./views/SubscriptionView";
+import SubscriptionAlertsDialog from "./components/subscriptions/SubscriptionAlertsDialog";
 import PeopleView from "./views/PeopleView";
 import PersonHistoryView from "./views/PersonHistoryView";
 import SharedBillView from "./views/SharedBillView";
@@ -117,6 +120,7 @@ export default function Dashboard() {
   const personKey = tab === "people" ? routeParts[1] : undefined;
   const assetId = tab === "assets" ? routeParts[1] : undefined;
   const accountId = tab === "accounts" ? routeParts[1] : undefined;
+  const subscriptionId = tab === "bills" && routeParts[1] === "subscriptions" ? routeParts[2] : undefined;
   const correctingBalances = tab === "settings" && routeParts[1] === "balances";
   const cashLoanId = accountId && routeParts[2] === "cash-loans" ? routeParts[3] : undefined;
   const sharedBillRoute = tab === "people" && routeParts[1] === "shared";
@@ -329,6 +333,10 @@ export default function Dashboard() {
   };
   const actions = {
     openForm: (entity, record) => {
+      if (["deadline", "settlement"].includes(entity) && record?.subscription_id) {
+        navigateRouter(`/dashboard/bills/subscriptions/${record.subscription_id}?month=${selectedMonth}&cycle=${record.subscription_cycle_id}${entity === "settlement" ? "&action=pay" : ""}`);
+        return;
+      }
       if (["deadline", "settlement"].includes(entity) && record?.cash_loan_id) {
         navigateRouter(`/dashboard/accounts/${record.credit_card}/cash-loans/${record.cash_loan_id}?month=${selectedMonth}`);
         return;
@@ -728,6 +736,8 @@ export default function Dashboard() {
             <EodView dashboard={dashboard} notify={notify} month={selectedMonth} onMonthChange={setMonth} />
           ) : tab === "funds" ? (
             <FundsView {...shared} />
+          ) : tab === "bills" ? (
+            subscriptionId ? /^\d+$/.test(subscriptionId) && !routeParts.slice(3).some(Boolean) ? <SubscriptionView key={subscriptionId} subscriptionId={subscriptionId} {...shared} /> : <EmptyState title="This service page does not exist" /> : <BillsView {...shared} />
           ) : tab === "accounts" && accountId ? (
             /^\d+$/.test(accountId) && cashLoanId && /^\d+$/.test(cashLoanId) && !routeParts.slice(4).some(Boolean) ? (
               <CashLoanDetailView key={cashLoanId} accountId={accountId} loanId={cashLoanId} {...shared} />
@@ -946,6 +956,7 @@ export default function Dashboard() {
           close={reminders.close}
           toggle={reminders.toggle}
         />
+        <SubscriptionAlertsDialog alert={reminders.serviceAlert} close={reminders.closeServiceAlert} />
         {overdueItems && (
           <Dialog
             open

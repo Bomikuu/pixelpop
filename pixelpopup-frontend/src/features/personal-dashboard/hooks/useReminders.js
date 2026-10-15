@@ -10,6 +10,7 @@ export function useReminders({ request, ready, version, refresh }) {
   const [checklist, setChecklist] = useState(null);
   const [status, setStatus] = useState(null);
   const [dialog, setDialog] = useState(null);
+  const [serviceAlert, setServiceAlert] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -35,15 +36,18 @@ export function useReminders({ request, ready, version, refresh }) {
   }, [request]);
 
   const checkPending = useCallback(async () => {
-    if (!import.meta.env.PROD || !document.hasFocus()) return;
+    if (!import.meta.env.PROD || !document.hasFocus() || dialog || serviceAlert) return;
     const { delivery } = await request("reminders/pending/");
     if (!delivery) return;
     const result = await request(`reminders/deliveries/${delivery.id}/claim/`, { method: "POST", body: {} });
     if (result.claimed) {
-      setDialog({ phase: result.phase, checklist: result.checklist });
-      setChecklist(result.checklist);
+      if (result.kind === "subscription") setServiceAlert(result.alert);
+      else {
+        setDialog({ phase: result.phase, checklist: result.checklist });
+        setChecklist(result.checklist);
+      }
     }
-  }, [request]);
+  }, [request, dialog, serviceAlert]);
 
   useEffect(() => {
     if (!ready) return;
@@ -150,7 +154,7 @@ export function useReminders({ request, ready, version, refresh }) {
   }, [loadStatus, request]);
 
   return {
-    checklist, status, dialog, error, busy,
+    checklist, status, dialog, error, busy, serviceAlert, closeServiceAlert: () => setServiceAlert(null),
     close: () => setDialog(null), openChecklist, toggle, saveSettings,
     enablePush, disablePush,
   };

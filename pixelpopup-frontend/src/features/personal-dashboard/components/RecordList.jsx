@@ -457,6 +457,11 @@ export default function RecordList({
         <span className="tabular-nums">
           {field === "amount" && ["task", "reminder"].includes(row.kind) && resource === "deadlines" ? (
             <span className="text-slate-500">—</span>
+          ) : field === "amount" && row.subscription_id && row.remaining_due != null ? (
+            <>
+              {money(row.status === "pending" ? row.remaining_due : row.confirmed_amount ?? row.amount ?? 0)}
+              <span className="block text-xs text-slate-600">{money(row.subscription_paid)} paid · {money(row.confirmed_amount ?? row.amount)} total</span>
+            </>
           ) : field === "amount" && row.asset_financing && row.status === "pending" ? (
             <>
               {money(row.remaining_due)}
