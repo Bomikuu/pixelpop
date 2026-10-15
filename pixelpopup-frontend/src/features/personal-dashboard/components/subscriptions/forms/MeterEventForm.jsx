@@ -1,0 +1,10 @@
+import FormModalShell from "../../forms/FormModalShell";
+import useServiceForm from "./useServiceForm";
+import Fields, { text, numeric, select } from "./ServiceFormFields";
+import { servicePath } from "../../../subscriptions/api";
+import { option, manilaInstant, manilaNow } from "../../../subscriptions/model";
+
+export default function MeterEventForm({ service, meter, dashboard, notify, onSaved, onCancel }) {
+  const form = useServiceForm({ initial: { kind: "reset", occurred_at: manilaNow(), before_value: "", after_value: "", replacement_meter: "", note: "" }, dashboard, path: servicePath(service.id, `meters/${meter.id}/events/`), notify, onSaved });
+  return <FormModalShell title="Record meter change" description="Explicitly explain a reset, rollover or replacement. Unknown replacement gaps remain unknown; they are never counted as zero usage." {...form} onCancel={onCancel} saveLabel="Save meter event" scrollBody onSubmit={form.submit((v) => ({ ...v, occurred_at: manilaInstant(v.occurred_at), replacement_meter: v.replacement_meter ? Number(v.replacement_meter) : null, request_id: true }), ["occurred_at", "before_value", "after_value", ...(form.values.kind === "replacement" ? ["replacement_meter"] : [])])}><Fields form={form} fields={[select("kind", "Event", [option("reset", "Reset"), option("rollover", "Rollover"), option("replacement", "Replacement")]), text("occurred_at", "Date and time (Manila)", { required: true, type: "datetime-local", max: manilaNow() }), numeric("before_value", "Value before event", { required: true, step: "0.000001", hint: "For rollover, enter the configured modulus, not the last observed value." }), numeric("after_value", "Value after event", { required: true, step: "0.000001" }), ...(form.values.kind === "replacement" ? [select("replacement_meter", "Replacement meter", service.meters.filter((m) => m.id !== meter.id).map((m) => option(m.id, m.name)), { required: true, hint: "Create the new meter first." })] : []), text("note", "Context", { type: "textarea", maxLength: 1000 })]} /></FormModalShell>;
+}
