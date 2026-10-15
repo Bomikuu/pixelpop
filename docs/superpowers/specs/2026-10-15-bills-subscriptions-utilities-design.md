@@ -1,7 +1,7 @@
 # Bills, subscriptions and utility consumption
 
 Date: 2026-10-15
-Status: Written design approved by the user on 2026-10-15; implementation awaits implementation-plan review and execution-method selection.
+Status: Design and implementation plan approved; native implementation and independent source review completed on 2026-10-15. Local migration 0031 applied after separate approval. Runtime tests/browser verification and production rollout remain pending. See `docs/superpowers/implementation/2026-10-15-bills-subscriptions-utilities.md`.
 
 ## 1. Purpose and approved decisions
 

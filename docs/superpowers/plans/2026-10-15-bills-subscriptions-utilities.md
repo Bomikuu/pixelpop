@@ -26,6 +26,17 @@
 
 ## Review Focus
 
+### Execution record · 2026-10-15
+
+- [x] Native implementation of schema, calculation/payment services, API/reminder integration and Bills/service UI (Tasks 1–14).
+- [x] Focused backend/Node checks authored; not run. PostgreSQL race checks are separate and skipped outside an authorized PostgreSQL test database.
+- [x] One independent source review; all six reported material findings corrected.
+- [x] Local SQLite target verified, backed up and finance migration 0031 applied after separate user approval.
+- [ ] Runtime verification: focused tests, PostgreSQL concurrency and desktop/mobile browser checks require a later request. The granular acceptance assertions below are not marked passed without execution.
+- [ ] Production rollout: neither Neon migrations, deployment nor Git push performed.
+
+Implementation/evidence notes: `docs/superpowers/implementation/2026-10-15-bills-subscriptions-utilities.md`. Surface preservation pre-flight and hook disposition: `.impeccable/surfaces/subscriptions.md`.
+
 1. Two tabs submit payment against the same remaining balance: one posting wins, and an exact retry returns its allocation rather than debiting again (Task 7).
 2. A subscription is paused after recurrence already generated future deadlines: future excluded periods disappear consistently, but old unpaid debt remains visible (Tasks 3 and 8).
 3. A user corrects a reading before an already paid period: usage projections refresh, but the paid amount and finalization snapshot do not change (Tasks 5 and 6).
