@@ -9,6 +9,10 @@ from finance import models
 
 
 FIELDS = {
+    "Subscription": ("schedule", "service_type", "provider", "plan_name", "status", "archived", "monthly_budget", "expected_usage", "reminder_preferences"),
+    "SubscriptionCycle": ("subscription", "deadline", "period_start", "period_end", "actual_amount", "reported_consumption", "tariff", "excluded_at"),
+    "MeterReading": ("meter", "recorded_at", "value", "note"),
+    "SubscriptionPaymentAllocation": ("cycle", "transaction"),
     "EndOfDayGroup": ("name",),
     "EndOfDayEntry": ("group", "date", "type", "title"),
     "BrainstormBoard": ("name", "description", "sort_order", "is_active"),
@@ -38,6 +42,7 @@ FIELDS = {
 }
 
 AREAS = {
+    "Subscription": "bills", "SubscriptionCycle": "bills", "MeterReading": "bills", "SubscriptionPaymentAllocation": "bills",
     "EndOfDayGroup": "eod", "EndOfDayEntry": "eod",
     "BrainstormBoard": "brainstorm", "BrainstormGroup": "brainstorm", "BrainstormIdea": "brainstorm",
     "Account": "accounts", "BalanceAdjustment": "accounts", "Asset": "assets",

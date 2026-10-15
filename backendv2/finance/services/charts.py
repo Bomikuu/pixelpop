@@ -35,6 +35,9 @@ def record_charts(qs, base, params, date_field=None, search_fields=()):
         for key in ("month", "chart_month", "start", "end", "page", "page_size"):
             compare_params.pop(key, None)
         series = filtered(base, compare_params, date_field, search_fields)
+        if model == Deadline:
+            from .subscriptions.eligibility import visible_obligations
+            series, qs = visible_obligations(series), visible_obligations(qs)
         if model == Transaction and params.get("account"):
             series = series.filter(account_id=int(params["account"]))
         if model == Transaction and params.get("coverage"):
@@ -66,7 +69,14 @@ def record_charts(qs, base, params, date_field=None, search_fields=()):
             row = by_month[str(item.due_date)[:7]]
             row["pending" if item.status == "pending" else "completed"] += 1
             if item.kind in ("bill", "subscription", "payment") and item.settlement_kind != "loan_collection":
-                if item.amount is None:
+                if hasattr(item, "subscription_cycle"):
+                    from .subscriptions.payments import cycle_payment_state
+                    state = cycle_payment_state(item.subscription_cycle)
+                    if state["bill_amount"] is None:
+                        row["unpriced"] += 1
+                    row["paid"] += state["paid"]
+                    row["unpaid"] += state["remaining"] or ZERO
+                elif item.amount is None:
                     row["unpriced"] += 1
                 else:
                     row["unpaid" if item.status == "pending" else "paid"] += item.amount

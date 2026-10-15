@@ -114,6 +114,14 @@ def move_money(data, user, deadline=None, shared_bill=False):
 
 @db_transaction.atomic
 def settle_deadline(pk, data, user):
+    # Delegate before taking a deadline lock: subscription writes always lock
+    # workspace -> schedule -> deadline -> cycle -> account in that order.
+    from finance.models import SubscriptionCycle
+    linked = SubscriptionCycle.objects.filter(deadline_id=pk).first()
+    if linked:
+        from .subscriptions.payments import pay_cycle
+        pay_cycle(linked.pk, data, user)
+        return Deadline.objects.get(pk=pk)
     item = Deadline.objects.select_for_update().get(pk=pk)
     if item.cash_loan_id:
         raise ValidationError({"deadline": "Record or allocate a card payment from the cash-loan page; this is not an ordinary purchase expense."})
