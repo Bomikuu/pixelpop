@@ -1,7 +1,7 @@
 # Bills, subscriptions and utility consumption
 
 Date: 2026-10-15
-Status: Design written for user review; application implementation is not yet authorized.
+Status: Written design approved by the user on 2026-10-15; implementation awaits implementation-plan review and execution-method selection.
 
 ## 1. Purpose and approved decisions
 
