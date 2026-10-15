@@ -151,6 +151,8 @@ class FinanceViewSet(AuditCrudMixin, PrivateMixin, viewsets.ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def perform_destroy(self, instance):
+        if isinstance(instance, models.RecurringSchedule) and hasattr(instance, "subscription"):
+            raise ValidationError("Pause or cancel this service from Bills > Subscriptions & utilities, so future bills and history stay consistent.")
         try:
             if hasattr(instance, "active"):
                 instance.active = False
@@ -256,9 +258,14 @@ class AccountViewSet(FinanceViewSet):
         super().perform_destroy(instance)
         schedule = models.RecurringSchedule.objects.filter(coverage=instance, active=True).first()
         if schedule:
-            schedule.active = False
-            schedule.save(update_fields=["active", "updated_at"])
-            schedule.deadlines.filter(status="pending", due_date__gte=today()).delete()
+            if hasattr(schedule, "subscription"):
+                from finance.services.subscriptions.lifecycle import change_lifecycle
+                import uuid
+                change_lifecycle(schedule.subscription.pk, "pause", today(), self.request.user, request_id=uuid.uuid4())
+            else:
+                schedule.active = False
+                schedule.save(update_fields=["active", "updated_at"])
+                schedule.deadlines.filter(status="pending", due_date__gte=today()).delete()
 
     @action(detail=True, methods=["post"])
     @transaction.atomic
@@ -392,6 +399,9 @@ class TransactionViewSet(FinanceViewSet):
     @transaction.atomic
     def perform_update(self, serializer):
         previous = serializer.instance
+        # Serialize against allocation/linking before any account locks are taken.
+        from finance.services.subscriptions.common import workspace_lock, Conflict
+        workspace_lock()
         old_account_id, old_amount, old_date, old_kind = previous.account_id, previous.amount, previous.date, previous.kind
         next_account = serializer.validated_data.get("account", previous.account)
         account_ids = {identifier for identifier in (old_account_id, next_account.pk if next_account else None) if identifier is not None}
@@ -399,6 +409,12 @@ class TransactionViewSet(FinanceViewSet):
             account.pk: account for account in models.Account.objects.select_for_update()
             .filter(pk__in=account_ids).order_by("pk")
         }
+        fresh = models.Transaction.objects.select_for_update().get(pk=previous.pk)
+        if hasattr(fresh, "subscription_allocation"):
+            raise ValidationError("This expense belongs to a recurring bill and cannot be rewritten. Review its payment history instead.")
+        if fresh.updated_at != previous.updated_at:
+            raise Conflict()
+        serializer.instance = fresh
         entry = serializer.save()
         if entry.account_id is not None and entry.kind == "expense" and not (
             old_kind == "expense" and entry.account_id == old_account_id
@@ -407,7 +423,7 @@ class TransactionViewSet(FinanceViewSet):
             ensure_account_capacity(locked[entry.account_id], entry.date)
 
     def perform_destroy(self, instance):
-        if instance.deadline_id or instance.schedule_id or instance.asset_financing_payment_id or instance.cash_loan_posting_id or hasattr(instance, "shared_payment"):
+        if instance.deadline_id or instance.schedule_id or instance.asset_financing_payment_id or instance.cash_loan_posting_id or hasattr(instance, "shared_payment") or hasattr(instance, "subscription_allocation"):
             raise ValidationError("Linked settlement/schedule history cannot be deleted. Use an explicit correction.")
         super().perform_destroy(instance)
 
@@ -429,7 +445,8 @@ class DeadlineViewSet(FinanceViewSet):
         materialize(end + timedelta(days=95))
         for financing in models.AssetFinancing.objects.select_related("asset"):
             materialize_installments(financing)
-        qs = super().get_queryset()
+        from finance.services.subscriptions.eligibility import visible_obligations
+        qs = visible_obligations(super().get_queryset())
         if self.request.query_params.get("bills") == "1":
             qs = qs.filter(kind__in=["bill", "subscription", "payment"]).exclude(settlement_kind="loan_collection")
         if self.request.query_params.get("urgency") == "overdue":
@@ -750,7 +767,8 @@ class CalendarView(PrivateMixin, APIView):
     def get(self, request):
         start, end = month_range(request.query_params.get("month"))
         materialize(end)
-        deadlines = models.Deadline.objects.filter(due_date__range=(start, end)).select_related("category", "loan", "credit_card", "asset_financing").order_by("due_date", "due_time", "id")
+        from finance.services.subscriptions.eligibility import visible_obligations
+        deadlines = visible_obligations(models.Deadline.objects.filter(due_date__range=(start, end))).select_related("category", "loan", "credit_card", "asset_financing").order_by("due_date", "due_time", "id")
         income = models.Transaction.objects.filter(kind="income", date__range=(start, end)).order_by("date", "id")
         days = sorted({str(d) for d in deadlines.values_list("due_date", flat=True)} | {str(d) for d in income.values_list("date", flat=True)})
         selected = request.query_params.get("day", str(today()))

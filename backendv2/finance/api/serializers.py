@@ -193,6 +193,8 @@ class TransactionSerializer(StrictSerializer):
             raise serializers.ValidationError({"account": "Income needs a cash, bank or e-wallet account."})
         if self.instance and self.instance.deadline_id:
             raise serializers.ValidationError("This is a settled bill. Correct it explicitly through an adjustment; its history cannot be silently rewritten.")
+        if self.instance and hasattr(self.instance, "subscription_allocation"):
+            raise serializers.ValidationError("This expense is allocated to a subscription bill. Its payment history cannot be silently rewritten.")
         if self.instance and hasattr(self.instance, "shared_payment"):
             raise serializers.ValidationError("Shared-bill payment history is read-only. Use an explicit account correction.")
         if self.instance and self.instance.asset_financing_payment_id:
@@ -217,6 +219,10 @@ class TransactionSerializer(StrictSerializer):
 
 
 class DeadlineSerializer(StrictSerializer):
+    subscription_paid = serializers.SerializerMethodField()
+    confirmed_amount = serializers.SerializerMethodField()
+    subscription_id = serializers.IntegerField(source="subscription_cycle.subscription_id", read_only=True, default=None)
+    subscription_cycle_id = serializers.IntegerField(source="subscription_cycle.id", read_only=True, default=None)
     urgency = serializers.SerializerMethodField()
     overdue_duration = serializers.SerializerMethodField()
     remaining_due = serializers.SerializerMethodField()
@@ -228,14 +234,28 @@ class DeadlineSerializer(StrictSerializer):
 
     class Meta:
         model = models.Deadline
-        fields = ("id", "title", "kind", "priority", "important", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "system_key", "credit_card", "loan", "asset_financing", "financing_asset_id", "cash_loan_id", "cash_loan_installment_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration")
+        fields = ("id", "title", "kind", "priority", "important", "amount", "remaining_due", "due_date", "due_time", "category", "category_name", "notes", "reminder_days", "status", "schedule", "system_key", "credit_card", "loan", "asset_financing", "financing_asset_id", "cash_loan_id", "cash_loan_installment_id", "installment_index", "settlement_kind", "completed_at", "urgency", "overdue_duration", "subscription_id", "subscription_cycle_id", "subscription_paid", "confirmed_amount")
         read_only_fields = ("status", "schedule", "system_key", "asset_financing", "installment_index", "completed_at")
 
     def get_remaining_due(self, obj):
+        if hasattr(obj, "subscription_cycle"):
+            from finance.services.subscriptions.payments import cycle_payment_state
+            value = cycle_payment_state(obj.subscription_cycle)["remaining"]
+            return str(value) if value is not None else None
         if obj.cash_loan_id and hasattr(obj, "cash_loan_installment"):
             from finance.services.cash_loans.ledger import remaining_components
             return str(sum(remaining_components(obj.cash_loan_installment).values(), Decimal("0")))
         return str(max(0, obj.amount - installment_paid(obj))) if obj.asset_financing_id and obj.amount is not None else None
+
+    def get_subscription_paid(self, obj):
+        if hasattr(obj, "subscription_cycle"):
+            from finance.services.subscriptions.payments import cycle_payment_state
+            return str(cycle_payment_state(obj.subscription_cycle)["paid"])
+        return None
+
+    def get_confirmed_amount(self, obj):
+        value = obj.subscription_cycle.actual_amount if hasattr(obj, "subscription_cycle") else None
+        return str(value) if value is not None else None
 
     def get_urgency(self, obj):
         return urgency(obj)
@@ -256,6 +276,8 @@ class DeadlineSerializer(StrictSerializer):
         attrs = super().validate(attrs)
         if self.instance and self.instance.cash_loan_id:
             raise serializers.ValidationError("Change this cash-loan obligation from its loan page.")
+        if self.instance and hasattr(self.instance, "subscription_cycle"):
+            raise serializers.ValidationError("Review this recurring bill from Bills > Subscriptions & utilities. Confirm its actual amount or record a payment there.")
         item_kind = attrs.get("kind", getattr(self.instance, "kind", "task"))
         if attrs.get("important", getattr(self.instance, "important", False)) and item_kind not in ("task", "reminder"):
             raise serializers.ValidationError({"important": "Only tasks and reminders can be important."})
@@ -347,6 +369,8 @@ class ScheduleSerializer(StrictSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        if self.instance and hasattr(self.instance, "subscription") and not self.context.get("subscription_write"):
+            raise serializers.ValidationError("Edit this recurring service from Bills > Subscriptions & utilities, so prices and paid history stay consistent.")
         if self.instance and self.instance.system_key:
             for field in ("kind", "anchor_date", "frequency", "interval"):
                 if field in attrs and attrs[field] != getattr(self.instance, field):

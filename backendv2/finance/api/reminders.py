@@ -110,6 +110,7 @@ class ReminderPendingView(PrivateMixin, APIView):
             "delivery": {
                 "id": delivery.pk,
                 "phase": delivery.phase,
+                "kind": delivery.kind,
                 "date": delivery.checklist_date.isoformat(),
             } if delivery else None,
         })
@@ -123,11 +124,14 @@ class ReminderClaimView(PrivateMixin, APIView):
             return Response({"claimed": False})
         delivery.acknowledged_at = timezone.now()
         delivery.save(update_fields=["acknowledged_at"])
+        if delivery.kind == "subscription":
+            return Response({"claimed": True, "kind": "subscription", "alert": delivery.payload})
         ReminderDelivery.objects.filter(
             user=request.user, acknowledged_at__isnull=True,
+            kind="checklist",
             created_at__lte=delivery.created_at,
         ).update(acknowledged_at=delivery.acknowledged_at)
-        return Response({"claimed": True, "phase": delivery.phase, "checklist": checklist_for(request.user, delivery.checklist_date)})
+        return Response({"claimed": True, "kind": "checklist", "phase": delivery.phase, "checklist": checklist_for(request.user, delivery.checklist_date)})
 
 
 class ReminderDispatchView(APIView):

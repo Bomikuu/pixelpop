@@ -79,14 +79,15 @@ def _send_push(delivery):
 def dispatch_due(now: datetime):
     workspace, _ = WorkspaceSettings.objects.get_or_create(pk=1)
     slots = due_slots(workspace, now)
-    if not slots:
-        return 0
     user_ids = RecurringSchedule.objects.filter(
         system_key__in=[key for key, _, _ in DAILY_TASKS],
         created_by__isnull=False,
     ).values_list("created_by_id", flat=True).distinct()
     dispatched = 0
-    for user in get_user_model().objects.filter(pk__in=user_ids, is_active=True):
+    from finance.models import Subscription
+    from finance.services.subscriptions.notifications import subscription_reminder_events
+    recipients = set(user_ids) | set(Subscription.objects.exclude(created_by_id=None).values_list("created_by_id", flat=True))
+    for user in get_user_model().objects.filter(pk__in=recipients, is_active=True):
         for day, phase, slot_key in slots:
             checklist = checklist_for(user, day)
             if phase == "strict" and checklist["all_complete"]:
@@ -103,4 +104,15 @@ def dispatch_due(now: datetime):
                 _send_push(delivery)
             delivery.sent_at = timezone.now()
             delivery.save(update_fields=["sent_at"])
+        for event in subscription_reminder_events(user, now):
+            with transaction.atomic():
+                delivery, created = ReminderDelivery.objects.get_or_create(user=user, slot_key=event["key"], defaults={
+                    "kind": "subscription", "phase": "service", "checklist_date": now.astimezone(MANILA).date(),
+                    "payload": {key: event[key] for key in ("message", "title", "destination", "kind")}})
+            if created:
+                dispatched += 1
+                if push_configured():
+                    _send_push(delivery)
+                delivery.sent_at = timezone.now()
+                delivery.save(update_fields=["sent_at"])
     return dispatched

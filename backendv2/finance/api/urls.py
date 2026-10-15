@@ -20,6 +20,7 @@ for prefix, view in (
     router.register(prefix, view, basename="finance-" + prefix)
 
 urlpatterns = [
+    path("subscriptions/", include("finance.api.subscriptions.urls")),
     path("session/login/", account_access.LoginView.as_view()),
     path("session/logout/", account_access.LogoutView.as_view()),
     path("accounts/reconcile-balances/", account_access.BalanceReconciliationView.as_view()),
