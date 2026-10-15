@@ -97,7 +97,9 @@ class ReminderPushSubscription(models.Model):
 class ReminderDelivery(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reminder_deliveries")
     checklist_date = models.DateField(db_index=True)
-    phase = models.CharField(max_length=10, choices=[("start", "Start"), ("strict", "Strict"), ("recap", "Recap")])
+    phase = models.CharField(max_length=10, choices=[("start", "Start"), ("strict", "Strict"), ("recap", "Recap"), ("service", "Service alert")])
+    kind = models.CharField(max_length=15, default="checklist", choices=[("checklist", "Checklist"), ("subscription", "Subscription")])
+    payload = models.JSONField(default=dict, blank=True)
     slot_key = models.CharField(max_length=80)
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
@@ -512,3 +514,150 @@ class AuditEvent(models.Model):
     class Meta:
         ordering = ["-created_at", "-id"]
         indexes = [models.Index(fields=["area", "created_at"], name="finance_audit_area_date")]
+
+
+class Subscription(Record):
+    TYPES = [(v, v.replace("_", " ").title()) for v in ("fixed", "variable", "electricity", "water", "internet", "metered")]
+    STATUSES = [(v, v.title()) for v in ("active", "paused", "cancelled", "expired")]
+    schedule = models.OneToOneField(RecurringSchedule, on_delete=models.PROTECT, related_name="subscription")
+    service_type = models.CharField(max_length=20, choices=TYPES, default="fixed")
+    provider = models.CharField(max_length=120, blank=True)
+    plan_name = models.CharField(max_length=120, blank=True)
+    description = models.TextField(blank=True, max_length=2000)
+    status = models.CharField(max_length=12, choices=STATUSES, default="active")
+    archived = models.BooleanField(default=False)
+    inactive_from = models.DateField(null=True, blank=True)
+    expires_on = models.DateField(null=True, blank=True)
+    payment_method = models.CharField(max_length=20, default="bank")
+    monthly_budget = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=NONNEGATIVE)
+    expected_usage = models.DecimalField(max_digits=20, decimal_places=6, null=True, blank=True, validators=NONNEGATIVE)
+    interpolate_boundaries = models.BooleanField(default=False)
+    anomaly_threshold = models.DecimalField(max_digits=6, decimal_places=2, default=25, validators=NONNEGATIVE)
+    reminder_preferences = models.JSONField(default=dict, blank=True)
+    planning_assumptions = models.JSONField(default=dict, blank=True)
+    revision = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return self.schedule.title
+
+
+class SubscriptionPrice(Record):
+    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT, related_name="prices")
+    amount = models.DecimalField(max_digits=14, decimal_places=2, validators=POSITIVE)
+    effective_date = models.DateField()
+    imported = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["subscription", "effective_date"], name="finance_sub_price_date")]
+
+
+class UtilityTariff(Record):
+    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT, related_name="tariffs")
+    name = models.CharField(max_length=120)
+    effective_date = models.DateField()
+    config = models.JSONField(default=dict)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["subscription", "effective_date"], name="finance_sub_tariff_date")]
+
+
+class SubscriptionCycle(Record):
+    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT, related_name="cycles")
+    deadline = models.OneToOneField(Deadline, on_delete=models.PROTECT, related_name="subscription_cycle")
+    period_start = models.DateField(null=True, blank=True)
+    period_end = models.DateField(null=True, blank=True)
+    billing_date = models.DateField(null=True, blank=True)
+    tariff = models.ForeignKey(UtilityTariff, null=True, blank=True, on_delete=models.PROTECT)
+    actual_amount = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, validators=NONNEGATIVE)
+    reported_consumption = models.DecimalField(max_digits=20, decimal_places=6, null=True, blank=True, validators=NONNEGATIVE)
+    amount_source = models.CharField(max_length=16, default="unconfirmed")
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    final_prediction = models.ForeignKey("PredictionSnapshot", null=True, blank=True, on_delete=models.PROTECT, related_name="finalized_cycles")
+    excluded_at = models.DateTimeField(null=True, blank=True)
+    exclusion_reason = models.CharField(max_length=120, blank=True)
+    revision = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=(models.Q(period_start__isnull=True, period_end__isnull=True) | models.Q(period_start__isnull=False, period_end__isnull=False, period_end__gt=models.F("period_start"))), name="finance_sub_cycle_period"),
+            models.UniqueConstraint(fields=["subscription", "period_start", "period_end"], name="finance_sub_cycle_bounds"),
+        ]
+
+
+class Meter(Record):
+    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT, related_name="meters")
+    name = models.CharField(max_length=120)
+    unit = models.CharField(max_length=20, default="kWh")
+    rollover_modulus = models.DecimalField(max_digits=20, decimal_places=6, null=True, blank=True, validators=NONNEGATIVE)
+    active = models.BooleanField(default=True)
+    active_from = models.DateField(null=True, blank=True)
+    active_until = models.DateField(null=True, blank=True)
+    revision = models.PositiveIntegerField(default=1)
+
+
+class MeterReading(Record):
+    meter = models.ForeignKey(Meter, on_delete=models.PROTECT, related_name="readings")
+    recorded_at = models.DateTimeField()
+    value = models.DecimalField(max_digits=20, decimal_places=6, validators=NONNEGATIVE)
+    note = models.CharField(max_length=1000, blank=True)
+    request_id = models.UUIDField(unique=True, default=uuid.uuid4)
+    revision = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        ordering = ["recorded_at", "id"]
+        constraints = [models.UniqueConstraint(fields=["meter", "recorded_at"], name="finance_meter_timestamp")]
+
+
+class MeterEvent(Record):
+    meter = models.ForeignKey(Meter, on_delete=models.PROTECT, related_name="events")
+    kind = models.CharField(max_length=16, choices=[("reset", "Reset"), ("rollover", "Rollover"), ("replacement", "Replacement")])
+    occurred_at = models.DateTimeField()
+    before_value = models.DecimalField(max_digits=20, decimal_places=6, validators=NONNEGATIVE)
+    after_value = models.DecimalField(max_digits=20, decimal_places=6, validators=NONNEGATIVE)
+    replacement_meter = models.ForeignKey(Meter, null=True, blank=True, on_delete=models.PROTECT, related_name="replacement_events")
+    note = models.CharField(max_length=1000, blank=True)
+    request_id = models.UUIDField(unique=True, default=uuid.uuid4)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["meter", "occurred_at"], name="finance_meter_event_time")]
+
+
+class SubscriptionPaymentAllocation(Record):
+    cycle = models.ForeignKey(SubscriptionCycle, on_delete=models.PROTECT, related_name="allocations")
+    transaction = models.OneToOneField(Transaction, on_delete=models.PROTECT, related_name="subscription_allocation")
+    request_id = models.UUIDField(unique=True, default=uuid.uuid4)
+    request_signature = models.CharField(max_length=64, blank=True)
+
+
+class UtilityAppliance(Record):
+    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT, related_name="appliances")
+    name = models.CharField(max_length=120)
+    watts = models.DecimalField(max_digits=14, decimal_places=6, validators=NONNEGATIVE)
+    hours_per_day = models.DecimalField(max_digits=8, decimal_places=6, validators=NONNEGATIVE)
+    days_used = models.PositiveSmallIntegerField(default=30)
+    quantity = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+    active = models.BooleanField(default=True)
+
+
+class PredictionSnapshot(Record):
+    cycle = models.ForeignKey(SubscriptionCycle, on_delete=models.PROTECT, related_name="predictions")
+    input_hash = models.CharField(max_length=64)
+    as_of = models.DateTimeField()
+    model = models.CharField(max_length=32)
+    scenario = models.CharField(max_length=16, default="normal")
+    projected_usage = models.DecimalField(max_digits=20, decimal_places=6, null=True, blank=True)
+    projected_amount = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    provenance = models.JSONField(default=dict)
+    reason = models.CharField(max_length=60)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["cycle", "input_hash", "scenario"], name="finance_sub_prediction_input")]
+
+
+class SubscriptionEvent(Record):
+    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT, related_name="events")
+    kind = models.CharField(max_length=40)
+    effective_date = models.DateField()
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+    request_id = models.UUIDField(null=True, blank=True, unique=True)
