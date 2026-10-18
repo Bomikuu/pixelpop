@@ -1,50 +1,45 @@
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getPortfolioServiceHref, portfolioServiceCatalog } from "../services/portfolioServices";
-
-const serviceOrder = [
-  "website-development", "website-design", "cms-solutions", "bug-fixing-responsiveness",
-  "speed-optimization-seo", "website-maintenance-security", "threejs-development", "ai-automation",
-];
-
-const examples = {
-  "website-development": { href: "/portfolio/dineease", label: "DineEase restaurant platform" },
-  "cms-solutions": { href: "#project-cortico", label: "Cortico content management" },
-  "speed-optimization-seo": { href: "/portfolio/evidence/cortico-pagespeed-mobile.png", label: "Cortico PageSpeed report" },
-  "threejs-development": { href: "#top", label: "This portfolio's 3D scene" },
-};
+import {
+  getPortfolioServiceHref,
+  getServiceTechnologies,
+  portfolioServiceCatalog,
+} from "../services/portfolioServices";
+import PortfolioServiceIcon from "../services/PortfolioServiceIcon";
+import TechnologyExplorer from "../services/TechnologyExplorer";
+import Reveal from "./Reveal";
+import SectionHeading from "./SectionHeading";
 
 export default function ServicesSection() {
   return (
-    <section id="services" className="scroll-mt-24 border-b border-slate-200 bg-white py-24 sm:py-32" aria-labelledby="portfolio-services-title">
+    <section id="services" className="scroll-mt-24 border-b border-slate-200 bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <header className="mb-10 max-w-3xl">
-          <h2 id="portfolio-services-title" className="portfolio-display text-4xl font-semibold leading-[1.02] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">What I can help with</h2>
-          <p className="mt-5 text-lg leading-8 text-slate-600">Hire me for a new build, help with an existing application, or a specific issue your team needs to fix.</p>
-        </header>
-        <div className="border-t border-slate-200">
-          {serviceOrder.map((id) => {
-            const service = portfolioServiceCatalog.find((item) => item.id === id);
-            if (!service) return null;
-            const example = examples[id];
-            return (
-              <article key={id} className="grid gap-3 border-b border-slate-200 py-6 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)_minmax(0,0.75fr)]">
-                <h3 className="portfolio-display text-2xl font-semibold leading-tight tracking-[-0.025em] text-slate-950">
-                  <Link to={getPortfolioServiceHref(service)} className="decoration-slate-300 underline-offset-4 hover:text-[#2149dc] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">{service.title}</Link>
-                </h3>
-                <p className="max-w-[65ch] text-sm leading-7 text-slate-600">{service.summary}</p>
-                {example ? (
-                  <p className="text-sm leading-6 md:col-start-2 lg:col-start-3">
-                    <span className="block text-xs text-slate-500">See the work</span>
-                    <a href={example.href} className="font-medium text-[#2149dc] underline decoration-blue-200 underline-offset-4 hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">{example.label}</a>
-                  </p>
-                ) : null}
+        <SectionHeading
+          title={<>What I <span className="text-[#2f5bff]">offer.</span></>}
+          description="Hire me for a new build, help with an existing application, or a specific issue your team needs to fix."
+        />
+        <div className="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-2 xl:grid-cols-4">
+          {portfolioServiceCatalog.map((service, index) => (
+            <Reveal key={service.id} delay={index % 3} className="h-full">
+              <article className="portfolio-service-card group flex h-full min-h-80 flex-col bg-white p-7 sm:p-8">
+                <span className="grid size-12 place-items-center rounded-xl bg-blue-50 text-[#2f5bff] transition duration-200 group-hover:-translate-y-1 group-hover:bg-[#2f5bff] group-hover:text-white" aria-hidden="true">
+                  <PortfolioServiceIcon name={service.icon} size={21} strokeWidth={1.8} />
+                </span>
+                <h3 className="portfolio-display mt-8 text-2xl font-semibold tracking-[-0.025em] text-slate-950">{service.title}</h3>
+                <p className="mt-4 flex-1 text-sm leading-7 text-slate-600">{service.summary}</p>
+                <div className="mt-6"><TechnologyExplorer technologies={getServiceTechnologies(service).slice(0, 2)} compact /></div>
+                <Link to={getPortfolioServiceHref(service)} className="mt-7 inline-flex items-center justify-between gap-3 border-t border-slate-200 pt-5 text-sm font-semibold text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">
+                  View service <ArrowRight size={16} className="text-[#2f5bff] transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                </Link>
               </article>
-            );
-          })}
+            </Reveal>
+          ))}
         </div>
-        <p className="mt-8 text-sm text-slate-600">
-          Each service page includes scope, tools, and common questions. <Link to="/portfolio/services" className="font-semibold text-[#2149dc] underline underline-offset-4 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">Browse all services</Link>
-        </p>
+        <Reveal className="mt-8 flex justify-end">
+          <Link to="/portfolio/services" className="inline-flex min-h-12 items-center gap-3 rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff] active:translate-y-px">
+            All services <ArrowRight size={17} aria-hidden="true" />
+          </Link>
+        </Reveal>
       </div>
     </section>
   );
