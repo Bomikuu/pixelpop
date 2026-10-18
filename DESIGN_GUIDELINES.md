@@ -130,6 +130,7 @@ Global effects should go through `src/ui/overlay/overlayBus.js` rather than bein
 
 ## Typography and content
 
+- For portfolio, ASTA, and their public subpages, follow `COPY_GUIDELINES.md`. Keep copy specific and conversational; do not turn service descriptions into slogans or invent proof.
 - Use the retro monospace style for labels, controls, metadata, and UI chrome.
 - Use a more readable proportional face for longer emotional copy when appropriate.
 - Keep headings short and characterful.
