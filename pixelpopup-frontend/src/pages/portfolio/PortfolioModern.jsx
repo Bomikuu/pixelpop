@@ -77,8 +77,8 @@ export default function PortfolioModern() {
       <PortfolioNav />
       <main id="main-content" tabIndex="-1">
         <HeroSection />
-        <AboutSection />
         <ProjectsSection />
+        <AboutSection />
         <ServicesSection />
         <ProcessSection />
         <AstaSection />
