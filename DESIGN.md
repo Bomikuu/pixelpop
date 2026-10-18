@@ -223,11 +223,15 @@ Borders are one pixel and neutral. The system does not combine strong borders wi
 
 ### Navigation
 
-The fixed white header uses a simple `<MA/>` wordmark on a sharp-cornered navy rectangle, plain-language links, a résumé action, a visible numeric progress value on desktop, and a four-pixel full-width progress track at all sizes. The initials remain white and the surrounding code syntax remains cobalt, with no logo hover animation. Mobile navigation expands below the header without changing visual language.
+The fixed white header uses a simple `<MA/>` wordmark on a sharp-cornered navy rectangle, plain-language links, a résumé action, and a four-pixel full-width reading-progress line without a visible percentage. The brand subtitle names the role rather than using a slogan. Service navigation uses text-led links instead of repeated icon cards. The initials remain white and the surrounding code syntax remains cobalt, with no logo hover animation. Mobile navigation expands below the header without changing visual language.
 
-### Animated Proof Wall
+### Portfolio Evidence
 
-Cortico evidence uses two oversized animated metrics followed by four supporting measures on evidence navy. Numbers begin counting only when the panel enters the viewport. Screen readers receive the final value immediately; reduced-motion users receive the final value without animation.
+Selected work follows the hero, before the biography. Do not use an unsourced total-project or years-of-experience counter row; link the biography to the dated work history instead. Project chapters distinguish the application, personal role, contributions, and available evidence. Keep technology logos, but use plain bullets rather than decorative confirmation icons for contributions.
+
+Cortico reporting uses static figures with links to the actual report screenshots. An interactive report selector shows source images and their visible dates or explicitly states when a reporting period is unavailable. Do not interpolate invented monthly data or imply that platform-wide or team outcomes are individual attribution. Retain the supplied screenshots and reporting qualifications.
+
+Homepage services use compact, responsive rows with a linked service name, concrete scope description, and an example where evidence exists. Preserve all service routes. Keep the section wider than its paragraphs; do not replace readable text measures with unnecessarily wide prose. Avoid decorative service icons, repeated equal-height cards, and duplicated technology badges in this index.
 
 ### Selected Work Scrollytelling
 
