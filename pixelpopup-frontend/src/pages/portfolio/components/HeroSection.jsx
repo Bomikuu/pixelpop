@@ -4,7 +4,7 @@ import SourceMapScene from "./SourceMapScene";
 
 const capabilities = [
   { icon: Monitor, title: "Frontend systems", detail: "Architecture and UI" },
-  { icon: Box, title: "Full-stack delivery", detail: "Product to production" },
+  { icon: Box, title: "Full-stack development", detail: "APIs and deployment" },
   { icon: UsersRound, title: "Technical leadership", detail: "Teams and standards" },
 ];
 
@@ -23,14 +23,14 @@ export default function HeroSection() {
               Davao City, Philippines
             </span>
             <span className="size-1 rounded-full bg-slate-400" aria-hidden="true" />
-            <span>Working globally</span>
+            <span>Available for remote work</span>
           </div>
           <h1 className="portfolio-display mt-7 max-w-[9ch] text-[clamp(3.75rem,7.4vw,5.75rem)] font-semibold leading-[0.91] tracking-[-0.04em] text-slate-950">
             <span className="block">Meet</span>
             <span className="block text-[#2f5bff]">Mico Ang.</span>
           </h1>
           <p className="mt-7 max-w-[38rem] text-lg leading-8 text-slate-600 sm:text-xl">
-            Senior frontend engineer, full-stack developer, and technical lead turning complex product requirements into clear, high-performing experiences.
+            I'm a senior frontend developer and technical lead. I build web applications with React, Vue, and Django.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <a href="#work" className="group inline-flex min-h-12 items-center gap-5 rounded-md bg-[#2f5bff] px-6 py-3.5 font-semibold text-white shadow-[0_16px_40px_-22px_rgba(47,91,255,0.8)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#2149dc] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">

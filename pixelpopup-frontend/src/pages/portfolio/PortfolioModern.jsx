@@ -29,16 +29,16 @@ function usePortfolioDocument() {
   useEffect(() => {
     const title = "Mico Ang | Senior Frontend & Full-Stack Developer";
     const metadata = [
-      ["name", "description", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products."],
+      ["name", "description", "Mico Ang is a senior frontend developer and technical lead in Davao City. See his work with React, Vue, Django, and ASTA Softwares."],
       ["name", "keywords", "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead"],
       ["property", "og:type", "website"],
       ["property", "og:title", title],
-      ["property", "og:description", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products."],
+      ["property", "og:description", "Mico Ang is a senior frontend developer and technical lead in Davao City. See his work with React, Vue, Django, and ASTA Softwares."],
       ["property", "og:url", new URL(pagePath, window.location.origin).href],
       ["property", "og:image", new URL("/portfolio/assets/mico-ang-portrait.jpg", window.location.origin).href],
       ["name", "twitter:card", "summary_large_image"],
       ["name", "twitter:title", title],
-      ["name", "twitter:description", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products."],
+      ["name", "twitter:description", "Mico Ang is a senior frontend developer and technical lead in Davao City. See his work with React, Vue, Django, and ASTA Softwares."],
       ["name", "twitter:image", new URL("/portfolio/assets/mico-ang-portrait.jpg", window.location.origin).href],
     ];
     document.title = title;
@@ -87,7 +87,7 @@ export default function PortfolioModern() {
         {/* <ActivitySection /> */}
         {/* <SignalsSection /> */}
         <ArticlesCarouselSection />
-        <ContactSection compactHeading heading={<>Let’s build something <span className="text-[#2f5bff]">useful.</span></>} />
+        <ContactSection compactHeading heading={<>Tell me about your <span className="text-[#2f5bff]">project.</span></>} />
       </main>
       <PortfolioFooter />
     </div>

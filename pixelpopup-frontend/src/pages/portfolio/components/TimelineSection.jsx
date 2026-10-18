@@ -63,19 +63,19 @@ export default function TimelineSection() {
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,253,255,0.98)_0%,rgba(251,253,255,0.8)_54%,rgba(251,253,255,0.24)_86%)]" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-0 z-[1] hidden 2xl:block text-[10px] font-semibold uppercase leading-[1.7] tracking-[0.24em] text-[#6b93c2]" aria-hidden="true">
-        <p className="absolute left-10 top-40 m-0">Ideas<br />People<br />Products<br />Impact</p>
-        <p className="absolute right-10 top-24 m-0 text-right">Build<br />Learn<br />Create<br />Repeat</p>
-        <p className="absolute bottom-12 left-10 m-0">A better<br />tomorrow</p>
-        <p className="absolute bottom-12 right-10 m-0 text-right">Continuous growth<br />through experience</p>
+        <p className="absolute left-10 top-40 m-0">Frontend<br />development</p>
+        <p className="absolute right-10 top-24 m-0 text-right">Code<br />review</p>
+        <p className="absolute bottom-12 left-10 m-0">Project<br />history</p>
+        <p className="absolute bottom-12 right-10 m-0 text-right">Education</p>
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
           <header className="max-w-4xl">
             <h2 id="experience-title" className="portfolio-display max-w-3xl text-4xl font-semibold leading-[1.02] tracking-[-0.035em] text-[#081a30] sm:text-5xl lg:text-6xl">
-              Experience built across products, teams, and <span className="text-[#2f5bff]">industries.</span>
+              Work and <span className="text-[#2f5bff]">education.</span>
             </h2>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#52677d]">Professional experience from 2018 to present, paired with the education that started the foundation.</p>
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[#52677d]">Where I've worked since 2018 and where I studied.</p>
           </header>
         </Reveal>
 

@@ -4,15 +4,15 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "3D",
     icon: "/portfolio/tech/three.svg",
     summary: "A JavaScript library for rendering interactive 3D scenes in the browser with WebGL.",
-    personalUse: "I use it for service heroes, product storytelling, spatial interfaces, and focused interactive demonstrations.",
-    bestFor: "Product visualization, configurators, technical storytelling, and memorable campaign experiences.",
+    personalUse: "The interactive scenes on my portfolio and ASTA pages use Three.js.",
+    bestFor: "Products people need to rotate, inspect, or configure in the browser.",
   },
   webgl: {
     name: "WebGL",
     shortLabel: "GL",
     icon: "/portfolio/tech/webgl.svg",
     summary: "The browser graphics API that lets Three.js render hardware-accelerated 2D and 3D visuals.",
-    personalUse: "I account for device limits, pixel ratio, render cost, visibility, cleanup, and graceful fallbacks.",
+    personalUse: "I limit rendering work on slower devices and provide a fallback if the browser cannot run the scene.",
     bestFor: "High-performance browser graphics when a normal DOM interface cannot express the experience clearly.",
   },
   react: {
@@ -20,7 +20,7 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "R",
     icon: "/portfolio/tech/react.svg",
     summary: "A component-based JavaScript library for building interactive user interfaces.",
-    personalUse: "I use React for reusable product surfaces, complex interaction states, and frontend architecture that teams can extend.",
+    personalUse: "I build application screens and shared components in React, including this site.",
     bestFor: "Interactive applications, component systems, dashboards, and products with substantial client-side behavior.",
   },
   vue: {
@@ -28,7 +28,7 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "V",
     icon: "/portfolio/tech/vue.svg",
     summary: "A progressive JavaScript framework for building approachable, reactive web interfaces.",
-    personalUse: "I use Vue for maintainable product UI and for improving established Vue codebases without forcing unnecessary rewrites.",
+    personalUse: "I build with Vue and work on existing Vue applications.",
     bestFor: "Products that value readable components, incremental adoption, and a productive development experience.",
   },
   nuxt: {
@@ -36,7 +36,7 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "N",
     icon: "/portfolio/tech/nuxt.svg",
     summary: "A Vue framework for server rendering, routing, data fetching, and production web delivery.",
-    personalUse: "I use Nuxt for crawlable product pages, shared application structure, and multi-surface platforms such as DineEase.",
+    personalUse: "I use Nuxt for server-rendered pages and applications such as DineEase.",
     bestFor: "Vue products that need SEO, server rendering, structured routing, and an opinionated application foundation.",
   },
   typescript: {
@@ -44,7 +44,7 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "TS",
     icon: "/portfolio/tech/typescript.svg",
     summary: "JavaScript with static types for clearer contracts and safer changes across a codebase.",
-    personalUse: "I use types to make component, API, and domain boundaries easier to understand during implementation and review.",
+    personalUse: "I define types for component props and API responses so mistakes are easier to catch while coding.",
     bestFor: "Growing frontend and Node.js products where multiple contributors need dependable interfaces.",
   },
   tailwind: {
@@ -52,7 +52,7 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "TW",
     icon: "/portfolio/tech/tailwind.svg",
     summary: "A utility-first CSS framework for composing responsive interfaces from consistent design tokens.",
-    personalUse: "I use Tailwind to keep layout and state styling close to components while preserving an intentional design system.",
+    personalUse: "I use Tailwind for layouts, responsive styles, and component states on this site.",
     bestFor: "Fast product UI delivery where consistency, responsive behavior, and maintainable styling matter.",
   },
   figma: {
@@ -60,7 +60,7 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "F",
     icon: "/portfolio/tech/figma.svg",
     summary: "A collaborative interface design tool for flows, components, prototypes, and developer handoff.",
-    personalUse: "I use Figma to clarify hierarchy, responsive behavior, reusable patterns, and implementation details before code grows expensive.",
+    personalUse: "I use Figma to review layouts and work through screen behavior before implementation.",
     bestFor: "Product design, design systems, stakeholder review, prototyping, and engineering handoff.",
   },
   canva: {
@@ -82,7 +82,7 @@ export const portfolioTechnologyCatalog = {
     name: "PostHog",
     shortLabel: "PH",
     summary: "A product analytics platform for events, funnels, retention, paths, session replay, and experiments.",
-    personalUse: "I use PostHog to connect interface changes to real product behavior and to inspect the journeys behind conversion or drop-off.",
+    personalUse: "I check event data and session recordings to find where people leave or get stuck.",
     bestFor: "Product teams that need event analytics, qualitative replay, funnels, and feature evaluation in one workflow.",
   },
   django: {
@@ -143,7 +143,7 @@ export const portfolioTechnologyCatalog = {
     name: "Google Search Console",
     shortLabel: "GSC",
     summary: "Google's reporting surface for search queries, pages, clicks, impressions, indexing, and crawl diagnostics.",
-    personalUse: "I use Search Console to connect technical changes and content structure to discovery, indexation, and useful search journeys.",
+    personalUse: "I check indexing reports and search queries to find pages that need technical work.",
     bestFor: "Diagnosing indexing issues, monitoring search visibility, and finding which pages and queries deserve attention.",
   },
   ahrefs: {
@@ -157,7 +157,7 @@ export const portfolioTechnologyCatalog = {
     name: "OpenAI API",
     shortLabel: "AI",
     summary: "A model API for text, structured output, tool calling, retrieval, images, audio, and multimodal workflows.",
-    personalUse: "I use it inside bounded workflows with explicit inputs, schemas, review points, failure handling, and cost awareness.",
+    personalUse: "I connect model responses to application features, validate their format, and keep track of API costs.",
     bestFor: "AI-assisted features that need structured responses, tool use, retrieval, or multimodal capabilities.",
   },
   claude: {
@@ -195,7 +195,7 @@ export const portfolioTechnologyCatalog = {
     shortLabel: "AWS",
     icon: "/portfolio/tech/aws.svg",
     summary: "A cloud platform offering compute, storage, databases, networking, monitoring, and managed application services.",
-    personalUse: "I use AWS building blocks around the product's actual operating needs rather than adding infrastructure for appearance.",
+    personalUse: "I use AWS for application hosting and configure the services a project needs.",
     bestFor: "Products that need configurable cloud infrastructure, managed data services, storage, and operational control.",
   },
   sentry: {
@@ -221,14 +221,14 @@ export const portfolioServiceCatalog = [
     slug: "threejs-development",
     title: "Three.js Development",
     shortTitle: "Interactive 3D",
-    summary: "Purposeful browser-based 3D for product stories, visualization, configurators, and interactive campaigns.",
+    summary: "Interactive 3D scenes for viewing products and changing their configuration in a web browser.",
     featured: true,
     icon: "box",
     overview: {
-      title: "3D that earns its place.",
+      title: "Interactive 3D in the browser.",
       paragraphs: [
-        "I plan the scene around what a visitor needs to inspect, understand, or configure. The interface, loading strategy, camera, controls, and fallback are part of the same product decision.",
-        "My portfolio and ASTA service pages demonstrate how I isolate Three.js from the main interface, pause work outside the viewport, and keep the page useful when motion or WebGL is unavailable.",
+        "We start with what visitors should be able to do with the model. I build the camera controls and connect their choices to the rest of the page.",
+        "You can try examples on this site and the ASTA service pages. Those scenes pause when offscreen and have alternatives for browsers that cannot run WebGL.",
       ],
     },
     inclusions: [
@@ -252,14 +252,14 @@ export const portfolioServiceCatalog = [
     slug: "ai-automation",
     title: "AI Automation",
     shortTitle: "AI workflows",
-    summary: "AI-assisted product and business workflows with clear inputs, tools, review points, and recovery paths.",
+    summary: "Connect AI to your documents and business tools, with review before important actions.",
     featured: true,
     icon: "bot",
     overview: {
-      title: "AI workflows with clear boundaries.",
+      title: "Put AI to work on a specific task.",
       paragraphs: [
-        "I start with the task, available data, repeated decisions, exceptions, and the person who owns the result. This keeps the implementation grounded in real work rather than an isolated chatbot demo.",
-        "The resulting workflow can retrieve approved context, call tools, return structured output, request human review, and expose failures that need correction.",
+        "Show me a task your team repeats and the tools involved. We'll work out which steps can be automated and which decisions need a person.",
+        "I connect the model to approved data sources and APIs. The application checks its responses, handles failures, and asks for approval where needed.",
       ],
     },
     inclusions: [
@@ -273,7 +273,7 @@ export const portfolioServiceCatalog = [
     technologies: ["openai", "claude", "python", "node", "n8n", "django"],
     faqs: [
       ["What is a good first automation project?", "A focused workflow with repeated effort, clear inputs, a reviewable output, and an owner is usually a better start than a company-wide assistant."],
-      ["Will you recommend a specific AI provider?", "I compare the task, context window, tool needs, privacy constraints, latency, and cost. The provider should follow the workflow, not the other way around."],
+      ["Will you recommend a specific AI provider?", "Yes. I'll compare providers against your task, data restrictions, response time, and budget before recommending one."],
       ["How do you reduce incorrect output?", "I constrain the task, validate structure, ground responses where appropriate, define escalation, and keep important decisions reviewable."],
       ["Can this connect to our current tools?", "Usually, yes, when the tools offer suitable APIs and permissions. I document each action, data boundary, error path, and retry behavior."],
     ],
@@ -283,13 +283,13 @@ export const portfolioServiceCatalog = [
     slug: "website-design",
     title: "Website Design",
     shortTitle: "Product and web design",
-    summary: "Clear, responsive interfaces shaped around your brand, content, customer journey, and implementation reality.",
+    summary: "Website layouts and prototypes, with designs for mobile and desktop.",
     icon: "palette",
     overview: {
-      title: "Design that makes decisions easier.",
+      title: "Plan the pages before the build.",
       paragraphs: [
-        "I organize content, navigation, actions, and responsive behavior around the questions a visitor actually brings to the page.",
-        "Because I also build interfaces, the design accounts for real content, component reuse, edge states, accessibility, and the handoff required for production delivery.",
+        "We decide what each page needs to say and what visitors should be able to do. I then work through the layout using your content and brand materials.",
+        "I also plan small-screen layouts and states such as empty results or form errors. Your developer gets the screens and behavior notes, or I can build them myself.",
       ],
     },
     inclusions: [
@@ -297,7 +297,7 @@ export const portfolioServiceCatalog = [
       ["Information architecture", "Organize navigation and content so the important path stays understandable."],
       ["Responsive design", "Plan desktop, tablet, and mobile behavior as one coherent system."],
       ["Design system", "Define reusable typography, color, spacing, components, and interaction states."],
-      ["Prototype and review", "Make key journeys reviewable before expensive implementation decisions settle."],
+      ["Prototype and review", "Review the main screens and interactions before development starts."],
       ["Build-ready guidance", "Document component behavior, content needs, states, and implementation details."],
     ],
     technologies: ["figma", "canva", "tailwind", "react", "hotjar", "posthog"],
@@ -313,13 +313,13 @@ export const portfolioServiceCatalog = [
     slug: "website-development",
     title: "Website Development",
     shortTitle: "Full-stack web delivery",
-    summary: "Maintainable websites and web applications connected to real data, workflows, APIs, and release needs.",
+    summary: "Websites and applications built with React, Vue, Django, or your team's existing stack.",
     icon: "code",
     overview: {
-      title: "Build now. Keep room to grow.",
+      title: "Develop your website or application.",
       paragraphs: [
-        "I translate requirements into responsive interfaces, clear component boundaries, dependable APIs, data models, and release-ready application code.",
-        "My work is frontend-led, but I am comfortable owning the backend and infrastructure boundaries needed to deliver a complete web product.",
+        "I build the screens, connect APIs, and implement the data handling behind them. We review working features as they become ready.",
+        "Most of my work is frontend-focused. I can also handle the backend and deployment, and document how to run and update the application.",
       ],
     },
     inclusions: [
@@ -327,13 +327,13 @@ export const portfolioServiceCatalog = [
       ["Frontend engineering", "Build accessible responsive interfaces for real data and interaction states."],
       ["Backend and APIs", "Implement domain logic, authentication, permissions, data access, and integrations."],
       ["Database design", "Model relationships and queries around the product's operational needs."],
-      ["Quality controls", "Review critical journeys, browser behavior, failure states, and release risks."],
+      ["Quality controls", "Check important features in supported browsers, including error handling."],
       ["Release handoff", "Document environments, configuration, deployment, and ongoing ownership."],
     ],
     technologies: ["react", "vue", "nuxt", "django", "node", "postgresql", "docker"],
     faqs: [
       ["Can you work with an existing codebase?", "Yes. I begin with a focused review of the architecture, current conventions, risks, and the safest boundaries for change."],
-      ["Which stack do you prefer?", "I work most often with React, Vue, Nuxt, Django, Python, Node.js, and PostgreSQL. I select from the product and team context rather than forcing a fixed package."],
+      ["Which stack do you prefer?", "I work most often with React, Vue, Nuxt, Django, Python, Node.js, and PostgreSQL. For an existing product, I start with the stack your team already uses."],
       ["Do I need complete designs first?", "No. I can include interface design, work from an existing design system, or collaborate with your designer while keeping engineering constraints visible."],
       ["Can you continue after launch?", "Yes. Ongoing improvements, debugging, performance work, and technical ownership can be scoped around the product's release cadence."],
     ],
@@ -343,13 +343,13 @@ export const portfolioServiceCatalog = [
     slug: "cms-solutions",
     title: "CMS Solutions",
     shortTitle: "Content systems",
-    summary: "Structured publishing systems that help editors manage content safely without weakening frontend quality.",
+    summary: "Content management systems where your team can edit pages, review drafts, and publish updates.",
     icon: "panels",
     overview: {
-      title: "Content systems editors can trust.",
+      title: "Let your team update its own content.",
       paragraphs: [
-        "I define content models, reusable page patterns, permissions, and editorial controls around the information your organization maintains.",
-        "The frontend remains fast and consistent while editors receive useful control instead of an unstructured page builder or a developer-only workflow.",
+        "We list the content your team maintains and who can edit or publish it. I set up the fields and templates around that work.",
+        "Editors can update content through an admin interface. The site's templates control how those updates appear on the published pages.",
       ],
     },
     inclusions: [
@@ -364,7 +364,7 @@ export const portfolioServiceCatalog = [
     faqs: [
       ["Do we need a headless CMS?", "Not always. I recommend headless architecture when content serves multiple products or frontend control justifies the added operational complexity."],
       ["Can you migrate existing content?", "Yes. I review content quality, volume, media, relationships, URLs, and redirects before defining what can be automated safely."],
-      ["Can different teams have different permissions?", "Yes, when the selected platform supports the required roles and object boundaries. I treat permissions as part of the content model, not an afterthought."],
+      ["Can different teams have different permissions?", "Yes, if the platform supports the roles you need. We agree on who can edit, review, and publish each type of content."],
       ["Will editors receive documentation?", "Yes. The handoff can include field guidance, workflow notes, publishing checks, and focused training for the people who own content."],
     ],
   },
@@ -373,13 +373,13 @@ export const portfolioServiceCatalog = [
     slug: "bug-fixing-responsiveness",
     title: "Bug Fixing and Responsiveness",
     shortTitle: "Diagnosis and repair",
-    summary: "Focused diagnosis and repairs for broken journeys, state, integrations, layouts, and browser behavior.",
+    summary: "Find and fix broken features, mobile layouts, and browser-specific bugs.",
     icon: "wrench",
     overview: {
-      title: "Find the cause. Fix the right layer.",
+      title: "Get a broken feature working again.",
       paragraphs: [
-        "I reproduce the issue, narrow the affected system, inspect the relevant state and data flow, then define the smallest safe correction.",
-        "This is especially useful for established products where a broad rewrite would increase risk and where the team needs a clear explanation of what failed.",
+        "Send me the steps that trigger the bug and what you expected to happen. I trace the problem through the code and explain the proposed fix.",
+        "After making the change, I check the affected behavior and leave notes on the cause and anything your team should watch for.",
       ],
     },
     inclusions: [
@@ -403,13 +403,13 @@ export const portfolioServiceCatalog = [
     slug: "website-maintenance-security",
     title: "Website Maintenance and Security",
     shortTitle: "Ongoing technical care",
-    summary: "Planned updates, monitoring, release support, and security hygiene for websites that need clear ownership.",
+    summary: "Keep an existing site updated, review security issues, and get help with releases.",
     icon: "shield",
     overview: {
-      title: "Steady maintenance, fewer surprises.",
+      title: "Keep your website up to date.",
       paragraphs: [
-        "I help define the updates, checks, access boundaries, release practices, and recovery expectations that keep a web product supportable.",
-        "Coverage is based on the platform and business impact. Planned improvements and urgent production issues remain clearly separated so expectations stay realistic.",
+        "I review the site's dependencies and hosting setup, then agree with you on which updates and checks to handle.",
+        "We document the maintenance scope and how to request help. Urgent support and larger features need a separate agreement.",
       ],
     },
     inclusions: [
@@ -433,13 +433,13 @@ export const portfolioServiceCatalog = [
     slug: "speed-optimization-seo",
     title: "Speed Optimization and SEO",
     shortTitle: "Performance and search",
-    summary: "Technical improvements for Core Web Vitals, indexing, search journeys, measurement, and conversion behavior.",
+    summary: "Investigate slow pages, fix technical SEO issues, and compare results after release.",
     icon: "gauge",
     overview: {
-      title: "Faster pages, clearer search signals.",
+      title: "Find what's slowing your site down.",
       paragraphs: [
-        "I review rendering, assets, metadata, structured content, indexation, internal links, and third-party scripts to find the highest-value technical work.",
-        "Lighthouse provides a lab starting point. PageSpeed field data, Search Console, PostHog, Hotjar, and business analytics show whether the improvement helps real users and useful search journeys.",
+        "I check loading behavior and search indexing on the pages that matter to you. The findings become a list of fixes ordered by likely impact and effort.",
+        "I use Lighthouse for diagnosis and compare it with available real-user data. Search Console and analytics help us follow what happens after changes go live.",
       ],
     },
     inclusions: [
@@ -447,12 +447,12 @@ export const portfolioServiceCatalog = [
       ["Rendering and assets", "Review JavaScript, images, fonts, caching, third parties, and delivery strategy."],
       ["Technical SEO", "Check crawlability, indexability, canonicals, redirects, sitemaps, and template behavior."],
       ["On-page structure", "Align titles, descriptions, headings, schema, internal links, and page purpose."],
-      ["Behavior analysis", "Use PostHog or Hotjar to understand journeys, friction, and conversion context."],
+      ["Behavior analysis", "Use PostHog or Hotjar to see where visitors get stuck or leave the site."],
       ["Priority roadmap", "Group findings into immediate fixes, planned improvements, and longer-term work."],
     ],
     technologies: ["lighthouse", "pagespeed", "searchConsole", "posthog", "hotjar", "ahrefs"],
     faqs: [
-      ["Can you guarantee a ranking?", "No. Search results depend on competition, content, authority, technical quality, user value, and search-system changes. I focus on measurable fundamentals and useful journeys."],
+      ["Can you guarantee a ranking?", "No. Competition, content, and changes to search engines all affect rankings. I can investigate technical issues and measure the results of agreed changes."],
       ["Why use both Lighthouse and PageSpeed Insights?", "Lighthouse is a controlled lab audit. PageSpeed can add real-user field data. I use the lab result to investigate and field data to judge production impact."],
       ["Where do PostHog and Hotjar fit?", "Search tools show how people arrive. Product and behavior analytics help explain what they do next, where they struggle, and whether the page supports a useful action."],
       ["Do we need a redesign to improve performance?", "Usually not. Many issues can be addressed through targeted changes to assets, rendering, code delivery, templates, and third-party scripts."],

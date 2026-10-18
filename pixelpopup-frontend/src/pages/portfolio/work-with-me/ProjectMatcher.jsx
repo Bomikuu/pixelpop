@@ -81,19 +81,19 @@ export default function ProjectMatcher({ onChoose }) {
     const result = isAsta
       ? {
         title: "Your scope points to ASTA.",
-        description: "The work appears to benefit from parallel frontend, backend, and delivery ownership under one technical direction.",
+        description: "Your answers suggest you need several people working on the project. We can discuss who from ASTA would be involved.",
         projectType: "Build with ASTA team",
         image: "/portfolio/assets/asta-logo.png",
         imageAlt: "ASTA Softwares logo",
-        visualLabel: "Coordinated team delivery",
+        visualLabel: "Work with the ASTA team",
       }
       : {
         title: "Your scope points to working with Mico.",
-        description: "The work appears to benefit most from direct senior frontend judgment, hands-on delivery, and technical leadership.",
+        description: "Your answers suggest a hands-on developer who can also help plan the work. Let's discuss the scope before deciding.",
         projectType: "Hire Mico - embedded leadership",
         image: "/portfolio/assets/mico-ang-pixel-portrait.webp",
         imageAlt: "Pixel portrait of Mico Ang",
-        visualLabel: "Direct senior ownership",
+        visualLabel: "Work directly with Mico",
       };
 
     return (

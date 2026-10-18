@@ -38,10 +38,10 @@ export default function AstaSection() {
             <img src="/portfolio/assets/asta-logo.png" width="1024" height="1024" loading="lazy" decoding="async" alt="ASTA Softwares logo" className="mx-auto size-16 rounded-xl bg-[#1570ef] object-contain shadow-[0_18px_42px_-22px_rgba(21,112,239,0.7)] sm:size-20" />
             <p className="mt-4 text-sm font-semibold text-[#385474]">ASTA Softwares</p>
             <h2 className="portfolio-display mx-auto mt-7 max-w-[16ch] text-4xl font-semibold leading-[1.02] tracking-[-0.035em] text-[#081a30] sm:text-5xl lg:text-6xl">
-              Building products and teams at <span className="text-[#2f5bff]">ASTA.</span>
+              My work at <span className="text-[#2f5bff]">ASTA.</span>
             </h2>
             <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-[#52677d]">
-              I’m one of four co-founders and serve as Technical Lead. We build software around real business workflows, from employee systems and interactive experiences to the ongoing DineEase restaurant platform.
+              I'm one of four co-founders and the Technical Lead at ASTA, which we started in 2021. Our work includes employee systems and interactive websites. We're also developing DineEase, our restaurant platform.
             </p>
           </div>
 

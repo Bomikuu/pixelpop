@@ -17,15 +17,15 @@ const inquiryOptions = [
 
 const heroCapabilities = [
   { icon: Monitor, title: "Frontend leadership", detail: "Architecture and interface direction" },
-  { icon: Box, title: "Full-stack delivery", detail: "From product decision to production" },
-  { icon: UsersRound, title: "Right-sized support", detail: "Direct ownership or an ASTA team" },
+  { icon: Box, title: "Full-stack development", detail: "Frontend, APIs, and deployment" },
+  { icon: UsersRound, title: "Team support", detail: "Work with me or ASTA" },
 ];
 
 const engagementWorkflow = [
-  { icon: MessageSquareText, title: "Share the context", detail: "Bring the product, constraints, current blockers, and the result that needs to change." },
-  { icon: ScanSearch, title: "Clarify the path", detail: "We separate the immediate request from the decisions that materially affect scope." },
-  { icon: Route, title: "Build in view", detail: "Delivery stays visible through working increments, direct feedback, and clear trade-offs." },
-  { icon: Rocket, title: "Ship with confidence", detail: "We validate the outcome, release responsibly, and leave the next move understandable." },
+  { icon: MessageSquareText, title: "Describe the work", detail: "Tell me what you're building, what isn't working, and any deadline you have." },
+  { icon: ScanSearch, title: "Agree on scope", detail: "I review the current setup and explain the work I'd recommend before estimating it." },
+  { icon: Route, title: "Review progress", detail: "You review working features as they become ready and flag anything that needs changing." },
+  { icon: Rocket, title: "Check and release", detail: "We check the work before release and agree on any follow-up support." },
 ];
 
 export default function WorkWithMePage() {
@@ -51,12 +51,12 @@ export default function WorkWithMePage() {
           <Reveal className="w-full max-w-[48rem]">
 
             <h1 className="portfolio-display mt-8 max-w-[10ch] text-[clamp(3.75rem,7.2vw,5.9rem)] font-semibold leading-[0.91] tracking-[-0.04em]">
-              <span className="block">Bring me the</span>
-              <span className="block text-[#4f8cff]">hard part</span>
-              <span className="block">of the product.</span>
+              <span className="block">Hire me</span>
+              <span className="block text-[#4f8cff]">for your</span>
+              <span className="block">web project.</span>
             </h1>
             <p className="mt-7 max-w-[39rem] text-lg leading-8 text-blue-100/75 sm:text-xl">
-              Senior frontend leadership, full-stack delivery, and a trusted software team when the scope needs more hands.
+              I can join your team as a developer and technical lead. Larger projects can involve the ASTA team.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <a href="#ways-to-work" className="group inline-flex min-h-12 items-center gap-5 rounded-md bg-[#2f6fff] px-6 py-3.5 font-semibold text-white shadow-[0_18px_44px_-24px_rgba(47,111,255,0.9)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#4f8cff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
@@ -86,7 +86,7 @@ export default function WorkWithMePage() {
 
       <section className="py-24 sm:py-28 lg:py-32" aria-labelledby="problems-title">
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <SectionHeading id="problems-title" title="Useful when the product is difficult." description="I work best where interface quality, system thinking, and delivery judgment need to operate together." />
+          <SectionHeading id="problems-title" title="Where I can help." description="Most of my work involves application interfaces and the systems behind them." />
           <Reveal stagger>
             <div className="grid border-y border-slate-200 md:grid-cols-2">
               {problemsSolved.map(({ title, description, icon: Icon }, index) => (
@@ -102,7 +102,7 @@ export default function WorkWithMePage() {
 
       <section id="ways-to-work" className="scroll-mt-24 bg-white py-24 sm:py-28 lg:py-32" aria-labelledby="ways-title">
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <SectionHeading id="ways-title" title="Choose the level of support the work needs." description="Work with me directly for senior hands-on ownership, or bring in ASTA when the roadmap needs a coordinated team." />
+          <SectionHeading id="ways-title" title="Ways to work together." description="Hire me for hands-on development and technical leadership, or work with the ASTA team on a larger project." />
           <div className="grid gap-5 lg:grid-cols-3">
             {engagementOptions.map((option, index) => {
               const Icon = option.icon;
@@ -133,10 +133,10 @@ export default function WorkWithMePage() {
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
           <Reveal>
             <h2 id="workflow-title" className="portfolio-display max-w-4xl text-5xl font-semibold leading-[1.02] tracking-[-0.035em] sm:text-6xl lg:text-7xl">
-              A clear workflow from first context to release.
+              From the first conversation to release.
             </h2>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-blue-100/70">
-              Enough structure to keep decisions visible, without adding process that does not improve the product.
+              Here's how we agree on the work, review progress, and prepare a release.
             </p>
           </Reveal>
 
@@ -159,7 +159,7 @@ export default function WorkWithMePage() {
 
       <section className="bg-[#eff6ff] py-24 sm:py-28 lg:py-32" aria-labelledby="proof-title">
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <SectionHeading id="proof-title" title="Evidence from products already in motion." description="The work spans healthcare growth, location intelligence, restaurant operations, and software team leadership." />
+          <SectionHeading id="proof-title" title="Projects and experience." description="Examples of my work in healthcare, maps, and restaurant software." />
           <Reveal stagger>
             <div className="grid overflow-hidden border border-slate-200 bg-white lg:grid-cols-2">
               {proofPoints.map(({ project, result, detail, href, external, icon: Icon }, index) => (
@@ -175,7 +175,7 @@ export default function WorkWithMePage() {
 
       <section className="py-24 sm:py-28 lg:py-32" aria-labelledby="matcher-title">
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <SectionHeading id="matcher-title" title="Not sure whether you need one senior lead or a team?" description="Answer four practical questions. The recommendation is a starting point, not a sales gate." />
+          <SectionHeading id="matcher-title" title="Not sure whether you need one developer or a team?" description="Answer four questions for a suggested setup. We can discuss it before you decide." />
           <Reveal>
             <ProjectMatcher onChoose={choosePath} />
           </Reveal>
@@ -184,7 +184,7 @@ export default function WorkWithMePage() {
 
       <section className="bg-white py-24 sm:py-28 lg:py-32" aria-labelledby="fit-title">
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <SectionHeading id="fit-title" title="A good working relationship starts with fit." description="Clear expectations protect the product, the people doing the work, and the budget behind it." />
+          <SectionHeading id="fit-title" title="Before we start." description="A few expectations to check before committing to a project." />
           <div className="grid gap-6 lg:grid-cols-2">
             {[
               ["We will likely work well together if", fitCriteria.good, Check, "bg-[#0b1733] text-white", "text-emerald-300"],
@@ -206,10 +206,10 @@ export default function WorkWithMePage() {
       <ContactSection
         key={preferredPath}
         id="project-inquiry"
-        heading="Tell me what needs to move forward."
-        description="Share the problem, the current product stage, and the result you need. I will help determine whether direct senior support or an ASTA team is the better fit."
-        formTitle="Start with the project context"
-        formSubtitle="No polished brief required. Clear constraints are more useful."
+        heading="Tell me about the work."
+        description="Describe your project and where you need help. If you're unsure whether you need me or an ASTA team, we can work that out together."
+        formTitle="Send a project inquiry"
+        formSubtitle="A short description and any deadline are enough to start."
         projectTypeLabel="Preferred working setup"
         projectTypeOptions={inquiryOptions}
         defaultProjectType={preferredPath}

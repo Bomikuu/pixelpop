@@ -107,11 +107,11 @@ function ServiceDetail({ service }) {
           <Reveal delay={2} className="group relative border-t border-slate-200 p-7 transition-colors duration-300 hover:bg-blue-50/50 sm:p-9 lg:border-l lg:border-t-0 lg:p-10">
             <span className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-[#2f5bff] transition-transform duration-300 group-hover:scale-x-100" aria-hidden="true" />
             <Layers3 className="text-[#2f5bff] transition-transform duration-300 group-hover:-translate-y-1 group-hover:-rotate-6" size={24} strokeWidth={1.8} aria-hidden="true" />
-            <h3 className="mb-0 mt-5 text-xl font-semibold tracking-[-0.02em] text-slate-950">What stays connected</h3>
+            <h3 className="mb-0 mt-5 text-xl font-semibold tracking-[-0.02em] text-slate-950">What to expect</h3>
             <p className="mb-0 mt-4 max-w-[52ch] text-base leading-8 text-slate-600">{service.overview.paragraphs[1]}</p>
-            <div className="mt-8 rounded-xl bg-blue-50 p-5 text-sm leading-7 text-slate-700 transition-colors duration-300 group-hover:bg-white">
+            <div className="mt-8 rounded-xl bg-blue-50 p-5 text-sm leading-7 text-blue-950 transition-colors duration-300 group-hover:bg-white">
               <strong className="block text-slate-950">My role</strong>
-              I work directly on the architecture and implementation. If ASTA support is useful, I make that team boundary explicit before the engagement begins.
+              I plan and build the work myself. If it needs additional developers from ASTA, we'll agree on their involvement before starting.
             </div>
           </Reveal>
         </div>
@@ -162,8 +162,8 @@ function ServiceDetail({ service }) {
         <div className="relative z-[1] mx-auto max-w-7xl">
           <Reveal className="max-w-[50rem]">
             <span className="grid size-14 place-items-center rounded-xl bg-white text-[#2f5bff] shadow-[0_18px_45px_-32px_rgba(47,91,255,0.65)]" aria-hidden="true"><PortfolioServiceIcon name={service.icon} size={25} strokeWidth={1.8} /></span>
-            <h2 id="service-inclusions-title" className="portfolio-display mb-0 mt-7 max-w-[12ch] text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-slate-950">What I can own.</h2>
-            <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-slate-600">The final scope follows the product, team, current system, and release risk.</p>
+            <h2 id="service-inclusions-title" className="portfolio-display mb-0 mt-7 max-w-[12ch] text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-slate-950">What the work can include.</h2>
+            <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-slate-600">We'll agree on which of these you need before I estimate the work.</p>
           </Reveal>
           <div className="mt-12 grid gap-4 md:grid-cols-2">
             {service.inclusions.map(([title, description], index) => (
@@ -185,8 +185,8 @@ function ServiceDetail({ service }) {
         <PortfolioServicePattern variant="crosses" className="opacity-55" />
         <div className="relative z-[1] mx-auto max-w-7xl">
           <Reveal className="max-w-[48rem]">
-            <h2 id="service-technologies-title" className="portfolio-display m-0 max-w-[13ch] text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-slate-950">Technologies I use with purpose.</h2>
-            <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-slate-600">Select any technology to see what it does, where it fits, and how I use it in delivery.</p>
+            <h2 id="service-technologies-title" className="portfolio-display m-0 max-w-[13ch] text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-slate-950">Tools for this work.</h2>
+            <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-slate-600">Select a tool to read what it does and how I use it.</p>
           </Reveal>
           <Reveal delay={1} className="mt-12">
             <TechnologyExplorer technologies={technologies} />

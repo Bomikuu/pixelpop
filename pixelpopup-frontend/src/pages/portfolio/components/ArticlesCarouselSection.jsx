@@ -142,8 +142,8 @@ export default function ArticlesCarouselSection() {
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
           <header className="max-w-3xl">
-            <h2 id="portfolio-articles-title" className="portfolio-display text-4xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">Writing from the <span className="text-[#2f5bff]">work.</span></h2>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#52677d]">Practical lessons from shipping frontend systems, improving performance, using AI thoughtfully, and leading technical work.</p>
+            <h2 id="portfolio-articles-title" className="portfolio-display text-4xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">Articles and <span className="text-[#2f5bff]">notes.</span></h2>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#52677d]">Things I've learned while building and maintaining web applications.</p>
           </header>
         </Reveal>
 

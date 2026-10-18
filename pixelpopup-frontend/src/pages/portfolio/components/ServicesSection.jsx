@@ -16,7 +16,7 @@ export default function ServicesSection() {
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHeading
           title={<>What I <span className="text-[#2f5bff]">offer.</span></>}
-          description="The same delivery capabilities I help lead at ASTA, offered here through my direct architecture, design, implementation, and technical ownership."
+          description="Hire me for a new build, help with an existing application, or a specific issue your team needs to fix."
         />
         <div className="grid gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-2 xl:grid-cols-4">
           {portfolioServiceCatalog.map((service, index) => (
@@ -37,7 +37,7 @@ export default function ServicesSection() {
         </div>
         <Reveal className="mt-8 flex justify-end">
           <Link to="/portfolio/services" className="inline-flex min-h-12 items-center gap-3 rounded-lg bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff] active:translate-y-px">
-            Explore all services <ArrowRight size={17} aria-hidden="true" />
+            All services <ArrowRight size={17} aria-hidden="true" />
           </Link>
         </Reveal>
       </div>

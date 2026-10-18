@@ -13,8 +13,8 @@ export const engagementOptions = [
   {
     id: "embedded-lead",
     title: "Embedded technical lead",
-    description: "Bring senior frontend direction into an existing product team without adding another management layer.",
-    bestFor: "Scaling products, complex interfaces, and teams that need clearer technical decisions.",
+    description: "I join your existing team to write code, review changes, and help plan frontend work.",
+    bestFor: "Teams that need an experienced frontend developer who can also lead technical work.",
     includes: ["Architecture and delivery planning", "Hands-on implementation", "Code review and team guidance"],
     icon: UsersRound,
     projectType: "Hire Mico - embedded leadership",
@@ -22,8 +22,8 @@ export const engagementOptions = [
   {
     id: "focused-build",
     title: "Focused product build",
-    description: "Take a defined workflow, feature, or frontend system from ambiguity to a production-ready release.",
-    bestFor: "New product surfaces, rebuilds, design systems, integrations, and performance work.",
+    description: "Hire me for a defined feature or build. We agree on the scope and review it as development progresses.",
+    bestFor: "A new application, a feature, an integration, or a specific set of fixes.",
     includes: ["Scope and technical approach", "Frontend-led full-stack delivery", "Release-ready implementation"],
     icon: CodeXml,
     projectType: "Hire Mico - focused product build",
@@ -31,7 +31,7 @@ export const engagementOptions = [
   {
     id: "asta-team",
     title: "ASTA delivery team",
-    description: "Use a coordinated software team when the scope needs parallel design, frontend, backend, and delivery ownership.",
+    description: "Work with ASTA when the project needs several developers or design and development at the same time.",
     bestFor: "Multi-surface platforms, business systems, longer roadmaps, and products with several workstreams.",
     includes: ["Cross-functional delivery", "Shared technical leadership", "A team sized around the product"],
     icon: Layers3,
@@ -41,23 +41,23 @@ export const engagementOptions = [
 
 export const problemsSolved = [
   {
-    title: "Frontend systems that can grow",
-    description: "Component architecture, shared patterns, state boundaries, and maintainable delivery standards.",
+    title: "Shared frontend components",
+    description: "Build reusable components and organize application state so your team can work on new features.",
     icon: Blocks,
   },
   {
-    title: "Complex workflows made clear",
-    description: "Information and interaction design for products with multiple roles, states, and connected surfaces.",
+    title: "Application screens and flows",
+    description: "Work through navigation, permissions, and screen behavior for applications with several user roles.",
     icon: Workflow,
   },
   {
-    title: "Performance tied to outcomes",
-    description: "Core Web Vitals, rendering strategy, technical SEO, analytics, and practical product measurement.",
+    title: "Slow pages and interactions",
+    description: "Investigate loading and rendering problems, make targeted changes, and compare the results.",
     icon: Gauge,
   },
   {
-    title: "Search visibility that compounds",
-    description: "Indexable product architecture, scalable content foundations, internal linking, and measurement.",
+    title: "Technical search issues",
+    description: "Check why pages aren't being indexed and review metadata, internal links, and content templates.",
     icon: SearchCheck,
   },
 ];
@@ -73,7 +73,7 @@ export const proofPoints = [
   },
   {
     project: "Walkspan",
-    result: "Neighborhood decisions made visual",
+    result: "Interactive neighborhood maps",
     detail: "Frontend leadership for interactive radius maps, establishment discovery, and neighborhood scoring.",
     href: "/portfolio#walkspan",
     icon: SearchCheck,
@@ -96,16 +96,16 @@ export const proofPoints = [
 
 export const fitCriteria = {
   good: [
-    "The product has a real user or business problem to solve.",
-    "You value clear trade-offs, maintainable code, and honest delivery planning.",
-    "The work benefits from strong frontend judgment with full-stack awareness.",
+    "You can explain who uses the product and what they need to do.",
+    "We can discuss constraints and agree on scope before starting.",
+    "You need frontend work that connects to backend systems.",
     "You want a senior contributor who can lead while staying hands-on.",
   ],
   notFit: [
     "The brief depends on copying another product without understanding the users.",
     "Speed means skipping accessibility, security, or the basic release safeguards.",
     "The scope is fixed before the problem and constraints can be discussed.",
-    "You need guaranteed outcomes that no responsible engineering partner can promise.",
+    "You need guaranteed search rankings or sales results.",
   ],
 };
 

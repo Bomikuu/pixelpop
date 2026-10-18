@@ -4,9 +4,9 @@ import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
 
 const strengths = [
-  { icon: Braces, title: "Frontend mastery", text: "Architecture, accessibility, interaction, responsive behavior, and maintainable component systems." },
-  { icon: Layers3, title: "Full-stack range", text: "Backend, API, deployment, and infrastructure context that keeps frontend decisions grounded." },
-  { icon: SearchCheck, title: "Growth awareness", text: "Technical SEO, Search Console, Hotjar, analytics, and Core Web Vitals." },
+  { icon: Braces, title: "Frontend development", text: "I build reusable components, handle loading and error states, and check layouts across screen sizes." },
+  { icon: Layers3, title: "Backend and deployment", text: "I also work on APIs and databases, and deploy the applications I build." },
+  { icon: SearchCheck, title: "Performance and SEO", text: "I use Core Web Vitals, Search Console, and behavior analytics to find pages that need attention." },
 ];
 
 const stats = [
@@ -90,8 +90,8 @@ export default function AboutSection() {
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHeading
-          title={<><span className="text-[#2f5bff]">About me.</span> Who am I?</>}
-          description="A practical look at the experience, range, and working style I bring to complex product builds."
+          title={<span className="text-[#2f5bff]">About me.</span>}
+          description="I've worked on web applications since 2018, with most of my time spent on frontend development."
         />
 
         <div className="grid items-start gap-16 lg:grid-cols-[0.72fr_1.28fr] lg:gap-0">
@@ -123,10 +123,10 @@ export default function AboutSection() {
           <Reveal delay={1} className="lg:border-l lg:border-slate-200 lg:pl-12 xl:pl-16">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">My philosophy</p>
             <p className="portfolio-display mt-5 max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-4xl lg:text-[2.75rem]">
-              The best interface is the point where a <span className="text-[#2563eb]">complex system starts to feel obvious.</span>
+              I like figuring out how a <span className="text-[#2563eb]">complicated application should work on screen.</span>
             </p>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
-              Since 2018, I have worked across operational software, healthcare, financial products, map experiences, marketing platforms, and interactive web products. I bring that range to the details customers feel most: clarity, speed, and confidence.
+              My projects include healthcare software, financial tools, interactive maps, and restaurant systems. Some work starts with a new design; other work means finding why an existing page is slow or fixing a feature that people already use.
             </p>
 
             <dl className="mt-10 grid border border-slate-200 bg-white sm:grid-cols-3">
@@ -137,7 +137,7 @@ export default function AboutSection() {
 
             <div className="mt-10 flex items-center justify-between gap-6 border-b border-slate-200 pb-4">
               <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Areas of expertise</h3>
-              <span className="hidden text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-slate-300 sm:block">Turning ideas into useful products</span>
+              <span className="hidden text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-slate-300 sm:block">Development and code review</span>
             </div>
 
             <div className="divide-y divide-slate-200">

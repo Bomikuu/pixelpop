@@ -28,12 +28,12 @@ const contactPrinciples = [
   },
   {
     title: "Practical feedback",
-    detail: "We can focus on product and technical tradeoffs.",
+    detail: "Tell me what's difficult or isn't working.",
     icon: Lightbulb,
   },
   {
-    title: "A useful next step",
-    detail: "The reply starts with the next useful question.",
+    title: "Scope before starting",
+    detail: "We'll discuss the work before you commit.",
     icon: Waypoints,
   },
 ];
@@ -59,11 +59,11 @@ const alertStyles = {
 
 export default function ContactSection({
   id = "contact",
-  heading = "Let’s build something useful.",
+  heading = "Tell me about your project.",
   compactHeading = false,
-  description = "Tell me what you’re building, where the interface is getting difficult, and what success should look like. Your inquiry is sent directly to my inbox.",
-  formTitle = "Start a conversation",
-  formSubtitle = "I usually reply with the next useful question.",
+  description = "What do you need built or fixed? Include a link to the current site if you have one. This form sends your message to my inbox.",
+  formTitle = "Send me a message",
+  formSubtitle = "A short description is enough to start.",
   projectTypeLabel = "What are we building?",
   projectTypeOptions = defaultProjectTypeOptions,
   defaultProjectType = "Product frontend",
@@ -88,7 +88,7 @@ export default function ContactSection({
     const honeypot = String(data.get("companyWebsite") || "").trim();
 
     if (honeypot) {
-      showStatus("Thanks — your message was sent.", "success");
+      showStatus("Thanks, your message was sent.", "success");
       return;
     }
 

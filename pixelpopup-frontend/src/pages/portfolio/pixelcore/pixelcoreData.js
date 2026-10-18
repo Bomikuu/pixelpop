@@ -90,9 +90,9 @@ export const pixelCoreProject = {
     scene: "pixelcore",
     backHref: "/portfolio#project-pixelcore",
     backLabel: "Back to selected works",
-    title: "PixelCore keeps every business surface connected.",
+    title: "PixelCore, a business management platform.",
     highlight: "PixelCore",
-    summary: "One shared business record powers public pages, commerce, bookings, events, operations, workforce, and customer displays.",
+    summary: "PixelCore uses shared business records for public websites, sales, bookings, and internal management tools.",
     actions: [
       { label: "Explore the platform", href: "#product-gallery", primary: true },
       { label: "View capabilities", href: "#features", primary: false, icon: false },
@@ -104,8 +104,8 @@ export const pixelCoreProject = {
     ],
   },
   overview: {
-    title: "One business memory, every customer touchpoint.",
-    description: "PixelCore connects what customers experience with the catalog, schedule, people, inventory, and financial records that keep the business moving.",
+    title: "The website and back office share data.",
+    description: "Product details entered in the catalog also appear on the storefront and customer displays. Bookings and orders link back to the records staff manage.",
     image: {
       src: "/portfolio/pixelcore/01-platform-landing.png",
       alt: "PixelCore platform landing page",
@@ -117,7 +117,7 @@ export const pixelCoreProject = {
     ],
   },
   responsibilities: {
-    title: "Five layers, one operating context.",
+    title: "The five application areas.",
     description: "Site, Sell, Schedule, Operate, and Workforce reuse the same catalog, identity, people, and business data.",
     items: pixelCorePillars,
   },
@@ -128,18 +128,18 @@ export const pixelCoreProject = {
     slides: pixelCoreSlides,
   },
   features: {
-    title: "Built around how the business connects.",
-    description: "Each capability adds a focused workflow while preserving the shared records behind every customer and team interaction.",
+    title: "What each area does.",
+    description: "Staff can work on sales, scheduling, stock, and employee records without re-entering shared business information.",
     items: pixelCorePillars,
   },
   technology: {
-    title: "A frontend-led full-stack foundation.",
-    description: "Nuxt and Vue shape the product experience while Django and PostgreSQL support the connected business model underneath it.",
+    title: "How it's built.",
+    description: "Nuxt and Vue handle the interface. Django and PostgreSQL provide the APIs and shared data model.",
     items: pixelCoreTechnologies,
   },
   cta: {
-    title: "Need a product that connects the experience to the operation?",
-    description: "I help shape interface architecture, shared product systems, and full-stack delivery around real business workflows.",
+    title: "Building a business application?",
+    description: "Tell me what it needs to handle and where you need help with the development.",
     actions: [
       { label: "Discuss a platform", href: "/portfolio#contact", primary: true },
       { label: "View selected work", href: "/portfolio#work", primary: false },

@@ -96,9 +96,9 @@ export const dineEaseProject = {
     scene: "dineease",
     backHref: "/portfolio#project-dineease",
     backLabel: "Back to selected works",
-    title: "DineEase connects the restaurant lifecycle.",
+    title: "DineEase, our restaurant platform.",
     highlight: "DineEase",
-    summary: "One platform for guest ordering, restaurant operations, employees, reservations, menu publishing, kiosks, profitability, and accountability.",
+    summary: "We're developing DineEase at ASTA to manage ordering, menus, reservations, and staff in the same application.",
     actions: [
       { label: "Explore the product", href: "#product-gallery", primary: true },
       { label: "View capabilities", href: "#features", primary: false, icon: false },
@@ -110,8 +110,8 @@ export const dineEaseProject = {
     ],
   },
   overview: {
-    title: "The screen is only one part of restaurant service.",
-    description: "DineEase connects what guests see with the operational decisions restaurant teams make before, during, and after every order or reservation.",
+    title: "Ordering and the work behind it.",
+    description: "Customers browse menus and place orders. Restaurant staff use the same system to manage those orders, reserve tables, and update availability.",
     image: {
       src: "/portfolio/dineease/01-restaurant-workspace.png",
       alt: "DineEase restaurant operations workspace",
@@ -123,29 +123,29 @@ export const dineEaseProject = {
     ],
   },
   responsibilities: {
-    title: "Six responsibilities, one operating context.",
-    description: "Each area reuses restaurant, menu, order, reservation, and employee information instead of becoming another disconnected tool.",
+    title: "The parts I work on.",
+    description: "These areas share restaurant and menu data, alongside order, reservation, and employee records.",
     items: dineEasePillars,
   },
   gallery: {
-    title: "Sixteen working product surfaces.",
-    description: "Move through the supplied DineEase captures to see the connected guest, partner, employee, kiosk, and reporting experiences.",
+    title: "Screens from the application.",
+    description: "Browse 16 captures from the DineEase feature guide, covering customer ordering and restaurant management.",
     sourceNote: "Product reference captured from the supplied DineEase feature guide",
     slides: dineEaseSlides,
   },
   features: {
     title: "Built around the work of running a restaurant.",
-    description: "The platform turns shared product context into focused workflows for service, publishing, selling, hosting, staffing, and decision-making.",
+    description: "The features below cover taking orders, publishing menus, managing staff, and reviewing restaurant activity.",
     items: dineEasePillars,
   },
   technology: {
-    title: "Technology selected for live operations.",
-    description: "A frontend-led full-stack system built for real-time workflows, map discovery, payments, and operational reporting.",
+    title: "How it's built.",
+    description: "Nuxt and Vue handle the interface. Django and PostgreSQL support the backend, with WebSockets for live order updates.",
     items: dineEaseTechnologies,
   },
   cta: {
-    title: "Need a product that understands the operation behind the screen?",
-    description: "I work across interface architecture, system behavior, delivery, and technical leadership.",
+    title: "Working on a restaurant application?",
+    description: "Tell me which parts you need help with, from the interface to backend integrations.",
     actions: [
       { label: "Discuss a platform", href: "/portfolio#contact", primary: true },
       { label: "Visit ASTA Softwares", href: "/asta", primary: false },

@@ -133,11 +133,11 @@ export default function TechnologySection() {
                 Technology <span className="text-[#2f5bff]">stack.</span>
               </h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-[#52677d] sm:text-lg">
-                A practical stack to design, build, and ship reliable products.
+                The tools I use for development and deployment.
               </p>
             </div>
             <p className="max-w-lg border-l border-[#a9cfff] pl-6 text-base leading-7 text-[#52677d] lg:justify-self-end lg:pl-8">
-              The right tools help turn ideas into real products. Here are the technologies I use across interfaces, backend systems, infrastructure, and more.
+              I work mostly with React, Vue, and Django. The choice depends on your existing code and the people who will maintain it.
             </p>
           </header>
         </Reveal>

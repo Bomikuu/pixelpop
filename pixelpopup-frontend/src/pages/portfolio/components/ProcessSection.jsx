@@ -24,7 +24,7 @@ export default function ProcessSection() {
         <Reveal>
           <header className="mx-auto max-w-4xl text-center">
             <h2 id="process-title" className="portfolio-display text-4xl font-semibold tracking-[-0.035em] text-[#081a30] sm:text-5xl lg:text-6xl">How I <span className="text-[#2f5bff]">work.</span></h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#52677d]">A structured workflow that connects product thinking, frontend craft, validation, and measurable improvement.</p>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#52677d]">We agree on what needs building, review the work as it develops, and check it before release.</p>
           </header>
         </Reveal>
 
@@ -75,7 +75,7 @@ export default function ProcessSection() {
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#080f1e] via-[#080f1e]/80 to-transparent p-7 pt-32 sm:p-10 lg:p-12">
                 <span className="portfolio-display text-7xl font-semibold tracking-[-0.04em] text-white/35">{formatStep(activeStep)}</span>
                 <h3 className="portfolio-display mt-2 max-w-lg text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">{step.shortTitle}</h3>
-                <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">The goal is not more process. It is enough shared clarity to make strong decisions and move with confidence.</p>
+                <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">You'll know what I'm working on, what needs your input, and what comes next.</p>
                 <a href="#contact" className="group mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Discuss your product <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" /></a>
               </div>
             </div>

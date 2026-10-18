@@ -10,7 +10,7 @@ export const projects = [
     title: "Cortico",
     type: "Healthcare platform and growth system",
     summary:
-      "I helped build the frontend, clinic discovery experience, CMS surfaces, and the technical SEO foundation that turns search visibility into patient access.",
+      "I worked on Cortico's frontend, clinic search, and content management, including technical SEO and page performance.",
     role: "Frontend lead · Full-stack contributor · SEO and performance",
     link: "https://cortico.health/",
     linkLabel: "Visit Cortico",
@@ -86,7 +86,7 @@ export const projects = [
     title: "DineEase",
     type: "Restaurant operations platform · Ongoing",
     summary:
-      "A large ASTA platform connecting customer ordering with the restaurant tools required to manage people, menus, reservations, payments, and live operations.",
+      "A restaurant platform we're developing at ASTA. It brings customer ordering together with staff tools, menus, reservations, and payments.",
     role: "Co-founder · Technical Lead · Frontend architecture",
     link: "/portfolio/dineease",
     linkLabel: "Explore DineEase",
@@ -121,7 +121,7 @@ export const projects = [
       "Brought inventory, suppliers, purchasing, finance, workforce, attendance, and reporting into the same operational workspace.",
     ],
     slides: [
-      { src: "/portfolio/pixelcore/01-platform-landing.png", title: "Connected platform", caption: "One business record powering customer touchpoints and daily operations.", alt: "PixelCore platform landing page" },
+      { src: "/portfolio/pixelcore/01-platform-landing.png", title: "Connected platform", caption: "Shared business information used by the public site and internal tools.", alt: "PixelCore platform landing page" },
       { src: "/portfolio/pixelcore/04-published-storefront.png", title: "Published storefront", caption: "A customer-facing storefront built from the shared catalog and brand system.", alt: "Published PixelCore storefront" },
       { src: "/portfolio/pixelcore/11-calendar-reservations.png", title: "Calendar and venues", caption: "Bookings, resources, capacity, and events in one scheduling workspace.", alt: "PixelCore calendar and venue scheduling workspace" },
       { src: "/portfolio/pixelcore/14-operations.png", title: "Connected operations", caption: "Inventory, purchasing, finance, and reporting linked through shared records.", alt: "PixelCore operations workspace" },
@@ -144,9 +144,9 @@ export const projects = [
       "Developed technical-analysis charts, memberships, and payments.",
     ],
     slides: [
-      { placeholder: true, title: "Market dashboard", caption: "Add Traidify dashboard and navigation screenshots here." },
-      { placeholder: true, title: "Risk profile", caption: "Add the risk-tolerance quiz experience here." },
-      { placeholder: true, title: "Technical analysis", caption: "Add charting and statistical analysis screenshots here." },
+      { placeholder: true, title: "Market dashboard", caption: "Dashboard screenshots are not available." },
+      { placeholder: true, title: "Risk profile", caption: "Risk-profile screenshots are not available." },
+      { placeholder: true, title: "Technical analysis", caption: "Chart screenshots are not available." },
     ],
   },
 ];
@@ -184,12 +184,12 @@ export const services = [
 ];
 
 export const processSteps = [
-  { id: "discovery", title: "Discovery", shortTitle: "Understand the problem", description: "Clarify the users, business outcome, constraints, and evidence that should guide the build.", outcome: "A shared definition of success", points: ["User and stakeholder context", "Existing-system review", "Outcome and risk definition"], image: "/portfolio/assets/process/01-discovery.webp", imageAlt: "Mico facilitating a collaborative product discovery workshop" },
-  { id: "planning", title: "Planning", shortTitle: "Shape the right system", description: "Turn discovery into a practical scope, architecture, sequence, and technology approach.", outcome: "A focused execution plan", points: ["Scope and priority mapping", "Architecture decisions", "Milestones and dependencies"], image: "/portfolio/assets/process/02-planning.webp", imageAlt: "Mico organizing a product plan and system workflow" },
-  { id: "experience", title: "Experience design", shortTitle: "Make the workflow clear", description: "Structure information, states, and interactions so the product is understandable before it is decorated.", outcome: "A usable interaction model", points: ["Information hierarchy", "Responsive behavior", "Accessibility and edge states"], image: "/portfolio/assets/process/03-experience-design.webp", imageAlt: "Mico designing responsive interface wireframes" },
-  { id: "development", title: "Development", shortTitle: "Build for change", description: "Implement the interface as maintainable components connected to real data and product behavior.", outcome: "Production-ready frontend work", points: ["Component implementation", "API and data integration", "Performance-aware delivery"], image: "/portfolio/assets/process/04-development.webp", imageAlt: "Mico developing a product interface at his workstation" },
-  { id: "validation", title: "Validation", shortTitle: "Test the real experience", description: "Review the rendered product across viewports, input methods, content lengths, and failure states.", outcome: "Confident release quality", points: ["Visual and responsive review", "Accessibility checks", "Browser and behavior validation"], image: "/portfolio/assets/process/05-validation.webp", imageAlt: "Mico reviewing validation results with a teammate" },
-  { id: "launch", title: "Launch and improve", shortTitle: "Measure what ships", description: "Support release, observe product signals, and turn what we learn into the next useful improvement.", outcome: "A product that keeps getting better", points: ["Release coordination", "Analytics and SEO signals", "Iteration planning"], image: "/portfolio/assets/process/06-launch.webp", imageAlt: "Mico and his team celebrating a successful product launch" },
+  { id: "discovery", title: "Discovery", shortTitle: "Understand the problem", description: "We discuss who uses the product, what isn't working, and any constraints on the project.", outcome: "An agreed problem to solve", points: ["Who uses the product", "What already exists", "Requirements and constraints"], image: "/portfolio/assets/process/01-discovery.webp", imageAlt: "Product discovery workshop" },
+  { id: "planning", title: "Planning", shortTitle: "Plan the work", description: "I break the requirements into tasks and explain the technical choices, dependencies, and likely sequence.", outcome: "A scope and delivery plan", points: ["Scope and priorities", "Technical choices", "Milestones and dependencies"], image: "/portfolio/assets/process/02-planning.webp", imageAlt: "Project planning" },
+  { id: "experience", title: "Experience design", shortTitle: "Work through the screens", description: "We review how people will move through the application, including errors and small-screen layouts.", outcome: "Screens and behavior ready to review", points: ["Page structure", "Mobile layouts", "Accessibility and error states"], image: "/portfolio/assets/process/03-experience-design.webp", imageAlt: "Interface wireframing" },
+  { id: "development", title: "Development", shortTitle: "Build the features", description: "I build the components and connect them to the APIs. You can review features as they become ready.", outcome: "Working features for review", points: ["Component implementation", "API integration", "Loading and performance"], image: "/portfolio/assets/process/04-development.webp", imageAlt: "Application development" },
+  { id: "validation", title: "Validation", shortTitle: "Check before release", description: "I check the affected pages across screen sizes and browsers, including keyboard use and error handling.", outcome: "Release checks and remaining issues", points: ["Visual and mobile review", "Accessibility checks", "Browser and behavior checks"], image: "/portfolio/assets/process/05-validation.webp", imageAlt: "Application review" },
+  { id: "launch", title: "Launch and improve", shortTitle: "Release and follow up", description: "I help with the release, review the available data, and discuss what needs attention next.", outcome: "A release and follow-up list", points: ["Release coordination", "Analytics and search reports", "Follow-up work"], image: "/portfolio/assets/process/06-launch.webp", imageAlt: "Product launch" },
 ];
 
 export const experience = [
@@ -203,7 +203,7 @@ export const experience = [
     period: "Aug 2019 — Dec 2025",
     company: "Countable Web Productions",
     title: "Software Developer · Frontend-focused full-stack",
-    detail: "Healthcare platforms, CMS products, interactive maps, clinic marketing, technical SEO, and performance-led growth.",
+    detail: "Worked on healthcare platforms, content systems, and interactive maps, including clinic marketing pages and technical SEO.",
   },
   {
     period: "Feb 2022 — Feb 2023",

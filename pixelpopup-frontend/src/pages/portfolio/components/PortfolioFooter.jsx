@@ -88,10 +88,10 @@ export default function PortfolioFooter({ routeBase = "" }) {
 
             <div className="relative">
               <h2 className="portfolio-display max-w-4xl text-3xl font-semibold leading-tight tracking-[-0.03em] text-white sm:text-2xl">
-                Need stronger frontend leadership?
+                Need help with your web application?
               </h2>
               <p className="mt-4 max-w-3xl text-base leading-7 text-blue-100/65 sm:text-lg sm:leading-8">
-                Bring me the difficult workflow, scaling problem, or product experience that needs a clear technical path.
+                I can join your team or take on a defined piece of development work.
               </p>
             </div>
 
@@ -103,7 +103,7 @@ export default function PortfolioFooter({ routeBase = "" }) {
                 See how we can work together
                 <ArrowRight size={19} className="shrink-0 transition-transform group-hover:translate-x-1" aria-hidden="true" />
               </a>
-              <p className="mt-4 text-center text-sm text-blue-100/55">Strategy · Execution · Real impact</p>
+              <p className="mt-4 text-center text-sm text-blue-100/55">Work with me directly or with ASTA.</p>
             </div>
           </div>
         </Reveal>

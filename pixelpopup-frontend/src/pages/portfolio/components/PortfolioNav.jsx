@@ -219,7 +219,7 @@ export default function PortfolioNav({ routeBase = "" }) {
             <div className="mt-7 flex flex-col justify-between gap-4 border-t border-blue-100 pt-6 sm:flex-row sm:items-center">
               <p className="m-0 flex items-center gap-3 text-sm text-slate-600">
                 <Sparkles size={18} className="shrink-0 text-[#2f5bff]" aria-hidden="true" />
-                Explore the full delivery system or combine services around one product problem.
+                View all services or ask about the work you need done.
               </p>
               <a
                 href="/portfolio/services"

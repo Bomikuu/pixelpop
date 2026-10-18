@@ -17,17 +17,17 @@ const featuredServices = portfolioServiceCatalog.filter((service) => service.fea
 const supportingServices = portfolioServiceCatalog.filter((service) => !service.featured);
 const serviceSummary = [
   {
-    title: "Direct ownership",
-    description: "Architecture and implementation stay connected from the first decision through release.",
+    title: "Work directly with me",
+    description: "I plan the technical work and write the code. You can ask me about either.",
     icon: Layers3,
   },
   {
-    title: "Product to release",
-    description: "Design, frontend, backend, search, automation, and delivery can move as one system.",
+    title: "Help at any stage",
+    description: "Start with a new build or bring me into an application you already have.",
     icon: Code2,
   },
   {
-    title: "Flexible scale",
+    title: "Additional team support",
     description: "Work with me directly, with your team, or bring in ASTA when the scope needs more hands.",
     icon: UsersRound,
   },
@@ -80,10 +80,10 @@ export default function PortfolioServicesPage() {
         <div className="relative z-[2] grid min-h-[100dvh] w-full grid-rows-[1fr_auto] px-5 pb-8 pt-28 sm:px-8 lg:px-[clamp(2.5rem,6vw,7.5rem)] lg:pb-10 lg:pt-24">
           <Reveal className="flex max-w-[48rem] flex-col justify-center py-12 lg:py-20">
             <h1 id="portfolio-services-title" className="portfolio-display m-0 max-w-[13ch] text-[clamp(3.15rem,7vw,5.8rem)] font-semibold leading-[0.94] tracking-[-0.04em] text-slate-950">
-              Technical ownership from idea to release.
+              Web development and support.
             </h1>
             <p className="mb-0 mt-7 max-w-[45ch] text-lg leading-8 text-slate-600">
-              I design, build, and improve web products across interface, backend, automation, search, and release.
+              I build websites and applications, and help with bug fixes, content systems, and page performance.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <a href="#portfolio-service-list" className="inline-flex min-h-12 items-center gap-3 rounded-lg bg-[#2f5bff] px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#2149dc] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:translate-y-px">
@@ -114,8 +114,8 @@ export default function PortfolioServicesPage() {
         <PortfolioServicePattern variant="dots" className="opacity-70" />
         <div className="relative z-[1] mx-auto max-w-7xl">
           <Reveal className="max-w-[48rem]">
-            <h2 id="featured-services-title" className="portfolio-display m-0 max-w-[13ch] text-[clamp(2.5rem,5vw,4.4rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-slate-950">Distinctive product experiences.</h2>
-            <p className="mb-0 mt-5 max-w-[60ch] text-base leading-7 text-slate-600">These capabilities are strongest when a project needs a senior engineer who can connect experience, architecture, and delivery.</p>
+            <h2 id="featured-services-title" className="portfolio-display m-0 max-w-[13ch] text-[clamp(2.5rem,5vw,4.4rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-slate-950">3D and AI development.</h2>
+            <p className="mb-0 mt-5 max-w-[60ch] text-base leading-7 text-slate-600">Add an interactive product viewer or connect AI to a task your team repeats.</p>
           </Reveal>
           <div className="mt-12 grid gap-5 lg:grid-cols-2">
             {featuredServices.map((service, index) => (
@@ -131,8 +131,8 @@ export default function PortfolioServicesPage() {
         <PortfolioServicePattern variant="crosses" className="opacity-60" />
         <div className="relative z-[1] mx-auto max-w-7xl">
           <Reveal className="max-w-[50rem]">
-            <h2 id="delivery-services-title" className="portfolio-display m-0 max-w-[14ch] text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-slate-950">The rest of my delivery system.</h2>
-            <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-slate-600">Choose one focused service or combine several around the product problem, current team, and release you need to reach.</p>
+            <h2 id="delivery-services-title" className="portfolio-display m-0 max-w-[14ch] text-[clamp(2.5rem,5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-slate-950">Website services.</h2>
+            <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-slate-600">You can hire me for one piece of work or combine design, development, and support.</p>
           </Reveal>
           <div className="mt-12 grid gap-5 md:grid-cols-2">
             {supportingServices.map((service, index) => (
@@ -164,10 +164,10 @@ export default function PortfolioServicesPage() {
               id="services-close-title"
               className="portfolio-display m-0 max-w-[15ch] text-[clamp(2rem,4.6vw,4.5rem)] font-semibold leading-[0.98] tracking-[-0.04em] text-white"
             >
-              Bring me the workflow that needs a clearer path.
+              What do you need built or fixed?
             </div>
             <p className="mb-0 mt-7 max-w-[58ch] text-lg leading-8 text-blue-100/70">
-              I will help separate the immediate request from the technical decisions required to deliver it responsibly.
+              Send a short description and a link to your site, if you have one. We can discuss the scope and what to tackle first.
             </p>
 
             <div className="mt-10 grid gap-5 sm:grid-cols-3 sm:gap-0">
@@ -188,7 +188,7 @@ export default function PortfolioServicesPage() {
           <aside className="rounded-2xl border border-blue-300/25 bg-[#0b2245] p-6 sm:p-8 lg:p-9" aria-label="Start a project conversation">
             <p className="mb-0 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
               <span className="size-2.5 rounded-full bg-blue-400" aria-hidden="true" />
-              Ready when you are
+              Project inquiry
             </p>
             <Link
               to="/portfolio/work-with-me#project-inquiry"
@@ -198,7 +198,7 @@ export default function PortfolioServicesPage() {
               <ArrowRight size={22} className="shrink-0 transition-transform group-hover:translate-x-1" aria-hidden="true" />
             </Link>
             <p className="mb-0 mt-7 max-w-md text-base leading-7 text-blue-100/65">
-              A focused conversation to explore your goals, challenges, and the best path forward.
+              Tell me about your current setup and any deadline you're working toward.
             </p>
           </aside>
         </Reveal>
