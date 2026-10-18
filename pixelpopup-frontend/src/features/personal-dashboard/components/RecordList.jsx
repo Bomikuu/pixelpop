@@ -79,7 +79,6 @@ function summaries(resource, values = {}, kind, bills) {
         "deadline",
         false,
       ),
-      f("Income records", values.count, "count", false),
     ];
   if (resource === "transactions" && kind === "expense")
     return [
@@ -99,7 +98,6 @@ function summaries(resource, values = {}, kind, bills) {
       f("Expected income", values.expected, "income"),
       f("Expenses", values.expenses, "expenses", true, "out"),
       f("Net income less expenses", values.net, "balance"),
-      f("Records", values.count, "count", false),
     ];
   if (resource === "deadlines" && bills)
     return [
@@ -107,8 +105,6 @@ function summaries(resource, values = {}, kind, bills) {
       f("Paid", values.paid, "completed", true, "out"),
       f("Unpaid", values.unpaid, "debt"),
       f("Overdue", values.overdue, "deadline", false),
-      f("Unpriced bills", values.unpriced, "count", false),
-      f("Next bill", values.next || "None scheduled", "deadline", false),
     ];
   if (resource === "deadlines")
     return [
