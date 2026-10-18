@@ -201,11 +201,11 @@ function SummaryTile({ item, compact = false, tooltipWhenNoBaseline = false }) {
   );
 }
 
-export default function SummaryTiles({ items, primaryCount = 4, tooltipWhenNoBaseline = false }) {
+export default function SummaryTiles({ items, primaryCount = 4, primaryColumns = 4, tooltipWhenNoBaseline = false }) {
   const secondaryCount = items.length - primaryCount;
   return (
     <div className="space-y-3">
-      <dl className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <dl className={"grid grid-cols-2 gap-3" + (primaryColumns === 2 ? "" : " xl:grid-cols-4")}>
         {items.slice(0, primaryCount).map((item) => <SummaryTile key={item.label} item={item} />)}
       </dl>
       {secondaryCount > 0 && (

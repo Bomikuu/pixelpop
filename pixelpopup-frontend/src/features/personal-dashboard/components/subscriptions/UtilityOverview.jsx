@@ -3,8 +3,9 @@ import SummaryTiles from "../SummaryTiles";
 import { Panel } from "../Panel";
 import ServiceTable from "./ServiceTable";
 import { money } from "../../lib/format";
+import ElectricityOverview from "./ElectricityOverview";
 
-export default function UtilityOverview({ cycle, service }) {
+function RecordedUtilityOverview({ cycle, service }) {
   const prediction = cycle?.prediction;
   if (!prediction) return null;
   const consumption = prediction.consumption;
@@ -27,5 +28,17 @@ export default function UtilityOverview({ cycle, service }) {
       {prediction.warnings?.map((warning) => <p key={warning} className="mt-3 flex gap-2 text-sm text-slate-600"><Info size={16} className="shrink-0" />{warning}</p>)}
     </Panel>
     {prediction.tariff_lines?.length > 0 && <Panel title="Projected bill breakdown" description="Estimated full-cycle charges. Actual provider bills may include fees not configured here."><ServiceTable rows={prediction.tariff_lines} rowKey="name" columns={[{ key: "name", label: "Charge", render: (r) => r.name || r.label || "Usage" }, { key: "amount", label: "Estimated amount", render: (r) => money(r.amount) }]} /></Panel>}
+  </div>;
+}
+
+export default function UtilityOverview({ cycle, service, dashboard }) {
+  if (service.service_type !== "electricity") return <RecordedUtilityOverview cycle={cycle} service={service} />;
+  return <div className="space-y-5">
+    <ElectricityOverview key={cycle.id} cycle={cycle} service={service} dashboard={dashboard} />
+    <details className="rounded-lg border border-[var(--pd-border)] bg-white p-4">
+      <summary className="cursor-pointer text-sm font-medium text-slate-700 hover:text-blue-700">Recorded billing, meter prediction & budget</summary>
+      <p className="mb-4 mt-2 text-xs text-slate-600">These figures use saved records, not the temporary inputs above.</p>
+      <RecordedUtilityOverview cycle={cycle} service={service} />
+    </details>
   </div>;
 }

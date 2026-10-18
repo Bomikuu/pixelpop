@@ -1,0 +1,32 @@
+.electricity-meter-pulse {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .electricity-meter-fill {
+    animation: electricity-meter-fill 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .electricity-meter-marker {
+    animation: electricity-meter-marker 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .electricity-meter-pulse {
+    animation: electricity-meter-pulse 1.8s ease-out 650ms 3;
+  }
+}
+
+@keyframes electricity-meter-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(var(--meter-progress)); }
+}
+
+@keyframes electricity-meter-marker {
+  from { transform: translateX(0); }
+  to { transform: translateX(var(--meter-position)); }
+}
+
+@keyframes electricity-meter-pulse {
+  from { transform: scale(0.7); opacity: 0.4; }
+  to { transform: scale(1.8); opacity: 0; }
+}

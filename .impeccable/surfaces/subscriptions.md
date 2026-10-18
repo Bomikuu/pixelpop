@@ -26,3 +26,12 @@
 - Local migration 0031 completed after explicit approval on 2026-10-15. Backup: `/tmp/pixelpop-before-subscriptions-mmfplw9g/db.sqlite3`.
 - Focused checks authored, not executed. No tests, build, lint, typecheck, browser automation or screenshots were run. Rendering, keyboard/focus, narrow viewport, screen-reader behavior and PostgreSQL concurrency remain unverified at runtime.
 - Production/Neon, deployments, scheduler configuration and remote Git branches were not changed.
+
+## Electricity quick comparison refinement · 2026-10-15
+
+- Approved bounded extension: use the supplied gauge/estimate/trend/comparison reference inside electricity Overview only. Preserve the same 3/2/6 design variance, motion and density, existing white/slate/cobalt world, shared inputs and owned chart containers.
+- Default to unsaved previous/current bill amounts and show peso/percentage change. Optional meter mode accepts two cumulative readings, dates, cycle end, flat rate and entered fees; it shows observed consumption, a daily-average projection and an expected-usage gauge.
+- A private read-only Decimal calculator endpoint returns results without creating readings, bills, snapshots, audit events or transactions. No schema changes. Abort/stale-response guards prevent older calculations replacing newer inputs.
+- Keep the recorded summary separately collapsed. Do not present manual amounts as recorded bills, generate fake daily readings or imply historical averages when no baseline exists. Unknown targets use neutral/blue rather than a healthy status.
+- Shared inputs remain number-only with inline validation. Red/green status has text and icons; zero baselines never divide by zero. Fee breakdowns include entered charges once; the supplied screenshot's sample arithmetic is not reused.
+- Focused source review completed. Added calculator/side-effect checks but did not run tests, builds, lint, typechecks or browser automation. Visual and runtime behavior remain unverified.
