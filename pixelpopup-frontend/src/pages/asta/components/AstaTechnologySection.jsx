@@ -44,14 +44,14 @@ export default function AstaTechnologySection() {
               id="asta-technology-title"
               className="text-[clamp(3.25rem,5vw,4.5rem)] font-semibold leading-[0.98] tracking-[-0.025em] text-white"
             >
-              Technology Stack
+              Tools we use
             </h2>
             <p className="mt-5 text-base leading-relaxed text-[#aebbd0] sm:text-lg">
-              A modern, practical stack to design, build, and ship reliable products.
+              Our tools for application development and deployment.
             </p>
           </div>
           <p className="max-w-[29rem] border-l border-white/15 pl-6 text-base leading-relaxed text-[#b5c2d6] sm:text-lg lg:mb-1 lg:pl-7">
-            The right tools help turn ideas into real products. Here are the technologies I use across frontend, backend, infrastructure, and more.
+            We choose tools based on the application and your existing setup. These are the technologies we work with.
           </p>
         </AstaReveal>
 

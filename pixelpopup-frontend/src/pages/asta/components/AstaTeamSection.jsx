@@ -14,8 +14,8 @@ export default function AstaTeamSection() {
           <AstaSectionHeading
             id="asta-team-title"
             eyebrow="People at ASTA"
-            title="Meet the Team"
-            description="Four co-founders started ASTA in 2021. We publish individual details only when each profile is approved."
+            title="Meet the team"
+            description="We started ASTA together in 2021. Here's who works on the software."
           />
         </AstaReveal>
         <div className="asta-team-grid">

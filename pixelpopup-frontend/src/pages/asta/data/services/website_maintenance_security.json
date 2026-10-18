@@ -2,15 +2,15 @@
   "id": "website-maintenance-security",
   "slug": "website-maintenance-security",
   "title": "Website Maintenance and Security",
-  "menuDescription": "Planned technical care for updates, releases, recovery, and operational risk.",
-  "summary": "Keep your website maintainable with a clear cadence for updates, changes, and operational checks.",
+  "menuDescription": "Dependency updates, security checks, and help with releases.",
+  "summary": "Get ongoing help with site updates and maintenance, with an agreed scope and support process.",
   "icon": "shield",
   "order": 5,
   "overview": {
-    "title": "Replace reactive maintenance with a visible operating routine.",
+    "title": "Keep an existing site running and updated.",
     "paragraphs": [
-      "We help define the updates, checks, ownership, and release practices needed to keep your site in a supportable state.",
-      "Coverage is scoped around the platform and business impact, with clear boundaries for planned work and urgent issues."
+      "We review the code and hosting setup, then agree on the updates and checks to handle. That can include dependencies, access settings, and backups.",
+      "The agreement sets out what's included and how to request support. Larger features and urgent production work are scoped separately."
     ]
   },
   "features": [
@@ -22,8 +22,8 @@
     { "id": "reporting", "icon": "clipboard-check", "title": "Maintenance reporting", "description": "Completed work, identified risks, and recommended next actions summarized clearly." }
   ],
   "banner": {
-    "title": "Need a clearer plan for keeping your website supportable?",
-    "description": "We can review the current platform and define a maintenance scope around its real operating needs.",
+    "title": "Need someone to maintain your website?",
+    "description": "Tell us about the platform, hosting, and any recurring issues. We'll discuss what we can cover.",
     "ctaLabel": "Plan maintenance coverage"
   },
   "faqs": [

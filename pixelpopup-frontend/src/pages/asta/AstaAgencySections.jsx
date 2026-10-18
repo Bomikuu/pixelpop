@@ -3,10 +3,10 @@ import { ArrowRight, Code2, Compass, Rocket, Search } from "lucide-react";
 import AstaReveal from "./AstaReveal";
 
 const processSteps = [
-  ["Discovery", "Understand your goals and constraints.", Search],
-  ["Planning", "Shape the product flow and priorities.", Compass],
-  ["Development", "Build with a focused, collaborative team.", Code2],
-  ["Launch", "Release confidently and iterate.", Rocket],
+  ["Discovery", "Tell us how the work gets done today.", Search],
+  ["Planning", "Agree on the scope and what to build first.", Compass],
+  ["Development", "Review working features with the team.", Code2],
+  ["Launch", "Check the release and plan follow-up work.", Rocket],
 ];
 
 export function AgencyProcess() {

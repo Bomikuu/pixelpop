@@ -2,16 +2,16 @@
   "id": "ai-automation",
   "slug": "ai-automation",
   "title": "AI Automation",
-  "menuDescription": "Programming and workflow automation that connects software, data, and repeatable operations.",
-  "summary": "Practical AI-assisted programming and workflow automation for connected software and repeatable business operations.",
+  "menuDescription": "Connect AI to your documents, APIs, and recurring tasks.",
+  "summary": "Use AI to handle repetitive tasks, with checks and human approval where needed.",
   "icon": "bot",
   "featured": true,
   "order": 2,
   "overview": {
-    "title": "Automate the work that needs judgment, structure, and reliable handoffs.",
+    "title": "Start with a task your team repeats.",
     "paragraphs": [
-      "We design AI-assisted workflows around a specific operational task, the data it needs, the tools it can use, and the decisions that still require a person.",
-      "The goal is not an isolated chatbot. It is a controlled software workflow with clear inputs, outputs, review points, and recovery paths."
+      "Show us the task and the tools your team uses. We'll work out which steps AI can help with and where someone needs to review the result.",
+      "We connect the model to approved data sources, validate its output, and handle failed requests. You can review important actions before the application carries them out."
     ]
   },
   "features": [
@@ -31,8 +31,8 @@
     { "id": "rag", "name": "RAG and vector search", "detail": "Retrieval pipelines, embeddings, source grounding, and controlled knowledge access." }
   ],
   "banner": {
-    "title": "Have a workflow that is repetitive but not fully predictable?",
-    "description": "Bring us the steps, systems, decisions, and failure cases. We will identify where AI can help safely.",
+    "title": "Which task takes up too much of your team's time?",
+    "description": "Walk us through one example, including what happens when something goes wrong.",
     "ctaLabel": "Map an AI workflow"
   },
   "faqs": [

@@ -2,15 +2,15 @@
   "id": "bug-fixing-responsiveness",
   "slug": "bug-fixing-responsiveness",
   "title": "Bug Fixing and Responsiveness",
-  "menuDescription": "Focused diagnosis and repairs for broken journeys, layouts, and browser behavior.",
-  "summary": "Find the cause of recurring interface problems and repair them without destabilizing the rest of the product.",
+  "menuDescription": "Bug fixes for application features, mobile layouts, and browser issues.",
+  "summary": "Investigate broken features and layout problems, then check the fix against the affected behavior.",
   "icon": "wrench",
   "order": 4,
   "overview": {
-    "title": "Fix the underlying problem, not only the visible symptom.",
+    "title": "Find out why a feature is failing.",
     "paragraphs": [
-      "We reproduce the issue, trace the relevant code and data flow, and define the smallest safe correction before making changes.",
-      "The work is documented with affected areas and verification notes so your team can understand what changed."
+      "We start by reproducing the bug. Then we trace it through the code and explain the fix before making changes.",
+      "Afterward, we check the affected feature and leave notes on the cause, the change, and any remaining issues."
     ]
   },
   "features": [
@@ -19,11 +19,11 @@
     { "id": "browser", "icon": "globe", "title": "Browser compatibility", "description": "Focused fixes for rendering and interaction differences across supported browsers." },
     { "id": "frontend", "icon": "code", "title": "Frontend debugging", "description": "State, event, rendering, and styling issues traced through the relevant components." },
     { "id": "integration", "icon": "plug", "title": "Integration debugging", "description": "Requests, responses, and interface contracts checked when issues cross system boundaries." },
-    { "id": "regression", "icon": "shield-check", "title": "Regression checks", "description": "Critical related journeys checked after the correction to reduce repeat failures." }
+    { "id": "regression", "icon": "shield-check", "title": "Regression checks", "description": "Check the affected feature and related behavior after the fix." }
   ],
   "banner": {
     "title": "Have a production issue your team cannot pin down?",
-    "description": "Send the symptoms, affected environment, and reproduction details. We will define the safest next step.",
+    "description": "Send the page URL, the steps that trigger the issue, and a screenshot or error message.",
     "ctaLabel": "Request a technical review"
   },
   "faqs": [

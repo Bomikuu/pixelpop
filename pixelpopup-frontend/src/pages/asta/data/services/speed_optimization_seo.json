@@ -2,15 +2,15 @@
   "id": "speed-optimization-seo",
   "slug": "speed-optimization-seo",
   "title": "Speed Optimization and SEO",
-  "menuDescription": "Technical improvements for Core Web Vitals, indexing, and measurable search journeys.",
-  "summary": "Improve how quickly your site responds and how clearly search systems can understand its content.",
+  "menuDescription": "Find slow pages and technical problems that affect search indexing.",
+  "summary": "Review page speed and technical SEO, then prioritize fixes using your site's data.",
   "icon": "gauge",
   "order": 6,
   "overview": {
-    "title": "Connect performance work to real pages, search journeys, and business priorities.",
+    "title": "Find the causes of slow pages and indexing issues.",
     "paragraphs": [
-      "We review rendering, assets, templates, metadata, structured content, and indexing signals to identify the highest-value technical work.",
-      "Recommendations are prioritized by user impact, implementation risk, and what your team can measure after release."
+      "We investigate loading behavior and indexing reports on your priority pages. That includes large assets, third-party scripts, and page metadata.",
+      "You get a list of fixes ordered by impact and effort. We agree on what to measure before making changes and compare the results afterward."
     ]
   },
   "features": [
@@ -22,8 +22,8 @@
     { "id": "priorities", "icon": "list-checks", "title": "Prioritized roadmap", "description": "Findings grouped into immediate fixes, planned improvements, and longer-term opportunities." }
   ],
   "banner": {
-    "title": "Want a technical growth plan your team can actually execute?",
-    "description": "Share the priority pages, available data, and current constraints. We will identify the most useful starting point.",
+    "title": "Which pages are giving you trouble?",
+    "description": "Share the URLs and any Search Console or performance reports you have.",
     "ctaLabel": "Request a performance review"
   },
   "faqs": [

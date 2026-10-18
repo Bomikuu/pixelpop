@@ -33,17 +33,17 @@ export default function AstaServicesPage() {
           <div className="relative z-[2] mx-auto flex min-h-[calc(100svh-64px)] w-full max-w-[1320px] items-end px-5 py-14 sm:px-8 lg:items-center lg:px-10 lg:py-20">
             <AstaReveal className="max-w-[47rem]">
               <h1 id="asta-services-page-title" className="m-0 max-w-[10ch] text-[clamp(3.35rem,7vw,6rem)] font-semibold leading-[0.9] tracking-[-0.04em] text-white">
-                Software built for real work.
+                Websites and business software.
               </h1>
               <p className="mt-7 max-w-[48ch] text-lg leading-8 text-[#c7d9eb]">
-                Product engineering, browser-based 3D, and AI workflows shaped around a real operating need.
+                We build websites, business applications, 3D product viewers, and AI integrations. We also support existing sites.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <button className="inline-flex min-h-12 items-center gap-3 bg-[#1570ef] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0b55c7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8fc4ff]" type="button" onClick={openProjectDialog}>
                   Start a project <ArrowRight size={18} aria-hidden="true" />
                 </button>
                 <a className="inline-flex min-h-12 items-center gap-3 border border-white/45 px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white hover:text-[#061427] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" href="#lead-capabilities">
-                  Explore capabilities <ArrowRight size={17} aria-hidden="true" />
+                  View services <ArrowRight size={17} aria-hidden="true" />
                 </a>
               </div>
             </AstaReveal>
@@ -53,8 +53,8 @@ export default function AstaServicesPage() {
         <section id="lead-capabilities" className="scroll-mt-24 bg-white px-5 py-20 sm:px-8 lg:py-28" aria-labelledby="lead-capabilities-title">
           <div className="mx-auto max-w-[1320px]">
             <AstaReveal className="max-w-[55rem]">
-              <h2 id="lead-capabilities-title" className="m-0 max-w-[13ch] text-[clamp(2.65rem,5vw,4.7rem)] font-semibold leading-[0.95] tracking-[-0.04em] text-[#081a30]">New interfaces for complex work.</h2>
-              <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-[#52677d]">Two focused capabilities for teams that need more than a conventional website or standard application flow.</p>
+              <h2 id="lead-capabilities-title" className="m-0 max-w-[13ch] text-[clamp(2.65rem,5vw,4.7rem)] font-semibold leading-[0.95] tracking-[-0.04em] text-[#081a30]">3D and AI development.</h2>
+              <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-[#52677d]">Let customers interact with a product model, or use AI to help with a recurring task.</p>
             </AstaReveal>
 
             <div className="mt-12 grid border border-[#bfcddd] lg:grid-cols-2">
@@ -95,8 +95,8 @@ export default function AstaServicesPage() {
         <section id="service-catalog" className="scroll-mt-24 px-5 py-20 sm:px-8 lg:py-28" aria-labelledby="service-catalog-title">
           <div className="mx-auto max-w-[1320px]">
             <AstaReveal className="max-w-[52rem]">
-              <h2 id="service-catalog-title" className="m-0 max-w-[12ch] text-[clamp(2.5rem,5vw,4.4rem)] font-semibold leading-[0.97] tracking-[-0.038em] text-[#081a30]">The rest of the delivery system.</h2>
-              <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-[#52677d]">Use one capability independently or combine several into a product engagement with clear ownership and scope.</p>
+              <h2 id="service-catalog-title" className="m-0 max-w-[12ch] text-[clamp(2.5rem,5vw,4.4rem)] font-semibold leading-[0.97] tracking-[-0.038em] text-[#081a30]">Website services.</h2>
+              <p className="mb-0 mt-5 max-w-[62ch] text-base leading-7 text-[#52677d]">Hire us for one piece of work or a project that combines several services.</p>
             </AstaReveal>
 
             <div className="mt-12 grid border-y border-[#c5d1dd] lg:grid-cols-2">
@@ -111,7 +111,7 @@ export default function AstaServicesPage() {
                       <h3 className="mb-0 mt-4 text-2xl font-semibold tracking-[-0.025em] text-[#081a30]">{service.title}</h3>
                       <p className="mb-0 mt-3 max-w-[48ch] text-sm leading-6 text-[#52677d]">{service.summary}</p>
                       <Link className="mt-auto inline-flex items-center gap-2 pt-7 text-sm font-semibold text-[#0b62ce] outline-none transition-[gap,color] hover:gap-3 hover:text-[#084b9b] focus-visible:underline" to={getServiceHref(service)}>
-                        View capability <ArrowRight size={16} aria-hidden="true" />
+                        View service <ArrowRight size={16} aria-hidden="true" />
                       </Link>
                     </div>
                   </div>
@@ -125,8 +125,8 @@ export default function AstaServicesPage() {
           <div className="mx-auto grid max-w-[1320px] gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
             <div>
               <p className="m-0 border-l-2 border-[#5da5f6] pl-4 text-xs font-semibold uppercase tracking-[0.14em] text-[#8fc4ff]">Start with the problem</p>
-              <h2 id="service-project-cta-title" className="mb-0 mt-6 max-w-[16ch] text-[clamp(2.4rem,4.5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-white">Bring us the workflow slowing your team down.</h2>
-              <p className="mb-0 mt-5 max-w-[58ch] text-base leading-7 text-[#bed2e7]">We will help separate the immediate bottleneck from the system behind it, then define the smallest useful engagement.</p>
+              <h2 id="service-project-cta-title" className="mb-0 mt-6 max-w-[16ch] text-[clamp(2.4rem,4.5vw,4.25rem)] font-semibold leading-[0.98] tracking-[-0.038em] text-white">What do you need built or fixed?</h2>
+              <p className="mb-0 mt-5 max-w-[58ch] text-base leading-7 text-[#bed2e7]">Describe the work and your current setup. We can discuss what to tackle first and estimate the scope.</p>
             </div>
             <div className="border-y border-[#3b5f84]">
               {["What is still manual", "Where the process breaks", "What a useful outcome looks like"].map((prompt, index) => (

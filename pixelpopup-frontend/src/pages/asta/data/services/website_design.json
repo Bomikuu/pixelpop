@@ -2,15 +2,15 @@
   "id": "website-design",
   "slug": "website-design",
   "title": "Website Design",
-  "menuDescription": "Clear, responsive interfaces shaped around your brand and customer journey.",
-  "summary": "Design a clear, responsive website that reflects your brand and guides customers toward the right action.",
+  "menuDescription": "Website layouts, mobile designs, and prototypes for review.",
+  "summary": "Plan your website's pages and mobile layouts using your content and brand materials.",
   "icon": "palette",
   "order": 1,
   "overview": {
-    "title": "Turn your website into a useful part of the customer journey.",
+    "title": "Work through your website's design before building it.",
     "paragraphs": [
-      "We map the decisions your visitors need to make, then shape the content, navigation, and interface around those decisions.",
-      "The result is a practical design system your team can build, maintain, and extend without losing consistency."
+      "We decide what each page needs to explain and what visitors should be able to do. Then we design the layout for desktop and mobile.",
+      "You review the screens before development starts. We document reusable components and behavior such as form errors and empty results."
     ]
   },
   "features": [
@@ -22,8 +22,8 @@
     { "id": "handoff", "icon": "file-check", "title": "Build-ready handoff", "description": "Documented screens, components, and responsive behavior ready for engineering." }
   ],
   "banner": {
-    "title": "Need a website that works as clearly as your business does?",
-    "description": "Tell us what your customers need to understand and what your team needs the site to accomplish.",
+    "title": "Planning a new site or a redesign?",
+    "description": "Send us your current site, brand materials, and any examples you like.",
     "ctaLabel": "Start a website project"
   },
   "faqs": [

@@ -69,7 +69,7 @@ export default function AstaGallerySection() {
     <section className="asta-home-section asta-home-gallery" id="culture" aria-labelledby="asta-gallery-title">
       <div className="asta-agency-container">
         <AstaReveal>
-          <AstaSectionHeading id="asta-gallery-title" eyebrow="Life at ASTA" title="Company Activities" description="The work matters, and so do the people doing it. Browse real moments from team gatherings, celebrations, and time together." />
+          <AstaSectionHeading id="asta-gallery-title" eyebrow="Life at ASTA" title="Team photos" description="A few photos from our gatherings and celebrations." />
         </AstaReveal>
         <AstaReveal className="asta-activity-collage" delay={80}>
           <div className="asta-activity-collage__grid" role="list" aria-label="ASTA company activities">

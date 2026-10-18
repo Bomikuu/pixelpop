@@ -12,8 +12,8 @@ export default function AstaServicesSection() {
         <AstaReveal>
           <AstaSectionHeading
             id="asta-services-title"
-            title="What We Offer"
-            description="ASTA builds software around each client's workflow, operating reality, and business requirements, not a preset package."
+            title="What we build"
+            description="New websites, business applications, and improvements to systems you already use."
           />
         </AstaReveal>
         <div className="asta-service-grid">

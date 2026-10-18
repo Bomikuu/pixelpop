@@ -25,12 +25,12 @@ import teamMembers from "./data/team.json";
 import "./asta.css";
 
 const cultureItems = [
-  { icon: MessagesSquare, title: "Communicate with context", description: "We share the reason behind decisions so clients and teammates can move with clarity." },
-  { icon: UsersRound, title: "Work as one team", description: "Design, frontend, backend, and leadership stay connected from planning through release." },
-  { icon: ShieldCheck, title: "Own the outcome", description: "We follow through on the details that make software dependable after it ships." },
-  { icon: Lightbulb, title: "Stay curious", description: "We ask practical questions, explore better options, and keep learning from the work." },
-  { icon: CodeXml, title: "Build for maintainability", description: "Clear interfaces and thoughtful code make the next change easier for everyone." },
-  { icon: RefreshCw, title: "Improve together", description: "Feedback is part of delivery, not an afterthought, and every iteration should sharpen the product." },
+  { icon: MessagesSquare, title: "Explain decisions", description: "We write down why a change is needed and discuss it with the people affected." },
+  { icon: UsersRound, title: "Work together", description: "Designers and developers review the same features as the work progresses." },
+  { icon: ShieldCheck, title: "Follow through", description: "We check what we release and agree on who handles follow-up work." },
+  { icon: Lightbulb, title: "Ask questions", description: "If a requirement is unclear, we ask before building it." },
+  { icon: CodeXml, title: "Leave readable code", description: "We use code reviews and documentation to help the next person make changes." },
+  { icon: RefreshCw, title: "Use feedback", description: "We review what's working and adjust the next round of work." },
 ];
 
 function TeamActivityCarousel() {
@@ -101,8 +101,8 @@ export default function AstaTeamPage() {
           <div className="asta-container asta-team-hero__inner">
             <AstaReveal className="asta-team-hero__copy">
               <Link className="asta-back-link" to="/asta"><ArrowLeft size={17} /> Back to ASTA</Link>
-              <h1>People who turn business needs into dependable software.</h1>
-              <p>A compact team across frontend, backend, design, and technical leadership—working together from first conversation to release.</p>
+              <h1>Meet the people at ASTA.</h1>
+              <p>We're a small development team working across frontend, backend, and design. Four co-founders started ASTA in 2021.</p>
             </AstaReveal>
             <div className="asta-team-hero__facts" aria-label="ASTA team overview">
               <p><span>Established</span><strong>2021</strong></p>
@@ -114,7 +114,7 @@ export default function AstaTeamPage() {
 
         <section className="asta-section asta-founders">
           <div className="asta-container">
-            <AstaReveal className="asta-section-heading"><div><h2>Meet the team behind ASTA.</h2><p>Engineers and product thinkers bringing complementary strengths to every build.</p></div></AstaReveal>
+            <AstaReveal className="asta-section-heading"><div><h2>Who you'll work with.</h2><p>Read about each person's role and find their profile links below.</p></div></AstaReveal>
             <div className="asta-founder-grid">
               {[...teamMembers].sort((a, b) => a.order - b.order).map((member, index) => (
                 <AstaReveal as="article" className="asta-founder" key={member.id} delay={index * 65}>
@@ -135,14 +135,14 @@ export default function AstaTeamPage() {
 
         <section className="asta-section asta-people">
           <div className="asta-container">
-            <AstaReveal className="asta-section-heading"><div><h2>Good work is built by people who enjoy working together.</h2><p>Beyond delivery schedules, we make room for the relationships and shared moments that strengthen the team.</p></div></AstaReveal>
+            <AstaReveal className="asta-section-heading"><div><h2>Away from our desks.</h2><p>Photos from team gatherings and celebrations.</p></div></AstaReveal>
             <AstaReveal><TeamActivityCarousel /></AstaReveal>
           </div>
         </section>
 
         <section className="asta-section asta-principles">
           <div className="asta-container">
-            <AstaReveal className="asta-section-heading"><div><h2>The culture behind how we build.</h2><p>Our values are practical: they shape how we communicate, make decisions, and take responsibility for the work.</p></div></AstaReveal>
+            <AstaReveal className="asta-section-heading"><div><h2>How we work together.</h2><p>What you can expect when working with our team.</p></div></AstaReveal>
             <div className="asta-principles__grid">
               {cultureItems.map(({ icon: Icon, title, description }, index) => <AstaReveal key={title} delay={Math.min(index * 70, 280)}><Icon aria-hidden="true" /><h3>{title}</h3><p>{description}</p></AstaReveal>)}
             </div>
@@ -151,7 +151,7 @@ export default function AstaTeamPage() {
 
         <section className="asta-team-cta">
           <AstaReveal className="asta-container asta-team-cta__inner">
-            <div><HeartHandshake aria-hidden="true" /><h2>Bring us the problem. Meet the team that can help shape the product.</h2></div>
+            <div><HeartHandshake aria-hidden="true" /><h2>Have a project for the team?</h2></div>
             <div className="asta-actions"><a className="asta-button asta-button--light" href={`mailto:${contact.email}`}><Mail size={18} /> Email us</a><a className="asta-text-link asta-text-link--light" href={contact.facebook} target="_blank" rel="noreferrer"><Facebook size={18} /> Facebook <ArrowRight size={17} /></a></div>
           </AstaReveal>
         </section>

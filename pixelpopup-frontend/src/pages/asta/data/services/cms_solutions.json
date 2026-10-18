@@ -2,15 +2,15 @@
   "id": "cms-solutions",
   "slug": "cms-solutions",
   "title": "CMS Solutions",
-  "menuDescription": "Structured publishing systems that make content easier to manage safely.",
-  "summary": "Give your team a content system that matches how they publish, review, and maintain information.",
+  "menuDescription": "Content systems for editing pages, reviewing drafts, and publishing updates.",
+  "summary": "Let your team update site content through an admin interface, with roles and publishing controls.",
   "icon": "panels",
   "order": 3,
   "overview": {
-    "title": "Make publishing predictable for editors and consistent for customers.",
+    "title": "Update your content without a code change.",
     "paragraphs": [
-      "We define content models, reusable page patterns, and editorial controls around the way your team actually works.",
-      "Whether the system is traditional, headless, or commerce-focused, the goal is a clear authoring experience without sacrificing frontend quality."
+      "We list the content you need to manage and who can edit or publish it. Then we configure the fields, templates, and permissions.",
+      "The CMS can serve one website or multiple applications. We'll discuss whether a traditional or headless setup fits your publishing needs."
     ]
   },
   "features": [
@@ -23,8 +23,8 @@
   ],
   "banner": {
     "title": "Is your current CMS slowing down the people who use it?",
-    "description": "Show us the publishing workflow and recurring pain points. We will map a cleaner content operation.",
-    "ctaLabel": "Review our CMS needs"
+    "description": "Show us how you update content today and which steps are difficult.",
+    "ctaLabel": "Discuss your CMS"
   },
   "faqs": [
     { "id": "platforms", "question": "Which CMS platforms can you work with?", "answer": "The right platform depends on publishing, integration, governance, and hosting needs. We can evaluate established systems and headless approaches before recommending a direction." },

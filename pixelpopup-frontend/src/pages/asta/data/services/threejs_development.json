@@ -2,16 +2,16 @@
   "id": "threejs-development",
   "slug": "threejs-development",
   "title": "Three.js Development",
-  "menuDescription": "Interactive 3D web experiences for product storytelling, visualization, and browser-based tools.",
-  "summary": "Interactive 3D web experiences built for product storytelling, visualization, and browser-based tools.",
+  "menuDescription": "3D product viewers and configurators that run in a web browser.",
+  "summary": "Let visitors rotate a product, inspect details, or change its configuration in the browser.",
   "icon": "box-3d",
   "featured": true,
   "order": 1,
   "overview": {
-    "title": "Give people a product experience they can explore, not only watch.",
+    "title": "Show your product in 3D.",
     "paragraphs": [
-      "We use Three.js to build purposeful browser-based 3D experiences, from product configurators and technical visualization to interactive campaign moments.",
-      "Every scene is planned around the content, device constraints, loading strategy, controls, and a useful fallback when WebGL is unavailable."
+      "We build Three.js scenes for product viewers, configurators, and technical demonstrations. Visitors can interact with the model without leaving the page.",
+      "We plan the controls and loading behavior for the devices your visitors use. When a browser cannot run WebGL, the page shows an alternative view."
     ]
   },
   "features": [
@@ -23,8 +23,8 @@
     { "id": "integration", "icon": "plug", "title": "Application integration", "description": "Three.js scenes connected to React interfaces, product data, APIs, analytics, and existing workflows." }
   ],
   "banner": {
-    "title": "Have a product or idea that needs spatial interaction?",
-    "description": "Show us what people need to inspect, understand, configure, or experience in the browser.",
+    "title": "Have a product you'd like to show in 3D?",
+    "description": "Send us the model if you have one, and describe what visitors should be able to do with it.",
     "ctaLabel": "Start a 3D project"
   },
   "faqs": [

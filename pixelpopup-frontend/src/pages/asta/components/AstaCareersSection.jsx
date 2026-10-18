@@ -114,8 +114,8 @@ export default function AstaCareersSection() {
           <p className="asta-home-heading__eyebrow">Careers at ASTA</p>
           <span className="asta-careers-copy__icon"><BriefcaseBusiness aria-hidden="true" /></span>
           <h2 id="asta-careers-title">Build meaningful software with us.</h2>
-          <p>We want to meet people who enjoy solving real business problems, collaborating closely, and building software others can rely on.</p>
-          <div className="asta-careers-copy__note"><Mail aria-hidden="true" /><span>Apply through the form and we’ll send your details securely to our team.</span></div>
+          <p>Interested in working with us? Tell us what you do and share a project you'd like us to see.</p>
+          <div className="asta-careers-copy__note"><Mail aria-hidden="true" /><span>This form sends your application to the ASTA team.</span></div>
         </AstaReveal>
         <AstaReveal className="asta-careers-form-wrap" delay={90}>
           <form ref={formRef} className="asta-careers-form" onSubmit={handleSubmit} noValidate aria-busy={status === "sending"}>

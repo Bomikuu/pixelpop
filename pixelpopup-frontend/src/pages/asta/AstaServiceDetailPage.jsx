@@ -138,7 +138,7 @@ function ServiceDetail({ service }) {
             <div className="relative z-[1] mx-auto max-w-[1320px]">
               <AstaReveal className="max-w-[56rem]">
                 <h2 id="ai-expertise-title" className="m-0 max-w-[13ch] text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[0.96] tracking-[-0.04em] text-[#081a30]">AI platforms and patterns we work with.</h2>
-                <p className="mb-0 mt-5 max-w-[66ch] text-base leading-7 text-[#52677d]">The right model and orchestration approach depends on the task, data permissions, latency, cost, and review requirements.</p>
+                <p className="mb-0 mt-5 max-w-[66ch] text-base leading-7 text-[#52677d]">We compare providers against your task and budget, including what data they can access and who reviews the output.</p>
               </AstaReveal>
               <div className="mt-12 grid border-y border-[#b8cde2] lg:grid-cols-2">
                 {service.aiExpertise.map((item, index) => (
@@ -159,8 +159,8 @@ function ServiceDetail({ service }) {
           <AstaServicePattern variant="features" />
           <div className="relative z-[1] mx-auto max-w-[1320px]">
             <AstaReveal className="max-w-[52rem]">
-              <h2 id="service-features-title" className="m-0 text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-[#081a30]">What the engagement can include.</h2>
-              <p className="mb-0 mt-5 max-w-[65ch] text-base leading-7 text-[#52677d]">The exact scope is selected around the system, team, and outcome. These are the core capabilities we can bring into the work.</p>
+              <h2 id="service-features-title" className="m-0 text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[0.98] tracking-[-0.035em] text-[#081a30]">What the work can include.</h2>
+              <p className="mb-0 mt-5 max-w-[65ch] text-base leading-7 text-[#52677d]">We'll agree on the parts you need before estimating the project.</p>
             </AstaReveal>
             <div className="mt-10 grid gap-px border border-[#d4dee8] bg-[#d4dee8] md:grid-cols-2 lg:grid-cols-3">
               {service.features.map((feature, index) => (
@@ -192,7 +192,7 @@ function ServiceDetail({ service }) {
           <div className="relative z-[1] mx-auto max-w-[960px]">
             <AstaReveal className="text-center">
               <h2 id="service-faq-title" className="m-0 text-[clamp(2.5rem,5vw,4rem)] font-semibold leading-none tracking-[-0.035em] text-[#081a30]">Frequently asked questions.</h2>
-              <p className="mb-0 mt-4 text-[#52677d]">Practical answers about how this service is scoped and delivered.</p>
+              <p className="mb-0 mt-4 text-[#52677d]">What to expect before we start.</p>
             </AstaReveal>
             <div className="mt-10 border-t border-[#cbd6e1]">
               {service.faqs.map((faq, index) => (

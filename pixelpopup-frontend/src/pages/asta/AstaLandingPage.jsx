@@ -30,7 +30,7 @@ function AgencyHero({ onStartProject }) {
         <div className="w-full max-w-[680px]">
           <p className="flex items-center gap-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#c1cde0] sm:text-[13px]">
             <span className="h-px w-14 shrink-0 bg-[#6f89a5] sm:w-24" aria-hidden="true" />
-            Software for a brighter tomorrow
+            Custom software since 2021
           </p>
           <h1
             id="asta-agency-title"
@@ -40,7 +40,7 @@ function AgencyHero({ onStartProject }) {
             <span className="block">Softwares</span>
           </h1>
           <p className="!mt-3 max-w-[38ch] text-[clamp(1.125rem,1.55vw,1.625rem)] leading-[1.42] text-[#bdc9dc] max-sm:max-w-[34ch]">
-            We build custom software around real business workflows — helping your team work smarter, move faster, and achieve more.
+            We build websites and business software, including content systems and restaurant tools. Tell us what your team needs to do.
           </p>
           <div className="mt-5 flex flex-wrap gap-x-0 gap-y-2 border-t border-[#87baff]/20 pt-5 text-[11px] font-semibold uppercase tracking-[0.17em] text-[#b5c4d9] sm:text-[13px]">
             <span>Product strategy</span>

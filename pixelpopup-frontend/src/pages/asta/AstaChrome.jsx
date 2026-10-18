@@ -176,8 +176,8 @@ export function AstaFooter({ onStartProject }) {
       <div className="asta-container">
         <div className="asta-footer__cta">
           <div>
-            <h2>Build the system your business actually needs.</h2>
-            <p>Bring us the workflow, operational bottleneck, or product idea. We will help shape a practical path from discovery to delivery.</p>
+            <h2>Tell us what you need built.</h2>
+            <p>Describe the work your team needs help with. We'll discuss the current setup, scope, and a starting point.</p>
           </div>
           {onStartProject ? (
             <button type="button" onClick={onStartProject}>Start a project <ArrowRight size={18} aria-hidden="true" /></button>
@@ -192,7 +192,7 @@ export function AstaFooter({ onStartProject }) {
               <img src="/portfolio/assets/asta-logo.png" width="44" height="44" alt="" />
               <span><strong>ASTA Softwares</strong><small>Product engineering studio</small></span>
             </Link>
-            <p>Custom software and digital products, built around real teams and operating needs since 2021.</p>
+            <p>We build websites and custom business software. Founded in 2021.</p>
             <div className="asta-footer__socials">
               <a href={`mailto:${contact.email}`} aria-label="Email ASTA Softwares"><Mail size={18} aria-hidden="true" /></a>
               <a href={contact.facebook} target="_blank" rel="noreferrer" aria-label="ASTA Softwares on Facebook"><Facebook size={18} aria-hidden="true" /></a>
@@ -209,7 +209,7 @@ export function AstaFooter({ onStartProject }) {
           <div className="asta-footer__contact">
             <strong>Start a conversation</strong>
             <a href={`mailto:${contact.email}`}><Mail size={17} aria-hidden="true" />{contact.email}</a>
-            <p>For custom products, ongoing engineering support, and delivery partnerships.</p>
+            <p>Contact us about a project or support for an existing application.</p>
             <div><Code2 size={17} aria-hidden="true" /><span>Strategy, interface, engineering</span></div>
             <div><Layers3 size={17} aria-hidden="true" /><span>Established 2021</span></div>
           </div>
