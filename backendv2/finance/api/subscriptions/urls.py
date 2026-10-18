@@ -12,7 +12,7 @@ urlpatterns = [
 for suffix, action in (("analytics", "analytics"), ("history", "history"), ("payments", "payments"), ("lifecycle", "lifecycle"),
     ("prices", "prices"), ("tariffs", "tariffs"), ("cycles", "cycles"), ("meters", "meters"),
     ("appliances", "appliances"), ("appliance-preview", "appliance-preview"), ("tariff-preview", "tariff-preview"),
-    ("planning-assumptions", "assumptions"), ("export", "export")):
+    ("planning-assumptions", "assumptions"), ("electricity-preview", "electricity-preview"), ("export", "export")):
     urlpatterns.append(path(f"<int:pk>/{suffix}/", SubscriptionView.as_view(action=action)))
 urlpatterns += [
     path("<int:pk>/cycles/<int:cycle_id>/", SubscriptionView.as_view(action="cycles")),

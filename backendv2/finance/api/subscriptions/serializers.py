@@ -131,3 +131,19 @@ class PriceInput(StrictInput):
     expected_revision = serializers.IntegerField(min_value=1)
     amount = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0.01)
     effective_date = serializers.DateField()
+
+
+class ElectricityPreviewInput(StrictInput):
+    mode = serializers.ChoiceField(choices=["bills", "readings"], default="bills")
+    previous_bill = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0, allow_null=True, required=False)
+    current_bill = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0, allow_null=True, required=False)
+    previous_reading = serializers.DecimalField(max_digits=20, decimal_places=6, min_value=0, allow_null=True, required=False)
+    current_reading = serializers.DecimalField(max_digits=20, decimal_places=6, min_value=0, allow_null=True, required=False)
+    previous_date = serializers.DateField(allow_null=True, required=False)
+    reading_date = serializers.DateField(allow_null=True, required=False)
+    period_end = serializers.DateField(allow_null=True, required=False)
+    rate = serializers.DecimalField(max_digits=18, decimal_places=6, min_value=0, allow_null=True, required=False)
+    fixed_fee = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0, allow_null=True, required=False)
+    other_charges = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0, allow_null=True, required=False)
+    expected_usage = serializers.DecimalField(max_digits=20, decimal_places=6, min_value=0, allow_null=True, required=False)
+    budget = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=0, allow_null=True, required=False)

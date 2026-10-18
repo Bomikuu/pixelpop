@@ -155,6 +155,12 @@ class SubscriptionView(PrivateMixin, APIView):
         subscription = get_object_or_404(models.Subscription, pk=pk) if pk else None
         cycle = get_object_or_404(models.SubscriptionCycle, pk=cycle_id, subscription=subscription) if cycle_id else None
         meter = get_object_or_404(models.Meter, pk=meter_id, subscription=subscription) if meter_id else None
+        if action == "electricity-preview":
+            if subscription.service_type != "electricity":
+                raise ValidationError("This calculator is for electricity services only.")
+            from finance.services.subscriptions.electricity_preview import electricity_preview
+            data = validate(inputs.ElectricityPreviewInput, request.data)
+            return Response(plain(electricity_preview(data)))
         if action == "catalog":
             data = validate(inputs.SubscriptionInput, request.data)
             obj = save_subscription(pk, data, request.user, data.get("expected_revision"))
