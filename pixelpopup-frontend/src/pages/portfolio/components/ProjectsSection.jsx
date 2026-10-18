@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { projects } from "../portfolioData";
 import CorticoProof from "./CorticoProof";
 import MediaCarousel from "./MediaCarousel";
@@ -74,11 +74,11 @@ function ProjectStory({ project, index, registerPanel }) {
         <div className="portfolio-project-media mt-12">{media}</div>
 
         <div className="mt-10 border-t border-slate-200 pt-8">
-          <h4 className="mb-5 text-base font-semibold text-slate-950">{project.id === "cortico" ? "What the reports show" : "What I worked on"}</h4>
-          <ul className="grid list-disc gap-x-12 gap-y-4 pl-5 marker:text-slate-400 md:grid-cols-2" aria-label={`${project.title} ${project.id === "cortico" ? "report observations" : "contributions"}`}>
+          <ul className="grid gap-x-10 gap-y-4 md:grid-cols-2" aria-label={`${project.title} outcomes`}>
             {project.outcomes.map((outcome) => (
-              <li key={outcome} className="portfolio-stagger-item text-sm leading-6 text-slate-600">
-                {outcome}
+              <li key={outcome} className="portfolio-stagger-item flex gap-3 text-sm leading-6 text-slate-600">
+                <CheckCircle2 size={17} className="mt-1 shrink-0 text-[#2f5bff]" aria-hidden="true" />
+                <span>{outcome}</span>
               </li>
             ))}
           </ul>
@@ -166,7 +166,7 @@ export default function ProjectsSection() {
               <span className="size-2 bg-[#2f5bff]" aria-hidden="true" />
               <h2 className="portfolio-display text-lg font-semibold tracking-[-0.02em]">Selected works</h2>
             </div>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-slate-600">Open a project to see the application, my role, and the available screenshots.</p>
+            <p className="mt-4 max-w-xs text-sm leading-6 text-slate-600">Scroll through product systems, frontend leadership, and measurable growth work.</p>
 
             <div className="mt-10 flex items-end gap-2" aria-live="polite" aria-atomic="true">
               <strong className="portfolio-display text-5xl font-semibold tracking-[-0.04em] text-slate-950">{formatIndex(activeIndex)}</strong>
