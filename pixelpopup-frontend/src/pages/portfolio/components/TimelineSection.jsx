@@ -72,7 +72,7 @@ export default function TimelineSection() {
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
           <header className="max-w-4xl">
-            <h2 id="experience-title" className="portfolio-display max-w-3xl text-4xl font-semibold leading-[1.02] tracking-[-0.035em] text-[#081a30] sm:text-5xl lg:text-6xl">
+            <h2 id="experience-title" className="portfolio-display max-w-3xl scroll-mt-28 text-4xl font-semibold leading-[1.02] tracking-[-0.035em] text-[#081a30] sm:text-5xl lg:text-6xl">
               Work and <span className="text-[#2f5bff]">education.</span>
             </h2>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-[#52677d]">Where I've worked since 2018 and where I studied.</p>

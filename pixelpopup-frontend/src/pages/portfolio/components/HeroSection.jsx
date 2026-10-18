@@ -1,12 +1,6 @@
-import { ArrowRight, Box, MapPin, Monitor, UsersRound } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Reveal from "./Reveal";
 import SourceMapScene from "./SourceMapScene";
-
-const capabilities = [
-  { icon: Monitor, title: "Frontend systems", detail: "Architecture and UI" },
-  { icon: Box, title: "Full-stack development", detail: "APIs and deployment" },
-  { icon: UsersRound, title: "Technical leadership", detail: "Teams and standards" },
-];
 
 export default function HeroSection() {
   return (
@@ -19,7 +13,6 @@ export default function HeroSection() {
         <Reveal immediate className="flex w-full max-w-[47rem] flex-col justify-center">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] uppercase tracking-[0.18em] text-slate-500 sm:text-sm">
             <span className="inline-flex items-center gap-2">
-              <MapPin size={17} className="text-[#2f5bff]" aria-hidden="true" />
               Davao City, Philippines
             </span>
             <span className="size-1 rounded-full bg-slate-400" aria-hidden="true" />
@@ -42,19 +35,6 @@ export default function HeroSection() {
             </a>
           </div>
 
-          <dl className="mt-12 grid max-w-[46rem] grid-cols-1 border-t border-slate-300/80 pt-5 sm:grid-cols-3 sm:pt-0">
-            {capabilities.map(({ icon: Icon, title, detail }, index) => (
-              <div key={title} className={`grid grid-cols-[3rem_1fr] items-center gap-4 py-3 sm:py-5 sm:px-5 ${index === 0 ? "sm:pl-0" : "border-t border-slate-300/80 sm:border-l sm:border-t-0"}`}>
-                <span className="grid size-12 place-items-center rounded-full bg-[#eaf1ff] text-[#2f5bff]" aria-hidden="true">
-                  <Icon size={21} strokeWidth={1.8} />
-                </span>
-                <div>
-                  <dt className="text-sm font-semibold tracking-[-0.01em] text-slate-950">{title}</dt>
-                  <dd className="mt-1 text-xs leading-5 text-slate-500">{detail}</dd>
-                </div>
-              </div>
-            ))}
-          </dl>
         </Reveal>
       </div>
     </section>

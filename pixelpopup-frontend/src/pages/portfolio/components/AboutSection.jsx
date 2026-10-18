@@ -1,76 +1,13 @@
-import { createElement, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Box, Braces, CalendarDays, Layers3, SearchCheck, UsersRound } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight } from "lucide-react";
 import Reveal from "./Reveal";
 import SectionHeading from "./SectionHeading";
 
 const strengths = [
-  { icon: Braces, title: "Frontend development", text: "I build reusable components, handle loading and error states, and check layouts across screen sizes." },
-  { icon: Layers3, title: "Backend and deployment", text: "I also work on APIs and databases, and deploy the applications I build." },
-  { icon: SearchCheck, title: "Performance and SEO", text: "I use Core Web Vitals, Search Console, and behavior analytics to find pages that need attention." },
+  { title: "Frontend development", text: "I build reusable components, handle loading and error states, and check layouts across screen sizes." },
+  { title: "Backend and deployment", text: "I also work on APIs and databases, and deploy the applications I build." },
+  { title: "Performance and SEO", text: "I use Core Web Vitals, Search Console, and behavior analytics to find pages that need attention." },
 ];
-
-const stats = [
-  { icon: Box, value: 40, suffix: "+", label: "Projects shipped" },
-  { icon: CalendarDays, value: 8, suffix: "+", label: "Years of experience" },
-  { icon: UsersRound, value: 3, suffix: "", label: "Ways I contribute: frontend, full-stack, leadership" },
-];
-
-function AnimatedStat({ icon: Icon, value, suffix, label, delay }) {
-  const rootRef = useRef(null);
-  const [displayValue, setDisplayValue] = useState(0);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return undefined;
-
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion || !window.IntersectionObserver) {
-      setDisplayValue(value);
-      return undefined;
-    }
-
-    let frameId = 0;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      observer.disconnect();
-
-      const startedAt = performance.now();
-      const duration = 1050;
-      const animate = (now) => {
-        const elapsed = Math.max(0, now - startedAt - delay);
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - ((1 - progress) ** 4);
-        setDisplayValue(Math.round(value * eased));
-        if (progress < 1) frameId = window.requestAnimationFrame(animate);
-      };
-
-      frameId = window.requestAnimationFrame(animate);
-    }, { threshold: 0.5 });
-
-    observer.observe(root);
-    return () => {
-      observer.disconnect();
-      window.cancelAnimationFrame(frameId);
-    };
-  }, [delay, value]);
-
-  const finalValue = `${value}${suffix}`;
-
-  return (
-    <div ref={rootRef} className="grid grid-cols-[3.25rem_1fr] items-center gap-4 border-t border-slate-200 p-5 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0">
-      <span className="grid h-12 w-12 place-items-center bg-[#edf4ff] text-[#2563eb]" aria-hidden="true">
-        <Icon size={21} strokeWidth={1.8} />
-      </span>
-      <div>
-        <dt className="portfolio-display text-3xl font-semibold tracking-[-0.04em] text-[#2563eb] tabular-nums" aria-label={finalValue}>
-          <span className="sr-only">{finalValue}</span>
-          <span aria-hidden="true">{displayValue}{suffix}</span>
-        </dt>
-        <dd className="mt-0.5 text-xs leading-5 text-slate-600">{label}</dd>
-      </div>
-    </div>
-  );
-}
 
 export default function AboutSection() {
   const [showRealPortrait, setShowRealPortrait] = useState(false);
@@ -121,36 +58,29 @@ export default function AboutSection() {
           </Reveal>
 
           <Reveal delay={1} className="lg:border-l lg:border-slate-200 lg:pl-12 xl:pl-16">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">My philosophy</p>
-            <p className="portfolio-display mt-5 max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-4xl lg:text-[2.75rem]">
+            <p className="portfolio-display max-w-4xl text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-4xl lg:text-[2.75rem]">
               I like figuring out how a <span className="text-[#2563eb]">complicated application should work on screen.</span>
             </p>
             <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600">
               My projects include healthcare software, financial tools, interactive maps, and restaurant systems. Some work starts with a new design; other work means finding why an existing page is slow or fixing a feature that people already use.
             </p>
 
-            <dl className="mt-10 grid border border-slate-200 bg-white sm:grid-cols-3">
-              {stats.map((stat, index) => (
-                <AnimatedStat key={stat.label} {...stat} delay={index * 110} />
-              ))}
-            </dl>
+            <p className="mt-7 text-sm leading-6 text-slate-600">
+              My work history starts in 2018. <a href="#experience-title" className="font-semibold text-[#2149dc] underline underline-offset-4 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">See the roles and dates</a> or <a href="#work" className="font-semibold text-[#2149dc] underline underline-offset-4 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2f5bff]">inspect the selected projects</a>.
+            </p>
 
             <div className="mt-10 flex items-center justify-between gap-6 border-b border-slate-200 pb-4">
               <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Areas of expertise</h3>
-              <span className="hidden text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-slate-300 sm:block">Development and code review</span>
             </div>
 
-            <div className="divide-y divide-slate-200">
-              {strengths.map(({ icon: Icon, title, text }) => (
-                <div key={title} className="grid gap-4 py-5 sm:grid-cols-[4rem_11rem_1fr] sm:items-center">
-                  <span className="grid h-12 w-12 place-items-center bg-[#edf4ff] text-[#2563eb]" aria-hidden="true">
-                    {createElement(Icon, { size: 22, strokeWidth: 1.8 })}
-                  </span>
-                  <strong className="text-base text-slate-950">{title}</strong>
-                  <p className="text-sm leading-6 text-slate-600">{text}</p>
+            <dl className="divide-y divide-slate-200">
+              {strengths.map(({ title, text }) => (
+                <div key={title} className="grid gap-2 py-5 sm:grid-cols-[10rem_1fr] sm:gap-6">
+                  <dt className="text-sm font-semibold text-slate-950">{title}</dt>
+                  <dd className="text-sm leading-6 text-slate-600">{text}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
 
             <a href="https://www.linkedin.com/in/boomiyaah/" target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[#2563eb] transition-colors hover:text-[#1746bd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2563eb]">
               View LinkedIn <ArrowUpRight size={17} />

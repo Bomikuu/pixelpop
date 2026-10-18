@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowDownToLine, ArrowRight, ChevronDown, Menu, Sparkles, X } from "lucide-react";
-import PortfolioServiceIcon from "../services/PortfolioServiceIcon";
+import { ArrowDownToLine, ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import {
   getPortfolioServiceHref,
   portfolioServiceCatalog,
@@ -85,7 +84,7 @@ export default function PortfolioNav({ routeBase = "" }) {
           <LogoMark />
           <span>
             <strong className="block font-bold tracking-[-0.01em]">Mico Ang</strong>
-            <span className="hidden text-xs text-slate-500 sm:block">Design. Code. Create.</span>
+            <span className="hidden text-xs text-slate-500 lg:block">Senior frontend developer</span>
           </span>
         </a>
 
@@ -154,13 +153,6 @@ export default function PortfolioNav({ routeBase = "" }) {
             </a>
           ))}
 
-          <div className="my-3 flex items-center gap-2 text-xs font-semibold text-slate-500 md:my-0 md:ml-3" aria-hidden="true">
-            <span className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200">
-              <span className="block h-full origin-left rounded-full bg-[#2f5bff]" style={{ transform: `scaleX(${progress / 100})` }} />
-            </span>
-            <span className="w-9 tabular-nums">{progress}%</span>
-          </div>
-
           <a
             href="/portfolio/Mico_Ang_Senior_Software_Developer.pdf"
             download
@@ -182,43 +174,33 @@ export default function PortfolioNav({ routeBase = "" }) {
 
             <div className="flex items-start justify-between gap-8">
               <div>
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#2f5bff]">Services</span>
-                <h2 className="portfolio-display mt-2 text-3xl font-semibold tracking-[-0.03em] text-slate-950">
-                  Build ideas into real products
+                <h2 className="portfolio-display text-3xl font-semibold tracking-[-0.03em] text-slate-950">
+                  Services
                 </h2>
                 <p className="mt-2 max-w-3xl text-base leading-7 text-slate-600">
-                  Design, development, and automation services to help you create, launch, and grow.
+                  Help with a new website, an existing application, or a specific technical problem.
                 </p>
               </div>
             </div>
 
-            <div className="mt-7 grid gap-3 lg:grid-cols-2">
-              {dropdownServices.map((service, index) => (
+            <div className="mt-5 grid gap-x-10 lg:grid-cols-2">
+              {dropdownServices.map((service) => (
                 <a
                   key={service.id}
                   href={getPortfolioServiceHref(service)}
-                  className={`group flex min-h-28 items-center gap-5 rounded-xl border px-5 py-5 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff] ${
-                    index === 0 ? "border-blue-300 bg-blue-50/70 hover:bg-blue-100/70" : "border-slate-200 bg-white hover:border-blue-200 hover:bg-slate-50"
-                  }`}
+                  className="group block border-b border-slate-200 py-5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff]"
                   onClick={closeNavigation}
                 >
-                  <span className={`grid size-14 shrink-0 place-items-center rounded-xl transition-transform group-hover:-translate-y-0.5 ${index === 0 ? "bg-[#2f5bff] text-white" : "bg-blue-50 text-[#2f5bff]"}`}>
-                    <PortfolioServiceIcon name={service.icon} size={25} strokeWidth={1.8} aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <strong className="block text-base font-semibold text-slate-950">{service.title}</strong>
+                  <span>
+                    <strong className="block text-base font-semibold text-slate-950 group-hover:text-[#2149dc] group-hover:underline group-hover:underline-offset-4">{service.title}</strong>
                     <span className="mt-1.5 block max-w-[52ch] text-sm leading-6 text-slate-600">{service.summary}</span>
-                  </span>
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-blue-50 text-[#2f5bff] transition group-hover:bg-[#2f5bff] group-hover:text-white" aria-hidden="true">
-                    <ArrowRight size={18} />
                   </span>
                 </a>
               ))}
             </div>
 
-            <div className="mt-7 flex flex-col justify-between gap-4 border-t border-blue-100 pt-6 sm:flex-row sm:items-center">
-              <p className="m-0 flex items-center gap-3 text-sm text-slate-600">
-                <Sparkles size={18} className="shrink-0 text-[#2f5bff]" aria-hidden="true" />
+            <div className="mt-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <p className="m-0 text-sm text-slate-600">
                 View all services or ask about the work you need done.
               </p>
               <a
