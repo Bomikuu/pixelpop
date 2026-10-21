@@ -28,9 +28,10 @@ FIELDS = {
     "Deadline": ("title", "kind", "priority", "amount", "due_date", "due_time", "category", "notes", "reminder_days", "status", "credit_card", "settlement_kind"),
     "LoanReceivable": ("person", "contact", "principal", "date", "due_date", "account", "existing", "notes", "active"),
     "Meal": ("date", "eaten_at", "meal_name", "items"),
+    "MealPreset": ("meal_name", "items"),
     "MoneyMovement": ("kind", "amount", "date", "source", "destination", "loan", "notes"),
     "NutritionActivity": ("date", "activity_type", "name", "steps", "duration_minutes", "active_kcal", "source", "manual_override"),
-    "NutritionProfile": ("height_cm", "daily_target_kcal", "daily_target_protein_g", "daily_target_carbs_g", "daily_target_fat_g"),
+    "NutritionProfile": ("height_cm", "daily_target_kcal", "daily_target_protein_g", "daily_target_carbs_g", "daily_target_fat_g", "target_weight_kg"),
     "Person": ("name", "nickname", "relationship", "custom_relationship", "email", "phone", "organization", "notes", "avatar_hash"),
     "RecurringSchedule": ("title", "kind", "amount", "variable_amount", "category", "account", "coverage", "settlement_kind", "anchor_date", "due_time", "frequency", "interval", "reminder_days", "notes", "active"),
     "SharedBill": ("title", "total", "date", "category", "archived", "allocation_confirmed", "ledger_allocation_pending", "receiver", "all_paid", "participants"),
@@ -51,7 +52,7 @@ AREAS = {
     "Deadline": "bills", "Transaction": "transactions", "MoneyMovement": "transactions",
     "LoanReceivable": "people", "Person": "people", "SharedBill": "people",
     "SharedBillParticipant": "people", "SharedBillPayment": "people",
-    "NutritionProfile": "nutrition", "WeightEntry": "nutrition", "Meal": "nutrition", "NutritionActivity": "nutrition",
+    "NutritionProfile": "nutrition", "WeightEntry": "nutrition", "Meal": "nutrition", "MealPreset": "nutrition", "NutritionActivity": "nutrition",
 }
 
 AREA_LABELS = {
