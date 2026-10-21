@@ -164,14 +164,6 @@ export default function ContactSection({
         className="pointer-events-none absolute -right-40 top-24 h-96 w-96 rotate-12 bg-blue-500/[0.07]"
         aria-hidden="true"
       />
-      <div
-        className="pointer-events-none absolute left-[4%] top-10 size-36 bg-[radial-gradient(circle,rgba(96,165,250,0.42)_1px,transparent_1.5px)] bg-[size:18px_18px] opacity-50"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute bottom-10 right-[4%] size-36 bg-[radial-gradient(circle,rgba(96,165,250,0.38)_1px,transparent_1.5px)] bg-[size:18px_18px] opacity-45"
-        aria-hidden="true"
-      />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <div className="grid items-start gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20 xl:gap-28">

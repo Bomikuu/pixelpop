@@ -54,7 +54,6 @@ function ArticleCard({ article }) {
           <p className="mt-4 line-clamp-3 text-sm leading-6 text-[#52677d] sm:text-base sm:leading-7">{article.excerpt}</p>
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#dce4ec] pt-4 text-sm">
             <span className="inline-flex items-center gap-2.5 text-[#52677d]">
-              <span className="grid size-8 place-items-center rounded-full bg-[#eef3f8] text-xs font-semibold text-[#52677d]" aria-hidden="true">{author.charAt(0)}</span>
               By {author}
             </span>
             <span className="inline-flex items-center gap-2 font-semibold text-[#2f5bff]">
@@ -159,7 +158,6 @@ export default function ArticlesCarouselSection() {
 
   return (
     <section ref={sectionRef} id="articles" className="relative overflow-hidden border-b border-slate-200 bg-[#fbfdff] py-24 sm:py-32" aria-labelledby="portfolio-articles-title">
-      <div className="pointer-events-none absolute right-[12%] top-12 hidden size-32 opacity-70 lg:block" style={{ backgroundImage: "radial-gradient(#aacaff 1.5px, transparent 1.5px)", backgroundSize: "24px 24px" }} aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
           <header className="max-w-3xl">

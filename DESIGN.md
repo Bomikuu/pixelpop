@@ -109,7 +109,7 @@ components:
 
 **Creative North Star: "The Product Engineering Company"**
 
-The portfolio should feel like a senior product-engineering company presenting its capabilities and proof, with Mico as the accountable technical leader. The page is clear, restrained, and conversion-oriented: a direct offer, measurable evidence, understandable product stories, and a practical path to contact.
+The portfolio presents Mico's work in his own voice. Project names, responsibilities, screenshots, and published writing provide the substance. Keep the existing cobalt, navy, and type families, with clear project stories and a practical path to contact.
 
 Expression comes from scale, timing, and product truth rather than developer-page decoration. A full-hero Three.js system gives the first viewport technical energy, while light neutral sections and deep navy proof fields keep the experience credible and mature.
 
@@ -225,9 +225,15 @@ Borders are one pixel and neutral. The system does not combine strong borders wi
 
 The fixed white header uses a simple `<MA/>` wordmark on a sharp-cornered navy rectangle, plain-language links, a résumé action, a visible numeric progress value on desktop, and a four-pixel full-width progress track at all sizes. The initials remain white and the surrounding code syntax remains cobalt, with no logo hover animation. Mobile navigation expands below the header without changing visual language.
 
-### Animated Proof Wall
+### Project Reporting
 
-Cortico evidence uses two oversized animated metrics followed by four supporting measures on evidence navy. Numbers begin counting only when the panel enters the viewport. Screen readers receive the final value immediately; reduced-motion users receive the final value without animation.
+Cortico retains its original animated metric cards and interactive traffic timeline at the user's request. Preserve supplied figures and the timeline's explanation that intermediate values are a linear interpolation rather than reported monthly traffic. The About section explains Mico's responsibilities rather than showing project-count or years-of-experience counters.
+
+### Portfolio Refinement
+
+Use sentence-case labels without decorative letter spacing. Center the process heading and its description. Process navigation uses compact, content-width pill tabs with Lucide icons, centered beneath the heading without a surrounding rail. The selected pill has a cobalt fill and white text; other pills have white fills, quiet borders, and clear hover and focus states. Let the pills wrap into centered rows on narrow screens rather than stretching them to fill the section. Preserve keyboard navigation. Keep gradients only where needed to maintain hero readability; ordinary sections use flat fields. Omit colored glows, decorative dot grids, and initial-letter author avatars outside the explicitly restored Cortico presentation. Article bylines use the author's actual name. Keep existing routes, section anchors, project screenshots, typography, and contact behavior.
+
+Generated initial HTML includes the homepage's project descriptions and work history, links to published writing, full cached article bodies, and DineEase and PixelCore project details. Derive these from the same records as the React pages and the published API; show the same content to readers and crawlers. Keep an article-body snapshot for API outages during builds.
 
 ### Selected Work Scrollytelling
 

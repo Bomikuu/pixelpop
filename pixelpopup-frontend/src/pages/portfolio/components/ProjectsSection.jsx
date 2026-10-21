@@ -46,7 +46,7 @@ function ProjectStory({ project, index, registerPanel }) {
       <Reveal stagger>
         <div className="mb-10 flex items-center justify-between gap-5">
           <span className="text-sm font-semibold tabular-nums text-[#2f5bff]">{formatIndex(index)}</span>
-          <span className="text-right text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{project.type}</span>
+          <span className="text-right text-xs font-semibold text-slate-500">{project.type}</span>
         </div>
 
         <div className="portfolio-project-summary max-w-5xl">
@@ -56,7 +56,7 @@ function ProjectStory({ project, index, registerPanel }) {
 
             <div className="mt-8 grid gap-5 border-y border-slate-200 py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">My role</span>
+                <span className="text-xs font-semibold text-slate-500">My role</span>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-900">{project.role}</p>
               </div>
 
@@ -157,7 +157,6 @@ export default function ProjectsSection() {
     <section
       id="work"
       className="portfolio-work-section scroll-mt-24 bg-slate-50 text-slate-950"
-      style={{ backgroundImage: "radial-gradient(circle, rgba(47, 91, 255, 0.18) 1px, transparent 1px)" }}
     >
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <div className="portfolio-work-floating-index">

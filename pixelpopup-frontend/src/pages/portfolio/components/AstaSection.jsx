@@ -1,14 +1,8 @@
-import { ArrowRight, CalendarDays, Database, Facebook, UsersRound } from "lucide-react";
+import { ArrowRight, Facebook } from "lucide-react";
 import { Link } from "react-router-dom";
 import { astaSlides } from "../portfolioData";
 import MediaCarousel from "./MediaCarousel";
 import Reveal from "./Reveal";
-
-const astaHighlights = [
-  { label: "Established", value: "2021", detail: "software studio", icon: CalendarDays },
-  { label: "Founding team", value: "4", detail: "co-founders", icon: UsersRound },
-  { label: "Ongoing platform", value: "DineEase", detail: "restaurant operations", icon: Database },
-];
 
 const astaTechnologies = [
   { name: "React", icon: "react.svg" },
@@ -26,16 +20,11 @@ export default function AstaSection() {
     <section
       id="asta"
       className="relative isolate scroll-mt-24 overflow-hidden bg-[#fbfdff] py-24 text-[#081a30] sm:py-32"
-      style={{
-        backgroundImage: "linear-gradient(rgba(21, 112, 239, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(21, 112, 239, 0.08) 1px, transparent 1px)",
-        backgroundSize: "72px 72px",
-      }}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,253,255,0.96)_0%,rgba(251,253,255,0.72)_45%,rgba(251,253,255,0.18)_78%)]" aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
           <div className="mx-auto max-w-4xl text-center">
-            <img src="/portfolio/assets/asta-logo.png" width="1024" height="1024" loading="lazy" decoding="async" alt="ASTA Softwares logo" className="mx-auto size-16 rounded-xl bg-[#1570ef] object-contain shadow-[0_18px_42px_-22px_rgba(21,112,239,0.7)] sm:size-20" />
+            <img src="/portfolio/assets/asta-logo.png" width="1024" height="1024" loading="lazy" decoding="async" alt="ASTA Softwares logo" className="mx-auto size-16 rounded-xl bg-[#1570ef] object-contain sm:size-20" />
             <p className="mt-4 text-sm font-semibold text-[#385474]">ASTA Softwares</p>
             <h2 className="portfolio-display mx-auto mt-7 max-w-[16ch] text-4xl font-semibold leading-[1.02] tracking-[-0.035em] text-[#081a30] sm:text-5xl lg:text-6xl">
               My work at <span className="text-[#2f5bff]">ASTA.</span>
@@ -43,21 +32,6 @@ export default function AstaSection() {
             <p className="mx-auto mt-7 max-w-3xl text-lg leading-8 text-[#52677d]">
               I'm one of four co-founders and the Technical Lead at ASTA, which we started in 2021. Our work includes employee systems and interactive websites. We're also developing DineEase, our restaurant platform.
             </p>
-          </div>
-
-          <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-3">
-              {astaHighlights.map((highlight) => (
-                <div className="grid grid-cols-[3.25rem_1fr] items-center gap-4 rounded-xl border border-[#cbd9e8] bg-white/90 p-5" key={highlight.label}>
-                  <span className="grid size-[3.25rem] place-items-center rounded-lg bg-[#edf5ff] text-[#1570ef]" aria-hidden="true">
-                    <highlight.icon size={25} strokeWidth={1.8} />
-                  </span>
-                  <span>
-                    <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-[#52677d]">{highlight.label}</span>
-                    <strong className="mt-1 block text-2xl font-semibold tracking-[-0.025em] text-[#081a30]">{highlight.value}</strong>
-                    <span className="text-sm text-[#52677d]">{highlight.detail}</span>
-                  </span>
-                </div>
-              ))}
           </div>
 
           <div className="mx-auto mt-8 max-w-5xl">

@@ -83,7 +83,7 @@ export default function TurnstileWidget({ onTokenChange, action = "portfolio-con
   }
 
   return (
-    <div className="mt-5" aria-label="Bot protection verification">
+    <div className="mt-5" role="group" aria-label="Bot protection verification">
       <div ref={containerRef} className="min-h-[65px]" />
     </div>
   );
