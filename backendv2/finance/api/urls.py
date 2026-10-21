@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from . import shared_bills
 from . import nutrition
+from .nutrition_analytics import NutritionAnalyticsView
 from . import activity
 from . import events
 from . import reminders
@@ -56,6 +57,7 @@ urlpatterns = [
     path("nutrition/activities/<int:pk>/", activity.NutritionActivityDetailView.as_view()),
     path("nutrition/summary/", nutrition.NutritionSummaryView.as_view()),
     path("nutrition/period-summary/", nutrition.NutritionPeriodSummaryView.as_view()),
+    path("nutrition/analytics/", NutritionAnalyticsView.as_view()),
     path("session/", views.SessionView.as_view()),
     path("overview/", views.OverviewView.as_view()),
     path("people/", views.PeopleView.as_view()),
