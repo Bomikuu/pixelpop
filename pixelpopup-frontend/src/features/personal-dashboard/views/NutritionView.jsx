@@ -7,6 +7,13 @@ import NutritionDay from "../components/nutrition/NutritionDay";
 import NutritionInsights from "../components/nutrition/NutritionInsights";
 import NutritionSettings from "../components/nutrition/NutritionSettings";
 import NutritionSetup from "../components/nutrition/NutritionSetup";
+import DailyNutritionOverview from "../components/nutrition/DailyNutritionOverview";
+import NutritionActivityPanel from "../components/nutrition/NutritionActivityPanel";
+import NutritionWeightPanel from "../components/nutrition/NutritionWeightPanel";
+import WeightDialog from "../components/nutrition/WeightDialog";
+import { Activity, ChevronDown, Plus, Settings2, UtensilsCrossed } from "lucide-react";
+import { DropdownMenu } from "radix-ui";
+import { Button } from "../ui/button";
 
 export default function NutritionView({ request, notify, date, onLeave }) {
   const [version, setVersion] = useState(0);
@@ -15,6 +22,9 @@ export default function NutritionView({ request, notify, date, onLeave }) {
   const [periodRetry, setPeriodRetry] = useState(0);
   const [periodState, setPeriodState] = useState({ key: "", loading: false, data: null, error: "" });
   const [editing, setEditing] = useState(null);
+  const [basis, setBasis] = useState("food");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [weightOpen, setWeightOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [deletingActivity, setDeletingActivity] = useState(null);
@@ -144,12 +154,16 @@ export default function NutritionView({ request, notify, date, onLeave }) {
   return <div className="space-y-5">
     {state.loading && state.date === date && state.data && <p role="status" className="text-xs text-slate-600">Refreshing nutrition…</p>}
     {state.loading && (!state.data || state.date !== date) ? <Panel title="Nutrition"><p role="status" className="py-8 text-sm text-slate-600">Loading meals and insights…</p></Panel> : state.error ? <ErrorState message={state.error} retry={() => setVersion((value) => value + 1)} /> : state.data ? <>
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,1fr)]">
-        <NutritionDay date={date} meals={state.data.meals} activities={state.data.activities} profile={state.data.profile} summary={state.data.summary} onAdd={() => openMeal()} onEdit={openMeal} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} onAddActivity={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEditActivity={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDeleteActivity={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} />
-        <NutritionSettings profile={state.data.profile} date={date} weights={state.data.summary.weights} onSaveProfile={saveProfile} onSaveWeight={saveWeight} onDeleteWeight={deleteWeight} />
+      <div className="flex flex-wrap justify-end gap-2"><Button variant="outline" onClick={() => { focusReturn.current = document.activeElement; setSettingsOpen(true); }}><Settings2 className="size-4" />Targets & baseline</Button><DropdownMenu.Root><DropdownMenu.Trigger asChild><Button><Plus className="size-4" />Add entry<ChevronDown className="size-4" /></Button></DropdownMenu.Trigger><DropdownMenu.Portal><DropdownMenu.Content align="end" sideOffset={6} className="personal-dashboard z-50 min-w-44 rounded-md border border-[var(--pd-border)] bg-white p-1 shadow-md" onCloseAutoFocus={(event) => event.preventDefault()}>{[["Meal", UtensilsCrossed], ["Activity", Activity]].map(([label, Icon]) => <DropdownMenu.Item key={label} className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--pd-soft)]" onSelect={() => { focusReturn.current = document.activeElement; label === "Meal" ? setEditing("new") : setEditingActivity("new"); }}><Icon className="size-4" />{label}</DropdownMenu.Item>)}</DropdownMenu.Content></DropdownMenu.Portal></DropdownMenu.Root></div>
+      <DailyNutritionOverview summary={state.data.summary} profile={state.data.profile} basis={basis} onBasisChange={setBasis} />
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+        <NutritionDay meals={state.data.meals} onAdd={() => openMeal()} onEdit={openMeal} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} />
+        <div className="min-w-0 space-y-5"><NutritionActivityPanel activities={state.data.activities} totalKcal={state.data.summary.day_activity_kcal} onAdd={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEdit={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDelete={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} /><NutritionWeightPanel date={date} weights={state.data.summary.weights} baseline={state.data.summary.weight_baseline} targetWeight={state.data.profile.target_weight_kg} onLog={() => { focusReturn.current = document.activeElement; setWeightOpen(true); }} /></div>
       </div>
       <NutritionInsights summary={state.data.summary} profile={state.data.profile} period={period} onPeriodChange={setPeriod} periodState={periodState.key === periodKey ? periodState : { loading: true, data: null, error: "" }} onRetry={() => setPeriodRetry((value) => value + 1)} />
       {setupRequired && <NutritionSetup profile={state.data.profile} onSave={saveSetup} onLeave={onLeave} />}
+      {settingsOpen && <NutritionSettings profile={state.data.profile} open onClose={() => setSettingsOpen(false)} onSaveProfile={saveProfile} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
+      {weightOpen && <WeightDialog date={date} reading={state.data.summary.weights.find((row) => row.date === date)} onClose={() => setWeightOpen(false)} onSave={saveWeight} onDelete={deleteWeight} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
     </> : null}
 
     {editing && <MealDialog key={editing === "new" ? `new-${date}` : editing.id} meal={editing === "new" ? null : editing} date={date} onClose={() => setEditing(null)} onSave={saveMeal} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}

@@ -1,0 +1,12 @@
+import { Activity, Bike, Dumbbell, Footprints, Pencil, Plus, Trash2, Waves } from "lucide-react";
+import { Panel } from "../Panel";
+import { Button } from "../../ui/button";
+import { LogAmount } from "./NutritionDay";
+import { nutritionNumber as number } from "../../nutrition/dashboardModel";
+const icons = { walking: Footprints, running: Activity, cycling: Bike, swimming: Waves, strength: Dumbbell };
+export default function NutritionActivityPanel({ activities, totalKcal, onAdd, onEdit, onDelete }) {
+  return <Panel title="Activity" action={<Button size="sm" variant="outline" onClick={onAdd}><Plus className="size-4" />Log activity</Button>}>
+    <p className="mb-3 text-xs text-slate-600">{number(totalKcal, 2)} kcal logged active burn · not all-day expenditure</p>
+    {activities.length ? <ul className="divide-y divide-[var(--pd-border)]">{activities.map((activity) => { const Icon = icons[activity.activity_type] || Activity; return <li key={activity.id} className="py-3 first:pt-0"><details><summary className="flex cursor-pointer list-none items-start gap-2 [&::-webkit-details-marker]:hidden"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700"><Icon className="size-4" aria-hidden="true" /></span><span className="min-w-0 flex-1"><span className="block break-words text-sm font-medium">{activity.name}</span><span className="block text-xs text-slate-600">{[activity.steps ? `${number(activity.steps)} steps` : null, activity.duration_minutes ? `${number(activity.duration_minutes, 2)} min${activity.duration_assumed ? " · assumed pace" : ""}` : null].filter(Boolean).join(" · ")}</span><LogAmount value={activity.active_kcal} direction="out" /></span></summary><p className="mt-2 text-xs text-slate-600">{activity.source === "estimated" ? `Estimated using ${number(activity.weight_kg_used, 2)} kg.` : activity.manual_override ? "Manual override." : "Burn entered manually."}</p><div className="mt-2 flex gap-2"><Button size="sm" variant="outline" onClick={() => onEdit(activity)}><Pencil className="size-3.5" />Edit</Button><Button size="sm" variant="ghost" className="text-red-700" onClick={() => onDelete(activity)}><Trash2 className="size-3.5" />Delete</Button></div></details></li>; })}</ul> : <p className="flex items-center gap-2 py-3 text-sm text-slate-500"><Footprints className="size-5" aria-hidden="true" />No sessions logged.</p>}
+  </Panel>;
+}
