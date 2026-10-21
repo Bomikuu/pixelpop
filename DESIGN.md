@@ -265,6 +265,47 @@ Generate experience examples opens a compact shared-field parameter form, then t
 
 Final check → Resolve issues offers Auto-answer all through the existing quote and spending guard. Draft answers use reviewed profile/résumé sources, confirmed ASTA/independent projects and prior factual answers; never treat hypothetical examples or checklist suggestions as history. Preserve existing replies, show a compact batch review with expandable sources and longer answers, and require one accuracy confirmation before saving. The one-pass résumé fix has its own separate cost approval and proposal review. Show honest request activity and allow recovery of saved answers without another paid call; reject results from changed checklists, sources or saved answer versions. Keep the modal's shared scroll body and fixed footer, alongside the existing individual-answer controls.
 
+### Personal Nutrition Workspace
+
+Nutrition stays within the dashboard's existing white surfaces, Instrument Sans,
+cobalt actions, solid-bordered fields, Lucide icons and shared shadcn/Radix
+controls. Runtime `--pd-*` tokens and shared dashboard primitives remain canonical;
+this feature does not change portfolio tokens or introduce another visual theme.
+Use low variance (3/10), restrained motion (2/10) and medium density (5/10).
+
+Keep the daily date in the workspace header. Below a compact toolbar, show one
+daily calorie/macro overview, then a roughly two-thirds meals / one-third activity
+and weight split on desktop, stacked on mobile. Targets and weight entry belong
+in separate dialogs. Meals expose food details on expansion; duplication and
+save-as-preset live in a secondary menu. Missing entries use short inline states,
+not large empty illustrations. Sparse weight data stays compact.
+
+Food is the default progress basis; Net explicitly subtracts logged active burn,
+not total expenditure. A food-over-target warning survives switching to Net.
+Below 90%, approaching 90–<100%, exactly reached and over-target states include
+text, not color alone. Clamp fills, retain real negative/over-target values, and
+respect reduced motion. Missing food stays missing; a logged zero remains real.
+Historical comparisons use current targets without modifying stored entries.
+
+Analytics has its own Week / Month / Custom dates and Overview / Trends / History
+tabs, independent of daily navigation. Overview uses four primary metrics and a
+smaller supporting row; charts and sortable history live in their dedicated views.
+Compare equal immediately preceding ranges, label both date spans, and bound
+requests to 366 days. Food/net averages use food-logged days only, while total
+active burn includes activity-only dates. Weight charts plot actual dated readings.
+Logging-calendar dots mean records exist, not that a health target was achieved.
+
+Reuse opens a reviewed draft; selection never creates a meal. Presets and optional
+goal weight sync through Django, not browser-only storage. Presets are independent
+snapshots. New meal request keys protect uncertain retries; keep the same key
+with the same draft and surface conflicts. Suggestions retain recorded portions
+and are optional comparisons, not health prescriptions or invented meals.
+
+Preserve errors and drafts, confirm deletion/discard, return dialog focus and abort
+stale requests. Use local scroll regions for long food lists, tables and dialogs.
+The 2026-10-21 implementation has source/design-detector review only; runtime
+tests, browser checks and migration application require separate approval.
+
 ### Dashboard Smokey Companion
 
 The personal and business dashboards share the supplied seated Smokey Sr. sprite sheet as a stationary bottom-right companion. Keep the anchor fixed through scrolling, clicks, and route changes; do not reuse roaming or drag behavior. Cursor direction uses eased, crossfaded seated poses, while success and error notifications use happy and concerned expressions. Disable gaze motion for reduced-motion and touch-only users, and suspend animation while the document is hidden.

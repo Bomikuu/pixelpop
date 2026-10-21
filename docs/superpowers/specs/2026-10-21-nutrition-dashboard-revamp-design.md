@@ -1,6 +1,6 @@
 # Nutrition dashboard revamp
 
-Status: proposed design for review; not implemented.
+Status: approved and implemented in source on 2026-10-21. Runtime verification and migration application remain pending separate authorization.
 
 ## Intent and boundaries
 
@@ -155,4 +155,4 @@ Graph artifacts are temporary at `/tmp/pixelpop-nutrition-design/graphify-out/`;
 
 JEV evaluated a sanitized description of UI states with `jev-1.13.0`: 2.99 on an explicitly defined 0-3 completeness scale, confidence 0.99; usage 610 input and 17 output tokens. This is a model judgment, not an independent usability test, rendered screenshot review, nutrition advice or correctness guarantee. No real health values or records were submitted.
 
-Impeccable supplies the existing-world, compact-layout and progressive-disclosure constraints. Feature code and rendered design remain unimplemented pending this written spec's review.
+Impeccable supplied the existing-world, compact-layout and progressive-disclosure constraints. The implemented source is documented in `.impeccable/surfaces/nutrition.md`; rendered design has not been verified. The additive migration has not been applied and no tests/builds were run.

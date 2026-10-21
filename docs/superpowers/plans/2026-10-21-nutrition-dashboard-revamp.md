@@ -10,6 +10,29 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-21-nutrition-dashboard-revamp-design.md` (approved by the user on 2026-10-21).
 
+## Native execution record · 2026-10-21
+
+The user approved this plan and selected Native execution. No subagents were
+dispatched. Implementation/source review is complete; unchecked runtime commands
+below are deliberately **not executed**, not evidence of a failed test.
+
+- [x] Task 1: progress/range/copy/goal/sort helpers and authored Node assertions (`5a12dc2`).
+- [x] Task 2: consolidated daily overview, dedicated log panels and editing dialogs (`62d5cf8`).
+- [x] Task 3: Decimal-based bounded analytics and authored API assertions (`364cc67`).
+- [x] Task 4: independent analytics state, charts and sortable date navigation (`858ee43`).
+- [x] Task 5: additive preset/goal/retry schema, owner-scoped APIs and authored tests (`bb975b2`).
+- [x] Task 6: reviewed duplicates, historical foods, preset editing and stable draft keys (`d2a79b6`).
+- [x] Task 7: coverage calendar, actual-weight goals and recorded-portion suggestions (`62f3397`).
+- [x] Task 8: scoped source/design review, Graphify/JEV evidence and durable design notes.
+- [x] Follow-up source corrections: sparse charts, last-page recovery, inline errors,
+  zero-baseline comparisons, compact status hints and consistent tab-panel semantics.
+- [ ] Execute focused tests, build or browser acceptance: not authorized.
+- [ ] Apply `finance/0032_nutrition_presets_weight_goal.py` locally: requires approval.
+- [ ] Push or deploy: not requested. Production and Neon remain unchanged.
+
+The task-level lists below retain the original acceptance instructions. This
+execution record distinguishes implemented source from unrun validation.
+
 ## Global Constraints
 
 - Preserve existing records, setup requirements, manual calorie/macro targets, JSON entry, activity estimation, CRUD, validation, audit events and reminders.
@@ -217,4 +240,4 @@ New library pagination shape: `{count, page, page_size, results}`, default page 
 
 ## Execution handoff
 
-The spec is approved; this implementation plan still needs review. Recommended approach: **Native**, since daily and analytics components share state contracts and benefit from one continuous implementation context. Subagent-driven execution remains an alternative if the user prefers independent task-level reviews and the associated extra context cost. Do not start feature code until the plan is approved and the execution approach is selected.
+The spec and plan were approved and executed **natively**. Source changes are grouped in local feature commits. Tests, browser review, migration application, push and deployment remain separate, explicitly authorized steps.
