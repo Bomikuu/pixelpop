@@ -14,7 +14,7 @@ function Timeline({ title, items, type }) {
         </span>
         <div>
           <h3 className="text-lg font-semibold text-[#081a30]">{title}</h3>
-          <p className="mt-1 text-sm text-[#52677d]">{isExperience ? "Roles, products, and impact over time." : "The foundation that started the journey."}</p>
+          <p className="mt-1 text-sm text-[#52677d]">{isExperience ? "Roles and responsibilities." : "What I studied."}</p>
         </div>
       </header>
 
@@ -27,17 +27,16 @@ function Timeline({ title, items, type }) {
               <span className="absolute -left-[2.95rem] top-1 grid size-3.5 place-items-center" aria-hidden="true">
                 {highlighted ? (
                   <>
-                    <span className="absolute inset-0 rounded-full bg-[#1570ef]/35 motion-safe:animate-ping" />
-                    <span className="relative size-3.5 rounded-full bg-[#1570ef] shadow-[0_0_18px_5px_rgba(21,112,239,0.5)] ring-4 ring-[#fbfdff]" />
+                    <span className="relative size-3.5 rounded-full bg-[#1570ef] ring-4 ring-[#fbfdff]" />
                   </>
                 ) : (
                   <span className="size-3.5 rounded-full bg-[#a9bfd6] ring-4 ring-[#fbfdff]" />
                 )}
               </span>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <span className="block text-xs font-semibold uppercase tracking-[0.1em] text-[#6b7f95]">{item.period.replace(/[—–]/g, "-")}</span>
+                <span className="block text-xs font-semibold text-[#6b7f95]">{item.period.replace(/[—–]/g, "-")}</span>
                 {highlighted ? (
-                  <span className="bg-[#edf5ff] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#1570ef]">Current</span>
+                  <span className="bg-[#edf5ff] px-2.5 py-1 text-[10px] font-semibold text-[#1570ef]">Current</span>
                 ) : null}
               </div>
               <strong className="mt-2 block text-lg text-[#081a30]">{isExperience ? item.company : item.school}</strong>
@@ -55,19 +54,9 @@ export default function TimelineSection() {
   return (
     <section
       className="relative isolate overflow-hidden border-t border-[#9fb9d4] bg-[#fbfdff] py-24 text-[#081a30] sm:py-32"
-      style={{
-        backgroundImage: "linear-gradient(rgba(21, 112, 239, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(21, 112, 239, 0.08) 1px, transparent 1px)",
-        backgroundSize: "72px 72px",
-      }}
       aria-labelledby="experience-title"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,253,255,0.98)_0%,rgba(251,253,255,0.8)_54%,rgba(251,253,255,0.24)_86%)]" aria-hidden="true" />
-      <div className="pointer-events-none absolute inset-0 z-[1] hidden 2xl:block text-[10px] font-semibold uppercase leading-[1.7] tracking-[0.24em] text-[#6b93c2]" aria-hidden="true">
-        <p className="absolute left-10 top-40 m-0">Frontend<br />development</p>
-        <p className="absolute right-10 top-24 m-0 text-right">Code<br />review</p>
-        <p className="absolute bottom-12 left-10 m-0">Project<br />history</p>
-        <p className="absolute bottom-12 right-10 m-0 text-right">Education</p>
-      </div>
+
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>

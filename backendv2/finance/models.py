@@ -434,6 +434,7 @@ class NutritionProfile(models.Model):
     daily_target_protein_g = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=POSITIVE)
     daily_target_carbs_g = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=POSITIVE)
     daily_target_fat_g = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, validators=POSITIVE)
+    target_weight_kg = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True, validators=POSITIVE)
 
 
 class WeightEntry(models.Model):
@@ -494,6 +495,44 @@ class NutritionActivity(models.Model):
 
     class Meta:
         ordering = ["-date", "-created_at", "-id"]
+
+
+class MealPreset(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="nutrition_presets")
+    meal_name = models.CharField(max_length=160)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+
+class MealPresetItem(models.Model):
+    preset = models.ForeignKey(MealPreset, on_delete=models.CASCADE, related_name="items")
+    position = models.PositiveSmallIntegerField()
+    name = models.CharField(max_length=160)
+    amount = models.DecimalField(max_digits=12, decimal_places=3, validators=[MinValueValidator(Decimal("0.001"))])
+    unit = models.CharField(max_length=24)
+    calories = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+    protein = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+    carbs = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+    fat = models.DecimalField(max_digits=10, decimal_places=2, validators=NONNEGATIVE)
+
+    class Meta:
+        ordering = ["position", "id"]
+        constraints = [models.UniqueConstraint(fields=["preset", "position"], name="finance_nutrition_preset_position")]
+
+
+class NutritionMealSave(models.Model):
+    """Private retry ledger; deletion of a meal retains a replay tombstone."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    request_id = models.UUIDField()
+    signature = models.CharField(max_length=64)
+    meal = models.ForeignKey(Meal, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "request_id"], name="finance_nutrition_save_request")]
 
 
 class AuditEvent(models.Model):

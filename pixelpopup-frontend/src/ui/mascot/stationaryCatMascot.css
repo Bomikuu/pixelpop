@@ -25,7 +25,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background-image: url("/mascot/smokey-senior-seated.png");
+  background-image: url("/mascot/smokey-senior-seated.webp");
   background-repeat: no-repeat;
   background-size: calc(var(--smokey-width) * 8) calc(var(--smokey-width) * 16 / 3);
   background-position: calc(var(--frame-column) * var(--smokey-width) * -1) calc(var(--frame-top) * var(--smokey-width) / -192);
@@ -75,6 +75,10 @@
     --smokey-width: 60px;
     --smokey-height: 80px;
     --smokey-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .stationary-cat-mascot__pose {
+    background-image: url("/mascot/smokey-senior-seated-mobile.webp");
   }
 }
 

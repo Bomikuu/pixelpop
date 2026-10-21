@@ -109,7 +109,7 @@ components:
 
 **Creative North Star: "The Product Engineering Company"**
 
-The portfolio should feel like a senior product-engineering company presenting its capabilities and proof, with Mico as the accountable technical leader. The page is clear, restrained, and conversion-oriented: a direct offer, measurable evidence, understandable product stories, and a practical path to contact.
+The portfolio presents Mico's work in his own voice. Project names, responsibilities, screenshots, and published writing provide the substance. Keep the existing cobalt, navy, and type families, with clear project stories and a practical path to contact.
 
 Expression comes from scale, timing, and product truth rather than developer-page decoration. A full-hero Three.js system gives the first viewport technical energy, while light neutral sections and deep navy proof fields keep the experience credible and mature.
 
@@ -225,9 +225,15 @@ Borders are one pixel and neutral. The system does not combine strong borders wi
 
 The fixed white header uses a simple `<MA/>` wordmark on a sharp-cornered navy rectangle, plain-language links, a résumé action, a visible numeric progress value on desktop, and a four-pixel full-width progress track at all sizes. The initials remain white and the surrounding code syntax remains cobalt, with no logo hover animation. Mobile navigation expands below the header without changing visual language.
 
-### Animated Proof Wall
+### Project Reporting
 
-Cortico evidence uses two oversized animated metrics followed by four supporting measures on evidence navy. Numbers begin counting only when the panel enters the viewport. Screen readers receive the final value immediately; reduced-motion users receive the final value without animation.
+Cortico retains its original animated metric cards and interactive traffic timeline at the user's request. Preserve supplied figures and the timeline's explanation that intermediate values are a linear interpolation rather than reported monthly traffic. The About section explains Mico's responsibilities rather than showing project-count or years-of-experience counters.
+
+### Portfolio Refinement
+
+Use sentence-case labels without decorative letter spacing. Center the process heading and its description. Process navigation uses compact, content-width pill tabs with Lucide icons, centered beneath the heading without a surrounding rail. The selected pill has a cobalt fill and white text; other pills have white fills, quiet borders, and clear hover and focus states. Let the pills wrap into centered rows on narrow screens rather than stretching them to fill the section. Preserve keyboard navigation. Keep gradients only where needed to maintain hero readability; ordinary sections use flat fields. Omit colored glows, decorative dot grids, and initial-letter author avatars outside the explicitly restored Cortico presentation. Article bylines use the author's actual name. Keep existing routes, section anchors, project screenshots, typography, and contact behavior.
+
+Generated initial HTML includes the homepage's project descriptions and work history, links to published writing, full cached article bodies, and DineEase and PixelCore project details. Derive these from the same records as the React pages and the published API; show the same content to readers and crawlers. Keep an article-body snapshot for API outages during builds.
 
 ### Selected Work Scrollytelling
 
@@ -264,6 +270,47 @@ Application profile keeps reusable project records separate from freeform facts.
 Generate experience examples opens a compact shared-field parameter form, then the existing cost quote. Hypothetical examples and linked study plans are separate Interview preparation proposals, not résumé facts. Approve wording for preparation is distinct from Record my actual contribution, which requires factual confirmation. Unconfirmed examples never enter résumé exports or change assessment evidence coverage. Offer one priority clarification before source-backed tailoring, with an explicit option to continue unresolved. Accepted examples and accepted résumé changes can seed preparation only after another explicit cost approval; no automatic paid follow-up. Keep long examples collapsed, preserve earlier preparation, and reject stale or foreign proposal references.
 
 Final check → Resolve issues offers Auto-answer all through the existing quote and spending guard. Draft answers use reviewed profile/résumé sources, confirmed ASTA/independent projects and prior factual answers; never treat hypothetical examples or checklist suggestions as history. Preserve existing replies, show a compact batch review with expandable sources and longer answers, and require one accuracy confirmation before saving. The one-pass résumé fix has its own separate cost approval and proposal review. Show honest request activity and allow recovery of saved answers without another paid call; reject results from changed checklists, sources or saved answer versions. Keep the modal's shared scroll body and fixed footer, alongside the existing individual-answer controls.
+
+### Personal Nutrition Workspace
+
+Nutrition stays within the dashboard's existing white surfaces, Instrument Sans,
+cobalt actions, solid-bordered fields, Lucide icons and shared shadcn/Radix
+controls. Runtime `--pd-*` tokens and shared dashboard primitives remain canonical;
+this feature does not change portfolio tokens or introduce another visual theme.
+Use low variance (3/10), restrained motion (2/10) and medium density (5/10).
+
+Keep the daily date in the workspace header. Below a compact toolbar, show one
+daily calorie/macro overview, then a roughly two-thirds meals / one-third activity
+and weight split on desktop, stacked on mobile. Targets and weight entry belong
+in separate dialogs. Meals expose food details on expansion; duplication and
+save-as-preset live in a secondary menu. Missing entries use short inline states,
+not large empty illustrations. Sparse weight data stays compact.
+
+Food is the default progress basis; Net explicitly subtracts logged active burn,
+not total expenditure. A food-over-target warning survives switching to Net.
+Below 90%, approaching 90–<100%, exactly reached and over-target states include
+text, not color alone. Clamp fills, retain real negative/over-target values, and
+respect reduced motion. Missing food stays missing; a logged zero remains real.
+Historical comparisons use current targets without modifying stored entries.
+
+Analytics has its own Week / Month / Custom dates and Overview / Trends / History
+tabs, independent of daily navigation. Overview uses four primary metrics and a
+smaller supporting row; charts and sortable history live in their dedicated views.
+Compare equal immediately preceding ranges, label both date spans, and bound
+requests to 366 days. Food/net averages use food-logged days only, while total
+active burn includes activity-only dates. Weight charts plot actual dated readings.
+Logging-calendar dots mean records exist, not that a health target was achieved.
+
+Reuse opens a reviewed draft; selection never creates a meal. Presets and optional
+goal weight sync through Django, not browser-only storage. Presets are independent
+snapshots. New meal request keys protect uncertain retries; keep the same key
+with the same draft and surface conflicts. Suggestions retain recorded portions
+and are optional comparisons, not health prescriptions or invented meals.
+
+Preserve errors and drafts, confirm deletion/discard, return dialog focus and abort
+stale requests. Use local scroll regions for long food lists, tables and dialogs.
+The 2026-10-21 implementation has source/design-detector review only; runtime
+tests, browser checks and migration application require separate approval.
 
 ### Dashboard Smokey Companion
 

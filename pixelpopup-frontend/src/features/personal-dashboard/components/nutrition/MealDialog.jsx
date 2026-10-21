@@ -38,11 +38,13 @@ function initialDraft(meal, date) {
   };
 }
 
-export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }) {
-  const [initial] = useState(() => initialDraft(meal, date));
+export default function MealDialog({ meal, initialMealDraft, presetMode = false, date, onClose, onSave, restoreFocus }) {
+  const source = meal || initialMealDraft;
+  const [requestId] = useState(() => crypto.randomUUID());
+  const [initial] = useState(() => initialDraft(source, date));
   const [draft, setDraft] = useState(initial);
   const [mode, setMode] = useState("manual");
-  const [initialJson] = useState(() => meal ? JSON.stringify({ ...(meal.datetime ? { datetime: meal.datetime } : {}), meal_name: meal.meal_name, items: meal.items, totals: meal.totals }, null, 2) : "");
+  const [initialJson] = useState(() => source ? JSON.stringify({ ...(source.datetime && !presetMode ? { datetime: source.datetime } : {}), meal_name: source.meal_name, items: source.items, totals: source.totals }, null, 2) : "");
   const [jsonText, setJsonText] = useState(initialJson);
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState("");
@@ -84,7 +86,7 @@ export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }
       const futureDatetime = parsed.datetime && Date.parse(parsed.datetime) > Date.now();
       const datetime = futureDatetime ? manilaNowDateTime() : parsed.datetime;
       setPreview({ ...parsed, datetime, adjustedFromFuture: Boolean(futureDatetime) });
-      if (datetime) setDraft((current) => ({
+      if (datetime && !presetMode) setDraft((current) => ({
         ...current,
         date: datetime.slice(0, 10),
         time: datetime.slice(11, 16),
@@ -100,7 +102,7 @@ export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }
   async function save(event) {
     event.preventDefault();
     if (saving) return;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) {
+    if (!presetMode && !/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) {
       setError("Choose a meal date.");
       return;
     }
@@ -135,22 +137,25 @@ export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }
       datetime = manilaNowDateTime();
       selectedDate = datetime.slice(0, 10);
     }
-    if (selectedDate > today()) {
+    if (!presetMode && selectedDate > today()) {
       setError("Choose today or an earlier meal date.");
       return;
     }
-    if (!Number.isFinite(Date.parse(datetime)) || Date.parse(datetime) > Date.now()) {
+    if (!presetMode && (!Number.isFinite(Date.parse(datetime)) || Date.parse(datetime) > Date.now())) {
       setError("A meal cannot be logged for a future time.");
       return;
     }
     setSaving(true);
     setError("");
     try {
-      await onSave({ date: selectedDate, datetime, meal_name: parsed.meal_name, items: parsed.items }, meal?.id);
+      await onSave({ ...(presetMode ? {} : { date: selectedDate, datetime, ...(!meal?.id ? { request_id: requestId } : {}) }), meal_name: parsed.meal_name, items: parsed.items }, meal?.id);
       onClose();
     } catch (failure) {
       const fieldText = failure.fields && typeof failure.fields === "object" ? Object.values(failure.fields).flat(Infinity).find((value) => typeof value === "string") : null;
-      setError(fieldText || failure.message || "The meal was not saved. Try again.");
+      const message = failure.message?.includes("request timed out") && !presetMode
+        ? "The request timed out. Your meal may already be saved. Retry this same draft to check safely, or check your log before starting a new entry."
+        : failure.message;
+      setError(fieldText || message || "The meal was not saved. Try again.");
     } finally {
       setSaving(false);
     }
@@ -159,17 +164,18 @@ export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }
   return (
     <>
       <Dialog open onOpenChange={(open) => { if (!open) closeRequested(); }}>
-        <DialogContent className="personal-dashboard max-h-[85dvh] overflow-y-auto bg-white sm:max-w-[min(75vw,58rem)]" onCloseAutoFocus={restoreFocus}>
+        <DialogContent className="personal-dashboard max-h-[85dvh] overflow-y-auto bg-white sm:max-w-[min(75vw,58rem)]" onCloseAutoFocus={restoreFocus} onInteractOutside={(event) => { if (saving) event.preventDefault(); }} onEscapeKeyDown={(event) => { if (saving) event.preventDefault(); }}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Utensils className="size-5 text-[var(--pd-primary)]" aria-hidden="true" />{meal ? "Edit meal" : "Add meal"}</DialogTitle>
-            <DialogDescription>Record when you ate this meal. The selected date is used; pasted JSON can supply the time.</DialogDescription>
+            <DialogTitle className="flex items-center gap-2"><Utensils className="size-5 text-[var(--pd-primary)]" aria-hidden="true" />{presetMode ? "Save reusable meal" : meal ? "Edit meal" : initialMealDraft ? "Review copied meal" : "Add meal"}</DialogTitle>
+            <DialogDescription>{presetMode ? "Save these portions to your account. This doesn’t log a meal or change previous entries." : "Review the date, portions and nutrients before saving. Nothing is logged until you save."}</DialogDescription>
           </DialogHeader>
           <form noValidate onSubmit={save} className="space-y-5">
+            <fieldset disabled={saving} className="min-w-0 space-y-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <div className="flex flex-wrap gap-3">
+              {!presetMode && <div className="flex flex-wrap gap-3">
                 <div className="w-44 space-y-1.5"><Label htmlFor="nutrition-meal-date">Date eaten</Label><Input id="nutrition-meal-date" type="date" value={draft.date} max={today()} onChange={(event) => { setDraft((current) => ({ ...current, date: event.target.value })); setError(""); }} /></div>
                 <div className="w-36 space-y-1.5"><Label htmlFor="nutrition-meal-time">Time eaten</Label><Input id="nutrition-meal-time" type="time" value={draft.time} max={draft.date === today() ? manilaClock() : undefined} onChange={(event) => { setDraft((current) => ({ ...current, time: event.target.value })); setError(""); }} /></div>
-              </div>
+              </div>}
               <div className="inline-flex rounded-md border border-[var(--pd-border)] bg-slate-50 p-1" aria-label="Entry method">
                 {["manual", "json"].map((choice) => <button key={choice} type="button" aria-pressed={mode === choice} className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--pd-primary)] ${mode === choice ? "bg-white text-[var(--pd-primary)] shadow-sm" : "text-slate-600 hover:text-slate-950"}`} onClick={() => { setMode(choice); setError(""); }}>{choice === "manual" ? <Pencil className="size-4" aria-hidden="true" /> : <FileJson className="size-4" aria-hidden="true" />}{choice === "manual" ? "Manual entry" : "Paste JSON"}</button>)}
               </div>
@@ -186,7 +192,7 @@ export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }
                   </div>)}
                   <Button type="button" variant="outline" disabled={draft.items.length >= 100} onClick={() => setDraft((current) => ({ ...current, items: [...current.items, emptyItem()] }))}><Plus className="size-4" aria-hidden="true" />Add food item</Button>
                 </div>
-                <p className="rounded-md bg-blue-50 px-3 py-2 text-sm text-slate-700" role="status">{liveTotals ? `Meal total: ${numberLabel(liveTotals.calories)} kcal · ${numberLabel(liveTotals.protein)} g protein · ${numberLabel(liveTotals.carbs)} g carbs · ${numberLabel(liveTotals.fat)} g fat` : "Complete all nutrient fields to preview meal totals."}</p>
+                <p className="rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-950" role="status">{liveTotals ? `Meal total: ${numberLabel(liveTotals.calories)} kcal · ${numberLabel(liveTotals.protein)} g protein · ${numberLabel(liveTotals.carbs)} g carbs · ${numberLabel(liveTotals.fat)} g fat` : "Complete all nutrient fields to preview meal totals."}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -198,7 +204,8 @@ export default function MealDialog({ meal, date, onClose, onSave, restoreFocus }
               </div>
             )}
             {error && <p id="nutrition-meal-error" role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900">{error}</p>}
-            <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={closeRequested}><X className="size-4" aria-hidden="true" />Cancel</Button><Button type="submit" disabled={saving} className="min-w-36">{saving ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Save className="size-4" aria-hidden="true" />}{saving ? "Saving…" : "Save Meal"}</Button></DialogFooter>
+            <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={closeRequested}><X className="size-4" aria-hidden="true" />Cancel</Button><Button type="submit" disabled={saving} className="min-w-36">{saving ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Save className="size-4" aria-hidden="true" />}{saving ? "Saving…" : presetMode ? "Save preset" : "Save Meal"}</Button></DialogFooter>
+            </fieldset>
           </form>
         </DialogContent>
       </Dialog>

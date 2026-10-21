@@ -4,6 +4,8 @@ import path from "node:path";
 import { portfolioServiceCatalog } from "../src/pages/portfolio/services/portfolioServices.js";
 import { dineEaseProject } from "../src/pages/portfolio/dineease/dineeaseData.js";
 import { pixelCoreProject } from "../src/pages/portfolio/pixelcore/pixelcoreData.js";
+import { createPortfolioContent } from "./portfolio-content.mjs";
+import { portfolioIntroduction } from "../src/pages/portfolio/portfolioData.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dist = path.join(root, "dist");
@@ -16,8 +18,8 @@ function add(pathname, title, description, keywords, image = portfolioImage) {
   routes.push({ pathname, title, description, keywords, image });
 }
 
-add("/", "Mico Ang | Senior Frontend & Full-Stack Developer", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products.", "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead");
-add("/portfolio", "Mico Ang | Senior Frontend & Full-Stack Developer", "Portfolio of Mico Ang, a senior frontend engineer, full-stack developer, and technical lead building clear, fast, maintainable products.", "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead");
+add("/", "Mico Ang | Senior Frontend & Full-Stack Developer", portfolioIntroduction.summary, "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead");
+add("/portfolio", "Mico Ang | Senior Frontend & Full-Stack Developer", portfolioIntroduction.summary, "Mico Ang, senior frontend engineer, full-stack developer, React, Vue, Django, technical lead");
 add("/portfolio/work-with-me", "Work with Mico Ang | Frontend & Full-Stack Development", "Work with Mico Ang directly or engage ASTA Softwares for frontend leadership, full-stack product delivery, and coordinated software development.", "hire frontend developer, full-stack development, technical leadership, Mico Ang");
 add("/portfolio/services", "Web Product Services | Mico Ang", "Explore Mico Ang's services in web development, 3D, AI automation, content systems, performance, technical SEO, and product support.", "web development services, Three.js development, AI automation, technical SEO, Mico Ang");
 add("/portfolio/articles", "Articles on Frontend, SEO & AI | Mico Ang", "Practical notes by Mico Ang on frontend systems, web performance, technical SEO, AI, and software delivery.", "frontend engineering articles, technical SEO, web performance, AI development");
@@ -50,6 +52,7 @@ for (const filename of await readdir(serviceDir)) {
 }
 
 let articles = JSON.parse(await readFile(path.join(root, "scripts/article-seo-cache.json"), "utf8"));
+const cachedArticles = new Map(articles.map((article) => [article.slug, article]));
 try {
   const api = (process.env.SEO_ARTICLES_API_URL || "https://pixelpopup-backend.vercel.app/api/v1/portfolio/articles/");
   const response = await fetch(api, { signal: AbortSignal.timeout(8000) });
@@ -64,13 +67,34 @@ try {
     published.push(...(data.results || []));
     next = data.next;
   }
-  articles = published.map((article) => ({
-    slug: article.slug,
-    title: article.seo_title || article.title,
-    excerpt: article.seo_description || article.excerpt,
-    category: article.category?.name || "Articles",
-    image: article.cover_image_url || portfolioImage,
-  }));
+  const articleBase = new URL(api);
+  articleBase.pathname = `${articleBase.pathname.replace(/\/$/, "")}/`;
+  articleBase.search = "";
+  articles = [];
+  for (let offset = 0; offset < published.length; offset += 4) {
+    const batch = await Promise.all(published.slice(offset, offset + 4).map(async (summary) => {
+      let article = summary;
+      try {
+        const detail = await fetch(new URL(`${encodeURIComponent(summary.slug)}/`, articleBase), { signal: AbortSignal.timeout(8000) });
+        if (!detail.ok) throw new Error(`HTTP ${detail.status}`);
+        article = await detail.json();
+      } catch (error) {
+        console.warn(`Article content unavailable for ${summary.slug} (${error.message}); using its cached body.`);
+      }
+      return {
+        slug: summary.slug,
+        title: article.seo_title || article.title,
+        excerpt: article.seo_description || article.excerpt,
+        category: article.category?.name || "Articles",
+        image: article.cover_image_url || portfolioImage,
+        content: article.content || cachedArticles.get(summary.slug)?.content || "",
+        author: article.author?.full_name || article.author_name || "Mico Ang",
+        published_at: article.published_at,
+        updated_at: article.updated_at,
+      };
+    }));
+    articles.push(...batch);
+  }
 } catch (error) {
   console.warn(`Article SEO feed unavailable (${error.message}); using the checked-in article snapshot.`);
 }
@@ -82,6 +106,8 @@ for (const article of articles) {
 function escapeHtml(value) {
   return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
+
+const portfolioContent = createPortfolioContent(articles);
 
 const template = await readFile(path.join(dist, "index.html"), "utf8");
 const dashboardDirectory = path.join(dist, "dashboard");
@@ -95,19 +121,21 @@ await writeFile(path.join(fallbackDirectory, "index.html"), template);
 const fallbackStyles = `<style>
       .seo-fallback{box-sizing:border-box;min-height:100vh;background:#f8fafc;color:#0f172a;font-family:"Instrument Sans",Arial,sans-serif}
       .seo-fallback *{box-sizing:border-box}.seo-fallback header{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px;max-width:1280px;margin:auto;padding:0 24px;border-bottom:1px solid #e2e8f0}
-      .seo-fallback header a{color:inherit;text-decoration:none;font-weight:700}.seo-fallback nav{display:flex;gap:24px;font-size:14px}.seo-fallback main{max-width:1280px;min-height:calc(100vh - 76px);margin:auto;padding:80px 24px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}
+      .seo-fallback header a{color:inherit;text-decoration:none;font-weight:700}.seo-fallback nav{display:flex;gap:24px;font-size:14px}.seo-fallback main{max-width:1280px;min-height:calc(100vh - 76px);margin:auto;padding:80px 24px;display:flex;flex-direction:column;align-items:flex-start}
       .seo-fallback h1{max-width:760px;margin:0;font-family:"Saira Condensed",Arial,sans-serif;font-size:clamp(64px,7vw,96px);line-height:.93;letter-spacing:-.04em}
       .seo-fallback h1 span{display:block;color:#2f5bff}.seo-fallback p{max-width:630px;margin:28px 0 0;font-size:clamp(18px,2vw,21px);line-height:1.6;color:#475569}
       .seo-fallback a.seo-fallback-cta{display:inline-block;margin-top:32px;padding:14px 24px;background:#2f5bff;color:white;text-decoration:none;font-weight:700;border-radius:6px}
       .seo-fallback--asta{background:#061427;color:white}.seo-fallback--asta header{border-color:#28415e}.seo-fallback--asta p{color:#bdc9dc}.seo-fallback--asta h1 span{color:#59aaff}
+      .seo-fallback section{width:100%;margin-top:64px;scroll-margin-top:24px}.seo-fallback h2{font-size:32px;line-height:1.2}.seo-fallback h3{font-size:23px;line-height:1.3}.seo-fallback article{max-width:760px;margin-top:32px;padding-top:24px;border-top:1px solid #e2e8f0}.seo-fallback article p{margin-top:16px;font-size:18px}.seo-fallback ul{max-width:760px;padding-left:24px;line-height:1.8}.seo-fallback li{margin-top:8px}.seo-fallback a{color:#2149dc;text-underline-offset:3px}.seo-fallback pre{max-width:100%;overflow:auto;padding:20px;background:#e2e8f0}.seo-fallback img{max-width:100%;height:auto}.seo-fallback--asta a{color:#93c5fd}
       @media(max-width:640px){.seo-fallback header{height:68px;padding:0 20px}.seo-fallback main{min-height:calc(100vh - 68px);padding:48px 20px}.seo-fallback h1{font-size:clamp(58px,16vw,76px)}.seo-fallback nav{gap:14px}}
     </style>`;
 for (const route of routes) {
   const url = `${origin}${route.pathname}`;
   const isAsta = route.pathname.startsWith("/asta");
   const isArticle = route.pathname.includes("/articles/") || route.pathname.startsWith("/portfolio/how-tos/");
+  const article = articles.find((item) => route.pathname === `/portfolio/articles/${item.slug}`);
   const structuredData = isArticle
-    ? { "@context": "https://schema.org", "@type": "Article", headline: route.title.replace(/ \| Mico Ang$/, ""), description: route.description, image: route.image, url, author: { "@type": "Person", name: "Mico Ang" } }
+    ? { "@context": "https://schema.org", "@type": "Article", headline: route.title.replace(/ \| Mico Ang$/, ""), description: route.description, image: route.image, url, author: { "@type": "Person", name: article?.author || "Mico Ang" }, datePublished: article?.published_at, dateModified: article?.updated_at }
     : isAsta
       ? { "@context": "https://schema.org", "@type": "Organization", name: "ASTA Softwares", url: `${origin}/asta`, image: astaImage, description: route.description }
       : { "@context": "https://schema.org", "@type": "Person", name: "Mico Ang", url: `${origin}${route.pathname === "/" ? "/" : "/portfolio"}`, image: portfolioImage, description: route.description };
@@ -129,14 +157,15 @@ for (const route of routes) {
     `<script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g, "\\u003c")}</script>`,
   ].join("\n    ");
   const home = route.pathname === "/" || route.pathname === "/portfolio";
+  const content = portfolioContent.get(route.pathname) || "";
   const astaHome = route.pathname === "/asta";
   const fallbackHeading = home ? "Meet <span>Mico Ang.</span>" : astaHome ? "<span>ASTA</span> Softwares" : escapeHtml(route.title.replace(/ \| (Mico Ang|ASTA Softwares)$/, ""));
   const fallbackDescription = home
-    ? "Senior frontend engineer, full-stack developer, and technical lead turning complex product requirements into clear, high-performing experiences."
+    ? portfolioIntroduction.summary
     : astaHome
-      ? "We build custom software around real business workflows — helping your team work smarter, move faster, and achieve more."
+      ? "We build business applications, employee systems, and interactive websites. We started ASTA in 2021 and are developing DineEase, our restaurant platform."
       : route.description;
-  const fallback = `<div class="seo-fallback${isAsta ? " seo-fallback--asta" : ""}"><header><a href="${isAsta ? "/asta" : route.pathname === "/" ? "/" : "/portfolio"}">${isAsta ? "ASTA Softwares" : "Mico Ang"}</a><nav aria-label="Primary"><a href="/portfolio">Portfolio</a><a href="/asta">ASTA</a></nav></header><main><h1>${fallbackHeading}</h1><p>${escapeHtml(fallbackDescription)}</p><a class="seo-fallback-cta" href="${isAsta ? "/asta/services" : "/portfolio/work-with-me"}">${isAsta ? "Explore services" : "Work with me"}</a></main></div>`;
+  const fallback = `<div class="seo-fallback${isAsta ? " seo-fallback--asta" : ""}"><header><a href="${isAsta ? "/asta" : route.pathname === "/" ? "/" : "/portfolio"}">${isAsta ? "ASTA Softwares" : "Mico Ang"}</a><nav aria-label="Primary"><a href="/portfolio">Portfolio</a><a href="/portfolio/articles">Articles</a><a href="/asta">ASTA</a></nav></header><main><h1>${fallbackHeading}</h1><p>${escapeHtml(fallbackDescription)}</p><a class="seo-fallback-cta" href="${isAsta ? "/asta/services" : "/portfolio/work-with-me"}">${isAsta ? "Explore services" : "Work with me"}</a>${content}</main></div>`;
   const html = template
     .replace('<meta name="robots" content="noindex,follow" />', '<meta name="robots" content="index,follow" />')
     .replace(/<title>.*?<\/title>/, `<title>${escapeHtml(route.title)}</title>`)

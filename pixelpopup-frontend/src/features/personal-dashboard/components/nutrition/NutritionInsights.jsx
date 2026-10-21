@@ -1,31 +1,40 @@
-import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { Scale } from "lucide-react";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../../ui/chart";
-import { EmptyState, Panel } from "../Panel";
-import { dateLabel } from "../../lib/format";
+import { useEffect, useState } from "react";
+import { ChartNoAxesCombined, History, LayoutGrid } from "lucide-react";
+import { Panel, ErrorState } from "../Panel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
+import { Input } from "../../ui/input";
+import { Label } from "../../ui/label";
+import { dateLabel, today } from "../../lib/format";
+import { resolveAnalyticsRange, shiftDay } from "../../nutrition/dashboardModel";
 import NutritionPeriodSummary from "./NutritionPeriodSummary";
+import NutritionCharts from "./NutritionCharts";
+import NutritionHistoryTable from "./NutritionHistoryTable";
 
-const weightConfig = { weight: { label: "Weight (kg)", color: "var(--chart-2)" } };
-const number = (value) => Number(value).toLocaleString("en-PH", { maximumFractionDigits: 2 });
-
-export default function NutritionInsights({ summary, profile, period, onPeriodChange, periodState, onRetry }) {
-  const weights = summary.weights.map((row) => ({ date: row.date, label: dateLabel(row.date), weight: Number(row.weight_kg) }));
-
-  return <div className="space-y-5">
-    <NutritionPeriodSummary summary={summary} profile={profile} period={period} onPeriodChange={onPeriodChange} periodState={periodState} onRetry={onRetry} />
-    <Panel title="Weight readings" description="Only dates you measured are plotted; other dates stay blank.">
-      {weights.length ? <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(19rem,1fr)]">
-        <ChartContainer config={weightConfig} className="h-56 w-full min-w-0">
-          <LineChart accessibilityLayer data={weights} margin={{ left: 0, right: 12 }}>
-            <CartesianGrid vertical={false} />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={20} />
-            <YAxis type="number" domain={["auto", "auto"]} tickLine={false} axisLine={false} width={42} tickFormatter={(value) => number(value)} />
-            <ChartTooltip content={<ChartTooltipContent labelFormatter={(_, payload) => payload?.[0]?.payload?.date ? dateLabel(payload[0].payload.date) : "Weight"} />} />
-            <Line type="linear" dataKey="weight" stroke="var(--color-weight)" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-          </LineChart>
-        </ChartContainer>
-        <div className="overflow-hidden rounded-lg border border-[var(--pd-border)]"><div className="max-h-56 overflow-auto"><table className="w-full text-left text-sm"><caption className="sr-only">Recorded weights</caption><thead className="sticky top-0 bg-slate-100"><tr><th scope="col" className="px-3 py-2 font-semibold">Date</th><th scope="col" className="px-3 py-2 text-right font-semibold">Weight</th></tr></thead><tbody>{weights.map((row) => <tr key={row.date} className="border-t border-[var(--pd-border)] transition-colors hover:bg-blue-50/50"><th scope="row" className="px-3 py-2 font-normal">{row.label}</th><td className="px-3 py-2 text-right tabular-nums">{number(row.weight)} kg</td></tr>)}</tbody></table></div></div>
-      </div> : <EmptyState icon={Scale} title="No weight readings yet" message="Log a reading whenever you choose. Unrecorded days remain blank." />}
-    </Panel>
-  </div>;
+export default function NutritionInsights({ initialDate, profile, request, refreshKey, onOpenDay }) {
+  const [period, setPeriod] = useState("week"), [anchor, setAnchor] = useState(initialDate);
+  const [customStart, setCustomStart] = useState(() => shiftDay(initialDate, -6)), [customEnd, setCustomEnd] = useState(initialDate);
+  const [tab, setTab] = useState("overview"), [retry, setRetry] = useState(0);
+  const [state, setState] = useState({ key: "", data: null, error: "" });
+  let range, rangeError = "";
+  try { range = resolveAnalyticsRange({ period, anchor, start: customStart, end: customEnd, today: today() }); } catch (failure) { rangeError = failure.message; }
+  const start = range?.start, end = range?.end;
+  const key = `${start}:${end}:${refreshKey}:${retry}`;
+  useEffect(() => {
+    if (!start || !end) return;
+    const controller = new AbortController();
+    request(`nutrition/analytics/?start=${start}&end=${end}`, { signal: controller.signal }).then((data) => { if (!controller.signal.aborted) setState({ key, data, error: "" }); }).catch((failure) => { if (!controller.signal.aborted) setState({ key, data: null, error: failure.message }); });
+    return () => controller.abort();
+  }, [start, end, key, request]);
+  const loading = state.key !== key;
+  return <Panel title="Nutrition analytics" description="Averages use food-logged days. Unlogged days aren’t zero intake.">
+    <div className="mb-4 flex flex-wrap items-end gap-3"><div className="space-y-1.5"><Label htmlFor="nutrition-report-period">Period</Label><Select value={period} onValueChange={setPeriod}><SelectTrigger id="nutrition-report-period" className="w-32"><SelectValue /></SelectTrigger><SelectContent position="popper" align="start" className="personal-dashboard">{["week", "month", "custom"].map((value) => <SelectItem key={value} value={value}>{value === "week" ? "Week" : value === "month" ? "Month" : "Custom"}</SelectItem>)}</SelectContent></Select></div>
+      {period === "custom" ? <><div className="space-y-1.5"><Label htmlFor="report-start">From</Label><Input className="w-40" id="report-start" type="date" max={today()} value={customStart} onChange={(event) => setCustomStart(event.target.value)} /></div><div className="space-y-1.5"><Label htmlFor="report-end">To</Label><Input className="w-40" id="report-end" type="date" max={today()} value={customEnd} onChange={(event) => setCustomEnd(event.target.value)} /></div></> : <div className="space-y-1.5"><Label htmlFor="report-anchor">{period === "week" ? "Week ending" : "Month containing"}</Label><Input id="report-anchor" className="w-40" type="date" max={today()} value={anchor} onChange={(event) => setAnchor(event.target.value)} /></div>}
+    </div>
+    {rangeError ? <p role="alert" className="text-sm text-red-700">{rangeError}</p> : <><p className="mb-4 text-xs text-slate-600">{dateLabel(start)} – {dateLabel(end)}<span className="mt-1 block">Compared with {dateLabel(range.previousStart)} – {dateLabel(range.previousEnd)}</span></p>
+      <Tabs value={tab} onValueChange={setTab} className="gap-4"><TabsList aria-label="Nutrition analytics views" className="max-w-full">{[["overview", "Overview", LayoutGrid], ["trends", "Trends", ChartNoAxesCombined], ["history", "History", History]].map(([value, label, Icon]) => <TabsTrigger key={value} value={value}><Icon className="size-4" />{label}</TabsTrigger>)}</TabsList>
+        {loading ? <TabsContent value={tab}><p role="status" className="min-h-64 py-8 text-sm text-slate-500">Loading report…</p></TabsContent> : state.error ? <TabsContent value={tab}><ErrorState message={state.error} retry={() => setRetry((value) => value + 1)} /></TabsContent> : state.data && <><TabsContent value="overview"><NutritionPeriodSummary data={state.data} profile={profile} /></TabsContent><TabsContent value="trends"><div className="grid gap-5 xl:grid-cols-2">{["calories", "macros", "activity", "weight"].map((kind) => <NutritionCharts key={kind} kind={kind} days={state.data.days} weights={state.data.weights} profile={profile} />)}</div></TabsContent><TabsContent value="history"><NutritionHistoryTable rows={state.data.days} onOpenDay={onOpenDay} /></TabsContent></>}
+      </Tabs>
+    </>}
+  </Panel>;
 }

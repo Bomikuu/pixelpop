@@ -69,20 +69,12 @@ function FooterLinkList({ links, routeBase }) {
 export default function PortfolioFooter({ routeBase = "" }) {
   return (
     <footer id="site-footer" className="relative isolate scroll-mt-24 overflow-hidden bg-[#070d18] px-5 pb-8 pt-16 text-blue-100/75 sm:px-8 sm:pt-20">
-      <div
-        className="pointer-events-none absolute right-10 top-10 size-36 bg-[radial-gradient(circle,rgba(96,165,250,0.4)_1px,transparent_1.5px)] bg-[size:20px_20px] opacity-30"
-        aria-hidden="true"
-      />
 
       <div className="relative mx-auto max-w-[96rem]">
         <Reveal>
           <div className="relative mx-auto max-w-7xl overflow-hidden rounded-2xl border border-blue-300/35 bg-[#0b1830] p-7 sm:p-9 lg:grid lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-14 lg:p-10">
             <div
               className="pointer-events-none absolute -right-28 -top-40 size-80 rounded-full border border-blue-500/30"
-              aria-hidden="true"
-            />
-            <div
-              className="pointer-events-none absolute bottom-5 right-8 size-24 bg-[radial-gradient(circle,rgba(147,197,253,0.55)_1px,transparent_1.5px)] bg-[size:18px_18px] opacity-40"
               aria-hidden="true"
             />
 
@@ -140,13 +132,13 @@ export default function PortfolioFooter({ routeBase = "" }) {
                 );
               })}
             </div>
-            <p className="mt-8 max-w-xs border-t border-white/15 pt-5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-blue-100/45">
-              Better products through people, craft, and clarity.
+            <p className="mt-8 max-w-xs border-t border-white/15 pt-5 text-[0.68rem] font-semibold text-blue-100/65">
+              Based in Davao City. Available for remote work.
             </p>
           </div>
 
           <nav className="lg:border-l lg:border-white/10 lg:px-10" aria-label="Portfolio navigation">
-            <h3 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">
+            <h3 className="flex items-center gap-3 text-xs font-semibold text-blue-100">
               <Navigation size={17} className="text-blue-300" aria-hidden="true" />
               Portfolio
             </h3>
@@ -154,7 +146,7 @@ export default function PortfolioFooter({ routeBase = "" }) {
           </nav>
 
           <nav className="lg:border-l lg:border-white/10 lg:px-10" aria-label="Build resources">
-            <h3 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">
+            <h3 className="flex items-center gap-3 text-xs font-semibold text-blue-100">
               <Boxes size={17} className="text-blue-300" aria-hidden="true" />
               Explore
             </h3>
@@ -162,7 +154,7 @@ export default function PortfolioFooter({ routeBase = "" }) {
           </nav>
 
           <div className="lg:border-l lg:border-white/10 lg:pl-10">
-            <h3 className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">
+            <h3 className="flex items-center gap-3 text-xs font-semibold text-blue-100">
               <Mail size={17} className="text-blue-300" aria-hidden="true" />
               Contact
             </h3>
@@ -177,7 +169,7 @@ export default function PortfolioFooter({ routeBase = "" }) {
               Available for senior frontend, full-stack, and leadership opportunities.
             </p>
             <p className="mt-5 flex items-center gap-3 text-sm font-medium text-emerald-300">
-              <span className="size-2.5 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.7)]" aria-hidden="true" />
+              <span className="size-2.5 rounded-full bg-emerald-300" aria-hidden="true" />
               Open to opportunities
             </p>
           </div>

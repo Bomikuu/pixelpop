@@ -99,9 +99,7 @@ body.portfolio-motion-ready {
 }
 
 .portfolio-hero-surface {
-  background:
-    radial-gradient(circle at 82% 44%, rgba(47, 91, 255, 0.14), transparent 34%),
-    #f8fafc;
+  background: #f8fafc;
 }
 
 .portfolio-hero-surface .portfolio-three-field {
@@ -121,9 +119,7 @@ body.portfolio-motion-ready {
 }
 
 .portfolio-placeholder {
-  background:
-    linear-gradient(135deg, rgba(47, 91, 255, 0.08), transparent 56%),
-    #f1f5f9;
+  background: #f1f5f9;
 }
 
 .portfolio-media-enter {
@@ -185,70 +181,6 @@ body.portfolio-motion-ready {
   background: #f8fafc;
   box-shadow: 0 24px 54px -42px rgba(15, 23, 42, 0.7);
   transform: translateY(-4px);
-}
-
-.portfolio-process-runway {
-  position: relative;
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.portfolio-process-runway::before {
-  position: absolute;
-  inset: 1.5rem 2.25rem auto;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.15);
-  content: "";
-}
-
-.portfolio-process-step {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 7rem;
-  flex: 0 0 7rem;
-  min-height: 5.25rem;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-}
-
-.portfolio-process-step__number {
-  display: grid;
-  width: 3rem;
-  height: 3rem;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 9999px;
-  background: #080f1e;
-  color: #94a3b8;
-  font-size: 0.875rem;
-  font-weight: 700;
-  transition:
-    border-color 220ms ease,
-    background-color 220ms ease,
-    box-shadow 220ms ease,
-    color 220ms ease,
-    transform 220ms ease;
-}
-
-.portfolio-process-step:hover .portfolio-process-step__number,
-.portfolio-process-step:focus-visible .portfolio-process-step__number,
-.portfolio-process-step[data-active="true"] .portfolio-process-step__number {
-  border-color: #6f8cff;
-  background: #2f5bff;
-  color: #ffffff;
-  transform: translateY(-2px);
-}
-
-.portfolio-process-step[data-active="true"] .portfolio-process-step__number {
-  box-shadow: 0 0 0 7px rgba(47, 91, 255, 0.16);
-}
-
-.portfolio-process-step:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 4px;
 }
 
 .portfolio-portrait-reveal {
@@ -483,12 +415,6 @@ body.portfolio-motion-ready {
   position: relative;
 }
 
-.portfolio-work-section {
-  background-image: radial-gradient(circle, rgba(148, 163, 184, 0.11) 1px, transparent 1px);
-  background-position: 0 0;
-  background-size: 28px 28px;
-}
-
 .portfolio-project-tech {
   background: rgba(15, 23, 42, 0.68);
   transition: border-color 180ms ease, background-color 180ms ease, color 180ms ease;
@@ -565,16 +491,6 @@ body.portfolio-motion-ready {
 }
 
 @media (max-width: 760px) {
-  .portfolio-process-runway {
-    overflow-x: auto;
-    padding: 0.5rem 0.25rem 1rem;
-    scrollbar-width: none;
-  }
-
-  .portfolio-process-runway::-webkit-scrollbar {
-    display: none;
-  }
-
   .portfolio-testimonial-marquee {
     overflow-x: auto;
     mask-image: none;

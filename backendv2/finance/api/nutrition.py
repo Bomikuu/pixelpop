@@ -5,6 +5,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import status
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +13,7 @@ from rest_framework.views import APIView
 from finance.models import Meal, NutritionProfile, WeightEntry
 from finance.services.audit import log_record, snapshot_record
 from finance.services.nutrition import nutrition_period_summary, nutrition_summary
+from finance.services.nutrition_library import meal_signature, save_meal_once
 from .nutrition_serializers import MealSerializer, NutritionProfileSerializer, NutritionSetupSerializer, WeightEntrySerializer
 from .views import PrivateMixin
 
@@ -119,9 +121,16 @@ class NutritionMealListView(PrivateMixin, APIView):
             raise ValidationError({"items": "A meal must be 64 KiB or smaller."})
         serializer = MealSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        meal = serializer.save()
-        log_record(meal, actor=request.user, action="added", after=snapshot_record(meal))
-        return Response(MealSerializer(meal).data, status=status.HTTP_201_CREATED)
+        request_id = serializers.UUIDField().run_validation(request.data["request_id"]) if "request_id" in request.data else None
+        signature = meal_signature(serializer.validated_data)
+
+        def create():
+            meal = serializer.save()
+            log_record(meal, actor=request.user, action="added", after=snapshot_record(meal))
+            return meal
+
+        meal, created = save_meal_once(request.user, request_id, signature, create)
+        return Response(MealSerializer(meal).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
 class NutritionMealDetailView(PrivateMixin, APIView):

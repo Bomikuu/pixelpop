@@ -121,6 +121,7 @@ def nutrition_summary(user, end_date):
         {"date": row.date.isoformat(), "weight_kg": str(row.weight_kg.quantize(Decimal("0.01"))), "note": row.note}
         for row in reversed(weight_rows)
     ]
+    baseline = WeightEntry.objects.filter(user=user, date__lte=end_date).order_by("date", "id").first()
     return {
         "date": end_date.isoformat(),
         "day_totals": formatted(totals_by_day[end_date]) if end_date in totals_by_day else None,
@@ -133,4 +134,5 @@ def nutrition_summary(user, end_date):
         "average_net_calories": formatted_kcal(net_sum / logged_days) if logged_days else None,
         "days": days,
         "weights": weights,
+        "weight_baseline": {"date": baseline.date.isoformat(), "weight_kg": formatted_kcal(baseline.weight_kg)} if baseline else None,
     }

@@ -7,20 +7,39 @@ import NutritionDay from "../components/nutrition/NutritionDay";
 import NutritionInsights from "../components/nutrition/NutritionInsights";
 import NutritionSettings from "../components/nutrition/NutritionSettings";
 import NutritionSetup from "../components/nutrition/NutritionSetup";
+import DailyNutritionOverview from "../components/nutrition/DailyNutritionOverview";
+import NutritionActivityPanel from "../components/nutrition/NutritionActivityPanel";
+import NutritionWeightPanel from "../components/nutrition/NutritionWeightPanel";
+import WeightDialog from "../components/nutrition/WeightDialog";
+import MealLibraryDialog from "../components/nutrition/MealLibraryDialog";
+import MealPresetDialog from "../components/nutrition/MealPresetDialog";
+import { copyMealDraft } from "../nutrition/dashboardModel";
+import NutritionCalendarDialog from "../components/nutrition/NutritionCalendarDialog";
+import NutritionSuggestions from "../components/nutrition/NutritionSuggestions";
+import NutritionToolbar from "../components/nutrition/NutritionToolbar";
 
-export default function NutritionView({ request, notify, date, onLeave }) {
+export default function NutritionView({ request, notify, date, onDateChange, onLeave }) {
   const [version, setVersion] = useState(0);
   const [state, setState] = useState({ loading: true, data: null, error: "", date: null });
-  const [period, setPeriod] = useState("week");
-  const [periodRetry, setPeriodRetry] = useState(0);
-  const [periodState, setPeriodState] = useState({ key: "", loading: false, data: null, error: "" });
+  const [reportProfile, setReportProfile] = useState(null);
+  const initialReportDate = useRef(date);
   const [editing, setEditing] = useState(null);
+  const [mealDraft, setMealDraft] = useState(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [presetEditing, setPresetEditing] = useState(null);
+  const [deletingPreset, setDeletingPreset] = useState(null);
+  const [basis, setBasis] = useState("food");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [weightOpen, setWeightOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [deletingActivity, setDeletingActivity] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const focusReturn = useRef(null);
+  const addEntryTrigger = useRef(null);
+  const restoreFocus = (event) => { event.preventDefault(); (focusReturn.current?.isConnected ? focusReturn.current : addEntryTrigger.current)?.focus(); };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -33,32 +52,45 @@ export default function NutritionView({ request, notify, date, onLeave }) {
       request(`nutrition/activities/?date=${date}`, { signal: controller.signal }),
       request(`nutrition/summary/?date=${date}`, { signal: controller.signal }),
     ]).then(([profile, meals, activities, summary]) => {
-      if (!controller.signal.aborted) setState({ loading: false, data: { profile, meals, activities, summary }, error: "", date });
+      if (!controller.signal.aborted) {
+        setState({ loading: false, data: { profile, meals, activities, summary }, error: "", date });
+        setReportProfile(profile);
+      }
     }).catch((error) => {
       if (!controller.signal.aborted) setState({ loading: false, data: null, error: error.message, date });
     });
     return () => controller.abort();
   }, [date, request, version]);
 
-  const periodKey = `${period}:${period === "month" ? date.slice(0, 7) : "all"}:${version}:${periodRetry}`;
   const setupRequired = Boolean(state.data && (
     !state.data.profile.height_cm || !state.data.profile.daily_target_kcal ||
     !state.data.profile.daily_target_protein_g || !state.data.profile.daily_target_carbs_g ||
     !state.data.profile.daily_target_fat_g || !state.data.profile.has_weight_entry
   ));
-  useEffect(() => {
-    if (period === "week") return undefined;
-    const controller = new AbortController();
-    setPeriodState({ key: periodKey, loading: true, data: null, error: "" });
-    request(`nutrition/period-summary/?period=${period}&date=${date}`, { signal: controller.signal })
-      .then((data) => { if (!controller.signal.aborted) setPeriodState({ key: periodKey, loading: false, data, error: "" }); })
-      .catch((error) => { if (!controller.signal.aborted) setPeriodState({ key: periodKey, loading: false, data: null, error: error.message }); });
-    return () => controller.abort();
-  }, [date, period, periodKey, request]);
 
   function openMeal(meal = null) {
     focusReturn.current = document.activeElement;
+    setMealDraft(null);
     setEditing(meal || "new");
+  }
+
+  function reuseMeal(source) {
+    setMealDraft(copyMealDraft(source, date));
+    setLibraryOpen(false);
+    setEditing("new");
+  }
+
+  async function savePreset(body, id) {
+    await request(id ? `nutrition/presets/${id}/` : "nutrition/presets/", { method: id ? "PATCH" : "POST", body });
+    setVersion((value) => value + 1);
+    notify(id ? "Saved meal updated." : "Meal preset saved.", { action: id ? "edited" : "added", entity: "meal" });
+  }
+
+  async function deletePreset(event) {
+    event.preventDefault(); if (deleteBusy || !deletingPreset) return;
+    setDeleteBusy(true); setDeleteError("");
+    try { await request(`nutrition/presets/${deletingPreset.id}/`, { method: "DELETE" }); setDeletingPreset(null); setVersion((value) => value + 1); notify("Meal preset deleted.", { action: "deleted", entity: "meal" }); }
+    catch (failure) { setDeleteError(failure.message); } finally { setDeleteBusy(false); }
   }
 
   async function saveMeal(body, id) {
@@ -143,16 +175,25 @@ export default function NutritionView({ request, notify, date, onLeave }) {
 
   return <div className="space-y-5">
     {state.loading && state.date === date && state.data && <p role="status" className="text-xs text-slate-600">Refreshing nutrition…</p>}
-    {state.loading && (!state.data || state.date !== date) ? <Panel title="Nutrition"><p role="status" className="py-8 text-sm text-slate-600">Loading meals and insights…</p></Panel> : state.error ? <ErrorState message={state.error} retry={() => setVersion((value) => value + 1)} /> : state.data ? <>
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,1fr)]">
-        <NutritionDay date={date} meals={state.data.meals} activities={state.data.activities} profile={state.data.profile} summary={state.data.summary} onAdd={() => openMeal()} onEdit={openMeal} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} onAddActivity={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEditActivity={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDeleteActivity={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} />
-        <NutritionSettings profile={state.data.profile} date={date} weights={state.data.summary.weights} onSaveProfile={saveProfile} onSaveWeight={saveWeight} onDeleteWeight={deleteWeight} />
+    {state.date !== date || (state.loading && !state.data) ? <Panel title="Nutrition"><p role="status" className="py-8 text-sm text-slate-600">Loading meals and insights…</p></Panel> : state.error ? <ErrorState message={state.error} retry={() => setVersion((value) => value + 1)} /> : state.data ? <>
+      <NutritionToolbar entryRef={addEntryTrigger} onCalendar={() => { focusReturn.current = document.activeElement; setCalendarOpen(true); }} onTargets={() => { focusReturn.current = document.activeElement; setSettingsOpen(true); }} onMeal={() => { focusReturn.current = addEntryTrigger.current; setMealDraft(null); setEditing("new"); }} onActivity={() => { focusReturn.current = addEntryTrigger.current; setEditingActivity("new"); }} />
+      <DailyNutritionOverview summary={state.data.summary} profile={state.data.profile} basis={basis} onBasisChange={setBasis} />
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+        <NutritionDay date={date} meals={state.data.meals} onAdd={() => openMeal()} onEdit={openMeal} onDuplicate={(meal) => { focusReturn.current = addEntryTrigger.current; reuseMeal(meal); }} onOpenLibrary={() => { focusReturn.current = document.activeElement; setLibraryOpen(true); }} onSavePreset={(meal) => { focusReturn.current = addEntryTrigger.current; setPresetEditing({ initialMeal: meal }); }} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} />
+        <div className="min-w-0 space-y-5"><NutritionActivityPanel activities={state.data.activities} totalKcal={state.data.summary.day_activity_kcal} onAdd={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEdit={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDelete={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} /><NutritionWeightPanel date={date} weights={state.data.summary.weights} baseline={state.data.summary.weight_baseline} targetWeight={state.data.profile.target_weight_kg} onLog={() => { focusReturn.current = document.activeElement; setWeightOpen(true); }} /></div>
       </div>
-      <NutritionInsights summary={state.data.summary} profile={state.data.profile} period={period} onPeriodChange={setPeriod} periodState={periodState.key === periodKey ? periodState : { loading: true, data: null, error: "" }} onRetry={() => setPeriodRetry((value) => value + 1)} />
+      <NutritionSuggestions summary={state.data.summary} profile={state.data.profile} meals={state.data.meals} request={request} refreshKey={version} onChoose={(meal) => { focusReturn.current = document.activeElement; reuseMeal(meal); }} />
       {setupRequired && <NutritionSetup profile={state.data.profile} onSave={saveSetup} onLeave={onLeave} />}
+      {settingsOpen && <NutritionSettings profile={state.data.profile} open onClose={() => setSettingsOpen(false)} onSaveProfile={saveProfile} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
+      {weightOpen && <WeightDialog date={date} reading={state.data.summary.weights.find((row) => row.date === date)} onClose={() => setWeightOpen(false)} onSave={saveWeight} onDelete={deleteWeight} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
     </> : null}
+    {reportProfile && <NutritionInsights initialDate={initialReportDate.current} profile={reportProfile} request={request} refreshKey={version} onOpenDay={onDateChange} />}
 
-    {editing && <MealDialog key={editing === "new" ? `new-${date}` : editing.id} meal={editing === "new" ? null : editing} date={date} onClose={() => setEditing(null)} onSave={saveMeal} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
+    {editing && <MealDialog key={editing === "new" ? `new-${date}` : editing.id} meal={editing === "new" ? null : editing} initialMealDraft={mealDraft} date={date} onClose={() => { setEditing(null); setMealDraft(null); }} onSave={saveMeal} restoreFocus={restoreFocus} />}
+    {libraryOpen && <MealLibraryDialog date={date} request={request} refreshKey={version} onChooseMeal={reuseMeal} onChooseFoods={(items) => reuseMeal({ meal_name: "Meal", items })} onEditPreset={(preset) => setPresetEditing({ preset })} onCreatePreset={() => setPresetEditing({})} onDeletePreset={(preset) => { setDeleteError(""); setDeletingPreset(preset); }} onClose={() => setLibraryOpen(false)} restoreFocus={restoreFocus} />}
+    {calendarOpen && <NutritionCalendarDialog date={date} request={request} onOpenDay={onDateChange} onClose={() => setCalendarOpen(false)} restoreFocus={restoreFocus} />}
+    {presetEditing && <MealPresetDialog preset={presetEditing.preset} initialMeal={presetEditing.initialMeal} onSave={savePreset} onClose={() => setPresetEditing(null)} restoreFocus={libraryOpen ? undefined : restoreFocus} />}
+    <AlertDialog open={!!deletingPreset} onOpenChange={(open) => { if (!open && !deleteBusy) setDeletingPreset(null); }}><AlertDialogContent className="personal-dashboard"><AlertDialogHeader><AlertDialogTitle>Delete {deletingPreset?.meal_name}?</AlertDialogTitle><AlertDialogDescription>This removes the reusable preset. Logged meals stay unchanged.</AlertDialogDescription></AlertDialogHeader>{deleteError && <p role="alert" className="text-sm text-red-700">{deleteError}</p>}<AlertDialogFooter><AlertDialogCancel disabled={deleteBusy}>Keep preset</AlertDialogCancel><AlertDialogAction disabled={deleteBusy} onClick={deletePreset} className="bg-red-700 text-white hover:bg-red-800">{deleteBusy ? "Deleting…" : "Delete preset"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     {editingActivity && <ActivityDialog key={editingActivity === "new" ? `activity-new-${date}` : editingActivity.id} activity={editingActivity === "new" ? null : editingActivity} date={date} weights={state.data?.summary?.weights || []} onClose={() => setEditingActivity(null)} onSave={saveActivity} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
     <AlertDialog open={Boolean(deleting)} onOpenChange={(open) => { if (!open && !deleteBusy) setDeleting(null); }}>
       <AlertDialogContent className="personal-dashboard" onCloseAutoFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }}><AlertDialogHeader><AlertDialogTitle>Delete {deleting?.meal_name}?</AlertDialogTitle><AlertDialogDescription>This removes the meal and its food items from your log. Your daily totals will be recalculated.</AlertDialogDescription></AlertDialogHeader>{deleteError && <p role="alert" className="text-sm text-red-700">{deleteError}</p>}<AlertDialogFooter><AlertDialogCancel disabled={deleteBusy}>Keep meal</AlertDialogCancel><AlertDialogAction disabled={deleteBusy} onClick={deleteMeal} className="bg-red-700 text-white hover:bg-red-800">{deleteBusy ? "Deleting…" : "Delete meal"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>

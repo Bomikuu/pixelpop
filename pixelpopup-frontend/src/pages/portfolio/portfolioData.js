@@ -4,6 +4,11 @@ export const portfolioLinks = [
   { label: "Email", href: "mailto:mico.dahang@gmail.com" },
 ];
 
+export const portfolioIntroduction = {
+  summary: "I'm a senior frontend developer and technical lead in Davao City. I build web applications with React, Vue, and Django.",
+  approach: "I spend most of my time on the screens people use every day: maps, forms, dashboards, and operational tools. I work through loading, error, and small-screen states alongside the main flow.",
+};
+
 export const projects = [
   {
     id: "cortico",

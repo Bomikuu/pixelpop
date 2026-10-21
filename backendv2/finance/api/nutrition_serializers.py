@@ -16,7 +16,7 @@ class NutritionProfileSerializer(serializers.ModelSerializer):
         model = NutritionProfile
         fields = (
             "height_cm", "daily_target_kcal", "daily_target_protein_g",
-            "daily_target_carbs_g", "daily_target_fat_g", "has_weight_entry",
+            "daily_target_carbs_g", "daily_target_fat_g", "has_weight_entry", "target_weight_kg",
         )
 
     def get_has_weight_entry(self, profile):
@@ -134,4 +134,5 @@ class MealSerializer(serializers.ModelSerializer):
                 MealItem(meal=instance, position=index, **item)
                 for index, item in enumerate(items)
             )
+            instance._prefetched_objects_cache = {}
         return instance

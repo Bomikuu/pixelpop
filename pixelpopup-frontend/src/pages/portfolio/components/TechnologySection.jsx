@@ -123,7 +123,6 @@ export default function TechnologySection() {
     >
       <div className="pointer-events-none absolute -right-36 -top-48 size-[28rem] rounded-full border border-[#d7e8ff] sm:-right-20" aria-hidden="true" />
       <div className="pointer-events-none absolute -right-24 -top-36 size-[22rem] rounded-full border border-[#d7e8ff] sm:-right-8" aria-hidden="true" />
-      <div className="pointer-events-none absolute left-4 top-10 size-36 opacity-70" style={{ backgroundImage: "radial-gradient(#9bc7ff 1.5px, transparent 1.5px)", backgroundSize: "24px 24px" }} aria-hidden="true" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>

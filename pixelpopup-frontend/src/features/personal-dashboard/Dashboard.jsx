@@ -727,7 +727,7 @@ export default function Dashboard() {
           ) : tab === "quick-entry-transactions" ? (
             <UnsettledTransactions dashboard={dashboard} notify={notify} />
           ) : tab === "nutrition" ? (
-            <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onLeave={() => navigate("")} />
+          <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onDateChange={setNutritionDate} onLeave={() => navigate("")} />
           ) : tab === "events" ? (
             <EventsView dashboard={dashboard} month={selectedMonth} />
           ) : tab === "brainstorm" ? (

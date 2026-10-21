@@ -32,6 +32,8 @@ function ArticleCard({ article }) {
             <img
               src={article.cover_image_url}
               alt={article.cover_image_alt || ""}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 size-full object-cover transition duration-500 ease-out group-hover:scale-[1.035] motion-reduce:transition-none"
             />
           ) : (
@@ -52,7 +54,6 @@ function ArticleCard({ article }) {
           <p className="mt-4 line-clamp-3 text-sm leading-6 text-[#52677d] sm:text-base sm:leading-7">{article.excerpt}</p>
           <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[#dce4ec] pt-4 text-sm">
             <span className="inline-flex items-center gap-2.5 text-[#52677d]">
-              <span className="grid size-8 place-items-center rounded-full bg-[#eef3f8] text-xs font-semibold text-[#52677d]" aria-hidden="true">{author.charAt(0)}</span>
               By {author}
             </span>
             <span className="inline-flex items-center gap-2 font-semibold text-[#2f5bff]">
@@ -84,18 +85,37 @@ function ArticleCarouselSkeleton() {
 }
 
 export default function ArticlesCarouselSection() {
+  const sectionRef = useRef(null);
   const trackRef = useRef(null);
   const [state, setState] = useState({ articles: [], loading: true, error: "" });
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
-    getArticles({ page: 1 }, controller.signal)
-      .then((data) => setState({ articles: data.results || [], loading: false, error: "" }))
-      .catch((error) => {
-        if (error.name !== "AbortError") setState({ articles: [], loading: false, error: "Articles are temporarily unavailable." });
-      });
-    return () => controller.abort();
+    const loadArticles = () => {
+      getArticles({ page: 1 }, controller.signal)
+        .then((data) => setState({ articles: data.results || [], loading: false, error: "" }))
+        .catch((error) => {
+          if (error.name !== "AbortError") setState({ articles: [], loading: false, error: "Articles are temporarily unavailable." });
+        });
+    };
+
+    let observer;
+    if (window.IntersectionObserver && sectionRef.current) {
+      observer = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        loadArticles();
+      }, { rootMargin: "600px" });
+      observer.observe(sectionRef.current);
+    } else {
+      loadArticles();
+    }
+
+    return () => {
+      observer?.disconnect();
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -137,8 +157,7 @@ export default function ArticlesCarouselSection() {
   }
 
   return (
-    <section id="articles" className="relative overflow-hidden border-b border-slate-200 bg-[#fbfdff] py-24 sm:py-32" aria-labelledby="portfolio-articles-title">
-      <div className="pointer-events-none absolute right-[12%] top-12 hidden size-32 opacity-70 lg:block" style={{ backgroundImage: "radial-gradient(#aacaff 1.5px, transparent 1.5px)", backgroundSize: "24px 24px" }} aria-hidden="true" />
+    <section ref={sectionRef} id="articles" className="relative overflow-hidden border-b border-slate-200 bg-[#fbfdff] py-24 sm:py-32" aria-labelledby="portfolio-articles-title">
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
           <header className="max-w-3xl">
