@@ -8,10 +8,10 @@ import {
 } from "react-router-dom";
 
 import { OverlayHost } from "./ui/overlay";
-import RoamingCatMascot from "./ui/mascot/RoamingCatMascot";
-import StationaryCatMascot from "./ui/mascot/StationaryCatMascot";
 import publicMascotMessages from "./data/cat-mascot-messages.json";
 import PortfolioModern from "./pages/portfolio/PortfolioModern";
+const RoamingCatMascot = lazy(() => import("./ui/mascot/RoamingCatMascot"));
+const StationaryCatMascot = lazy(() => import("./ui/mascot/StationaryCatMascot"));
 const UiKitPage = lazy(() => import("./pages/UiKitPage"));
 const OverlayPlayground = lazy(() => import("./pages/OverlayPlayground"));
 const ComponentsPage = lazy(() => import("./pages/ComponentsPage"));
@@ -128,12 +128,14 @@ function PublicExtras() {
   return (
     <>
       <OverlayHost />
-      {isPortfolio ? <StationaryCatMascot
-        key={pathname}
-        messages={publicMascotMessages.filter((item) => item.routes.some((route) =>
-          route.endsWith("*") ? pathname.startsWith(route.slice(0, -1)) : pathname === route,
-        ))}
-      /> : <RoamingCatMascot />}
+      <Suspense fallback={null}>
+        {isPortfolio ? <StationaryCatMascot
+          key={pathname}
+          messages={publicMascotMessages.filter((item) => item.routes.some((route) =>
+            route.endsWith("*") ? pathname.startsWith(route.slice(0, -1)) : pathname === route,
+          ))}
+        /> : <RoamingCatMascot />}
+      </Suspense>
     </>
   );
 }

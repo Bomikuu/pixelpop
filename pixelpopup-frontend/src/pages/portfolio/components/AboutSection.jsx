@@ -107,8 +107,14 @@ export default function AboutSection() {
                   aria-pressed={showRealPortrait}
                   onClick={() => setShowRealPortrait((visible) => !visible)}
                 >
-                  <img src="/portfolio/assets/mico-ang-pixel-portrait.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="" className="portfolio-portrait-reveal__image portfolio-portrait-reveal__image--real" />
-                  <img src="/portfolio/assets/mico-ang-portrait.jpg" width="900" height="900" loading="lazy" decoding="async" alt="" className="portfolio-portrait-reveal__image portfolio-portrait-reveal__image--illustrated" />
+                  <img src="/portfolio/assets/mico-ang-pixel-portrait.webp" width="768" height="512" loading="lazy" decoding="async" alt="" className="portfolio-portrait-reveal__image portfolio-portrait-reveal__image--real" />
+                  <img
+                    src="/portfolio/assets/mico-ang-portrait.webp"
+                    srcSet="/portfolio/assets/mico-ang-portrait-480.webp 480w, /portfolio/assets/mico-ang-portrait.webp 900w"
+                    sizes="(min-width: 1280px) 360px, (min-width: 1024px) calc((100vw - 64px) * 0.36 - 78px), (min-width: 448px) 370px, calc(100vw - 78px)"
+                    width="900" height="900" loading="lazy" decoding="async" alt=""
+                    className="portfolio-portrait-reveal__image portfolio-portrait-reveal__image--illustrated"
+                  />
                   <span className="portfolio-portrait-reveal__hint" aria-hidden="true">Hover to reveal</span>
                 </button>
               </div>

@@ -32,6 +32,8 @@ function ArticleCard({ article }) {
             <img
               src={article.cover_image_url}
               alt={article.cover_image_alt || ""}
+              loading="lazy"
+              decoding="async"
               className="absolute inset-0 size-full object-cover transition duration-500 ease-out group-hover:scale-[1.035] motion-reduce:transition-none"
             />
           ) : (
@@ -84,18 +86,37 @@ function ArticleCarouselSkeleton() {
 }
 
 export default function ArticlesCarouselSection() {
+  const sectionRef = useRef(null);
   const trackRef = useRef(null);
   const [state, setState] = useState({ articles: [], loading: true, error: "" });
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
-    getArticles({ page: 1 }, controller.signal)
-      .then((data) => setState({ articles: data.results || [], loading: false, error: "" }))
-      .catch((error) => {
-        if (error.name !== "AbortError") setState({ articles: [], loading: false, error: "Articles are temporarily unavailable." });
-      });
-    return () => controller.abort();
+    const loadArticles = () => {
+      getArticles({ page: 1 }, controller.signal)
+        .then((data) => setState({ articles: data.results || [], loading: false, error: "" }))
+        .catch((error) => {
+          if (error.name !== "AbortError") setState({ articles: [], loading: false, error: "Articles are temporarily unavailable." });
+        });
+    };
+
+    let observer;
+    if (window.IntersectionObserver && sectionRef.current) {
+      observer = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        loadArticles();
+      }, { rootMargin: "600px" });
+      observer.observe(sectionRef.current);
+    } else {
+      loadArticles();
+    }
+
+    return () => {
+      observer?.disconnect();
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -137,7 +158,7 @@ export default function ArticlesCarouselSection() {
   }
 
   return (
-    <section id="articles" className="relative overflow-hidden border-b border-slate-200 bg-[#fbfdff] py-24 sm:py-32" aria-labelledby="portfolio-articles-title">
+    <section ref={sectionRef} id="articles" className="relative overflow-hidden border-b border-slate-200 bg-[#fbfdff] py-24 sm:py-32" aria-labelledby="portfolio-articles-title">
       <div className="pointer-events-none absolute right-[12%] top-12 hidden size-32 opacity-70 lg:block" style={{ backgroundImage: "radial-gradient(#aacaff 1.5px, transparent 1.5px)", backgroundSize: "24px 24px" }} aria-hidden="true" />
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <Reveal>
