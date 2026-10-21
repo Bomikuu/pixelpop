@@ -15,12 +15,11 @@ import { Activity, ChevronDown, Plus, Settings2, UtensilsCrossed } from "lucide-
 import { DropdownMenu } from "radix-ui";
 import { Button } from "../ui/button";
 
-export default function NutritionView({ request, notify, date, onLeave }) {
+export default function NutritionView({ request, notify, date, onDateChange, onLeave }) {
   const [version, setVersion] = useState(0);
   const [state, setState] = useState({ loading: true, data: null, error: "", date: null });
-  const [period, setPeriod] = useState("week");
-  const [periodRetry, setPeriodRetry] = useState(0);
-  const [periodState, setPeriodState] = useState({ key: "", loading: false, data: null, error: "" });
+  const [reportProfile, setReportProfile] = useState(null);
+  const initialReportDate = useRef(date);
   const [editing, setEditing] = useState(null);
   const [basis, setBasis] = useState("food");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -43,28 +42,21 @@ export default function NutritionView({ request, notify, date, onLeave }) {
       request(`nutrition/activities/?date=${date}`, { signal: controller.signal }),
       request(`nutrition/summary/?date=${date}`, { signal: controller.signal }),
     ]).then(([profile, meals, activities, summary]) => {
-      if (!controller.signal.aborted) setState({ loading: false, data: { profile, meals, activities, summary }, error: "", date });
+      if (!controller.signal.aborted) {
+        setState({ loading: false, data: { profile, meals, activities, summary }, error: "", date });
+        setReportProfile(profile);
+      }
     }).catch((error) => {
       if (!controller.signal.aborted) setState({ loading: false, data: null, error: error.message, date });
     });
     return () => controller.abort();
   }, [date, request, version]);
 
-  const periodKey = `${period}:${period === "month" ? date.slice(0, 7) : "all"}:${version}:${periodRetry}`;
   const setupRequired = Boolean(state.data && (
     !state.data.profile.height_cm || !state.data.profile.daily_target_kcal ||
     !state.data.profile.daily_target_protein_g || !state.data.profile.daily_target_carbs_g ||
     !state.data.profile.daily_target_fat_g || !state.data.profile.has_weight_entry
   ));
-  useEffect(() => {
-    if (period === "week") return undefined;
-    const controller = new AbortController();
-    setPeriodState({ key: periodKey, loading: true, data: null, error: "" });
-    request(`nutrition/period-summary/?period=${period}&date=${date}`, { signal: controller.signal })
-      .then((data) => { if (!controller.signal.aborted) setPeriodState({ key: periodKey, loading: false, data, error: "" }); })
-      .catch((error) => { if (!controller.signal.aborted) setPeriodState({ key: periodKey, loading: false, data: null, error: error.message }); });
-    return () => controller.abort();
-  }, [date, period, periodKey, request]);
 
   function openMeal(meal = null) {
     focusReturn.current = document.activeElement;
@@ -160,11 +152,11 @@ export default function NutritionView({ request, notify, date, onLeave }) {
         <NutritionDay meals={state.data.meals} onAdd={() => openMeal()} onEdit={openMeal} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} />
         <div className="min-w-0 space-y-5"><NutritionActivityPanel activities={state.data.activities} totalKcal={state.data.summary.day_activity_kcal} onAdd={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEdit={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDelete={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} /><NutritionWeightPanel date={date} weights={state.data.summary.weights} baseline={state.data.summary.weight_baseline} targetWeight={state.data.profile.target_weight_kg} onLog={() => { focusReturn.current = document.activeElement; setWeightOpen(true); }} /></div>
       </div>
-      <NutritionInsights summary={state.data.summary} profile={state.data.profile} period={period} onPeriodChange={setPeriod} periodState={periodState.key === periodKey ? periodState : { loading: true, data: null, error: "" }} onRetry={() => setPeriodRetry((value) => value + 1)} />
       {setupRequired && <NutritionSetup profile={state.data.profile} onSave={saveSetup} onLeave={onLeave} />}
       {settingsOpen && <NutritionSettings profile={state.data.profile} open onClose={() => setSettingsOpen(false)} onSaveProfile={saveProfile} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
       {weightOpen && <WeightDialog date={date} reading={state.data.summary.weights.find((row) => row.date === date)} onClose={() => setWeightOpen(false)} onSave={saveWeight} onDelete={deleteWeight} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
     </> : null}
+    {reportProfile && <NutritionInsights initialDate={initialReportDate.current} profile={reportProfile} request={request} refreshKey={version} onOpenDay={onDateChange} />}
 
     {editing && <MealDialog key={editing === "new" ? `new-${date}` : editing.id} meal={editing === "new" ? null : editing} date={date} onClose={() => setEditing(null)} onSave={saveMeal} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
     {editingActivity && <ActivityDialog key={editingActivity === "new" ? `activity-new-${date}` : editingActivity.id} activity={editingActivity === "new" ? null : editingActivity} date={date} weights={state.data?.summary?.weights || []} onClose={() => setEditingActivity(null)} onSave={saveActivity} restoreFocus={(event) => { event.preventDefault(); focusReturn.current?.isConnected && focusReturn.current.focus(); }} />}
