@@ -152,7 +152,10 @@ export default function MealDialog({ meal, initialMealDraft, presetMode = false,
       onClose();
     } catch (failure) {
       const fieldText = failure.fields && typeof failure.fields === "object" ? Object.values(failure.fields).flat(Infinity).find((value) => typeof value === "string") : null;
-      setError(fieldText || failure.message || "The meal was not saved. Try again.");
+      const message = failure.message?.includes("request timed out") && !presetMode
+        ? "The request timed out. Your meal may already be saved. Retry this same draft to check safely, or check your log before starting a new entry."
+        : failure.message;
+      setError(fieldText || message || "The meal was not saved. Try again.");
     } finally {
       setSaving(false);
     }
@@ -167,6 +170,7 @@ export default function MealDialog({ meal, initialMealDraft, presetMode = false,
             <DialogDescription>{presetMode ? "Save these portions to your account. This doesn’t log a meal or change previous entries." : "Review the date, portions and nutrients before saving. Nothing is logged until you save."}</DialogDescription>
           </DialogHeader>
           <form noValidate onSubmit={save} className="space-y-5">
+            <fieldset disabled={saving} className="min-w-0 space-y-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
               {!presetMode && <div className="flex flex-wrap gap-3">
                 <div className="w-44 space-y-1.5"><Label htmlFor="nutrition-meal-date">Date eaten</Label><Input id="nutrition-meal-date" type="date" value={draft.date} max={today()} onChange={(event) => { setDraft((current) => ({ ...current, date: event.target.value })); setError(""); }} /></div>
@@ -201,6 +205,7 @@ export default function MealDialog({ meal, initialMealDraft, presetMode = false,
             )}
             {error && <p id="nutrition-meal-error" role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900">{error}</p>}
             <DialogFooter><Button type="button" variant="outline" disabled={saving} onClick={closeRequested}><X className="size-4" aria-hidden="true" />Cancel</Button><Button type="submit" disabled={saving} className="min-w-36">{saving ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Save className="size-4" aria-hidden="true" />}{saving ? "Saving…" : presetMode ? "Save preset" : "Save Meal"}</Button></DialogFooter>
+            </fieldset>
           </form>
         </DialogContent>
       </Dialog>

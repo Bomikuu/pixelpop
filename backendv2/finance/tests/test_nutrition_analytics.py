@@ -54,3 +54,14 @@ class NutritionAnalyticsTests(NutritionApiBase):
         before = nutrition_analytics(self.user, self.day, self.day)
         self.client.patch("/api/v1/finance/nutrition/profile/", {"daily_target_kcal": "1600"}, format="json")
         self.assertEqual(nutrition_analytics(self.user, self.day, self.day), before)
+
+    def test_zero_previous_baseline_has_absolute_difference_without_percentage(self):
+        self.meal(self.day - timedelta(days=1), "0")
+        self.meal(self.day, "100.25")
+        delta = nutrition_analytics(self.user, self.day, self.day)["differences"]["average_calories"]
+        self.assertEqual(delta["absolute"], "100.25")
+        self.assertIsNone(delta["percentage"])
+
+    def test_current_month_uses_equal_elapsed_comparison(self):
+        result = nutrition_analytics(self.user, date(2026, 10, 1), date(2026, 10, 21))
+        self.assertEqual(result["previous_range"], {"start": "2026-09-10", "end": "2026-09-30"})

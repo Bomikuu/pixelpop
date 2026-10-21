@@ -16,7 +16,13 @@ export default function MealLibraryDialog({ date, request, onChooseMeal, onChoos
   const key = `${tab}:${search}:${page}:${retry}:${refreshKey}`;
   useEffect(() => {
     const controller = new AbortController();
-    request(`nutrition/${endpoints[tab]}/?q=${encodeURIComponent(search)}&page=${page}&page_size=20`, { signal: controller.signal }).then((data) => { if (!controller.signal.aborted) setState({ key, data, error: "" }); }).catch((failure) => { if (!controller.signal.aborted) setState({ key, data: null, error: failure.message }); });
+    request(`nutrition/${endpoints[tab]}/?q=${encodeURIComponent(search)}&page=${page}&page_size=20`, { signal: controller.signal }).then((data) => {
+      if (!controller.signal.aborted) {
+        const lastPage = Math.max(1, Math.ceil(data.count / 20));
+        if (page > lastPage) setPage(lastPage);
+        else setState({ key, data, error: "" });
+      }
+    }).catch((failure) => { if (!controller.signal.aborted) setState({ key, data: null, error: failure.message }); });
     return () => controller.abort();
   }, [tab, search, page, retry, refreshKey, key, request]);
   const loading = state.key !== key || query !== search || composing;

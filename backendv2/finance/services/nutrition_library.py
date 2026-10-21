@@ -46,4 +46,7 @@ def library_page(request, queryset, serializer):
         raise ValidationError({"page": "Use whole numbers for page and page size."})
     if page < 1 or not 1 <= size <= 50:
         raise ValidationError({"page": "Page must be positive; page size must be between 1 and 50."})
-    return {"count": queryset.count(), "page": page, "page_size": size, "results": serializer(queryset[(page - 1) * size:page * size], many=True).data}
+    count = queryset.count()
+    offset = (page - 1) * size
+    rows = queryset[offset:offset + size] if offset < count else []
+    return {"count": count, "page": page, "page_size": size, "results": serializer(rows, many=True).data}

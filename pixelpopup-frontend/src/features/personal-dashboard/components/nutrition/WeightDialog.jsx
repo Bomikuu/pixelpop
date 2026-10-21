@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../ui/alert-dialog";
@@ -10,12 +10,19 @@ export default function WeightDialog({ date, reading, onSave, onDelete, onClose,
   const [weight, setWeight] = useState(reading?.weight_kg ?? ""), [note, setNote] = useState(reading?.note ?? "");
   const [error, setError] = useState(""), [invalid, setInvalid] = useState(false), [busy, setBusy] = useState(false), [confirm, setConfirm] = useState(null);
   const dirty = weight !== (reading?.weight_kg ?? "") || note !== (reading?.note ?? "");
+  useEffect(() => {
+    function warn(event) { if (dirty) { event.preventDefault(); event.returnValue = ""; } }
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
   function close() { if (!busy) dirty ? setConfirm("discard") : onClose(); }
   async function save(event) {
     event.preventDefault(); if (busy) return;
     if (!weight || !Number.isFinite(Number(weight)) || Number(weight) <= 0) { setInvalid(true); event.currentTarget.elements.namedItem("weight")?.focus(); return; }
     setBusy(true); setError("");
-    try { await onSave(date, { weight_kg: weight, note: note.trim() }); onClose(); } catch (failure) { setError(failure.message); } finally { setBusy(false); }
+    try { await onSave(date, { weight_kg: weight, note: note.trim() }); onClose(); }
+    catch (failure) { setError(failure.fields?.weight_kg ? [failure.fields.weight_kg].flat().join(" ") : failure.message); }
+    finally { setBusy(false); }
   }
   async function remove(event) {
     event.preventDefault(); if (busy) return; setBusy(true); setError("");

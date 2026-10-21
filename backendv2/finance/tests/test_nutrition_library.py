@@ -92,6 +92,20 @@ class NutritionLibraryTests(NutritionApiBase):
         self.assertEqual({row["field"] for row in event.changes}, {"Meal name", "Items"})
         self.assertEqual(MealPreset.objects.count(), 1)
 
+    def test_large_page_returns_empty_without_an_unbounded_database_offset(self):
+        response = self.client.get("/api/v1/finance/nutrition/foods/", {"page": "9" * 50})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["results"], [])
+
+    def test_retry_key_is_scoped_to_owner(self):
+        payload = self.meal_payload(request_id=str(uuid4()))
+        first = self.client.post("/api/v1/finance/nutrition/meals/", payload, format="json")
+        self.client.force_authenticate(self.other)
+        other = self.client.post("/api/v1/finance/nutrition/meals/", payload, format="json")
+        self.assertEqual(other.status_code, 201)
+        self.assertNotEqual(first.data["id"], other.data["id"])
+        self.assertEqual(NutritionMealSave.objects.count(), 2)
+
 
 class NutritionConcurrentSaveTests(TransactionTestCase):
     @skipUnlessDBFeature("has_select_for_update")
