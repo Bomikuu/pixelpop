@@ -2,6 +2,7 @@ from decimal import Decimal
 from hashlib import sha256
 
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from django.db import transaction
 
 from finance import models
@@ -24,6 +25,37 @@ class StrictSerializer(serializers.ModelSerializer):
         if account and not account.active and not self.context.get("quick_entry_replay_validation"):
             raise serializers.ValidationError({"account": "Choose an active account."})
         return attrs
+
+
+class UserAvatarUploadSerializer(serializers.Serializer):
+    avatar_upload = serializers.CharField(required=True, allow_null=True, max_length=350000, trim_whitespace=False)
+
+    def validate_avatar_upload(self, value):
+        return normalize_asset_image(value)
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    avatar_upload = serializers.CharField(write_only=True, required=False, allow_null=True, max_length=350000, trim_whitespace=False)
+
+    class Meta:
+        model = get_user_model()
+        fields = ("first_name", "last_name", "email", "avatar_upload")
+
+    def validate_avatar_upload(self, value):
+        return normalize_asset_image(value)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        if "avatar_upload" in validated_data:
+            image = validated_data.pop("avatar_upload")
+            if image is None:
+                models.UserAvatar.objects.filter(user=instance).delete()
+            else:
+                models.UserAvatar.objects.update_or_create(
+                    user=instance,
+                    defaults={"avatar_blob": image, "avatar_hash": sha256(image).hexdigest()},
+                )
+        return super().update(instance, validated_data)
 
 
 class PersonSerializer(StrictSerializer):

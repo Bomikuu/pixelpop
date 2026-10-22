@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+from hashlib import sha256
 
 from django.db import transaction
 from django.db.models import BigIntegerField, ProtectedError, Q
@@ -28,6 +29,7 @@ from finance.services.audit import log_record, snapshot_record, record_label
 from finance.services.quick_entry import save_quick_entries, settle_transactions, unsettled_summary
 from .quick_entry import QuickEntryRowSerializer, SettlementRowSerializer, validate_batch
 from .serializers import AccountSerializer, AssetFinancingPaymentSerializer, AssetFinancingSerializer, AssetFinancingTermsSerializer, AssetSerializer, CategorySerializer, DeadlineSerializer, LoanSerializer, MovementSerializer, PersonSerializer, ScheduleSerializer, SettingsSerializer, TransactionSerializer
+from .serializers import UserAvatarUploadSerializer, UserProfileSerializer
 
 
 def json_money(value):
@@ -701,7 +703,45 @@ class MovementViewSet(PrivateMixin, viewsets.ReadOnlyModelViewSet):
 
 class SessionView(PrivateMixin, APIView):
     def get(self, request):
-        return Response({"user": {"id": request.user.pk, "name": request.user.get_full_name() or request.user.get_username(), "can_backup": request.user.is_staff}, "csrfToken": get_token(request)})
+        avatar = models.UserAvatar.objects.filter(user=request.user).defer("avatar_blob").first()
+        return Response({"user": {
+            "id": request.user.pk,
+            "name": request.user.get_full_name() or request.user.get_username(),
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+            "email": request.user.email,
+            "can_backup": request.user.is_staff,
+            "avatar_url": avatar.avatar_url if avatar else None,
+        }, "csrfToken": get_token(request)})
+
+    def patch(self, request):
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return self.get(request)
+
+
+class UserAvatarView(PrivateMixin, APIView):
+    def get(self, request):
+        avatar = models.UserAvatar.objects.filter(user=request.user).first()
+        if not avatar:
+            raise Http404
+        response = HttpResponse(bytes(avatar.avatar_blob), content_type="image/webp")
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
+
+    def patch(self, request):
+        serializer = UserAvatarUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        image = serializer.validated_data["avatar_upload"]
+        if image is None:
+            models.UserAvatar.objects.filter(user=request.user).delete()
+            return Response({"avatar_url": None})
+        avatar, _ = models.UserAvatar.objects.update_or_create(
+            user=request.user,
+            defaults={"avatar_blob": image, "avatar_hash": sha256(image).hexdigest()},
+        )
+        return Response({"avatar_url": avatar.avatar_url})
 
 
 class DatabaseBackupView(PrivateMixin, APIView):

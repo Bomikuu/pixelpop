@@ -17,6 +17,16 @@ def new_person_key():
     return secrets.token_hex(20)
 
 
+class UserAvatar(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="dashboard_avatar")
+    avatar_blob = models.BinaryField(editable=False)
+    avatar_hash = models.CharField(max_length=64, editable=False)
+
+    @property
+    def avatar_url(self):
+        return f"/api/v1/finance/session/avatar/?v={self.avatar_hash}"
+
+
 class Record(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -25,6 +25,7 @@ urlpatterns = [
     path("subscriptions/", include("finance.api.subscriptions.urls")),
     path("session/login/", account_access.LoginView.as_view()),
     path("session/logout/", account_access.LogoutView.as_view()),
+    path("session/avatar/", views.UserAvatarView.as_view()),
     path("accounts/reconcile-balances/", account_access.BalanceReconciliationView.as_view()),
     path("cash-loans/quote/", cash_loans.CashLoanQuoteView.as_view()),
     path("cash-loans/compare/", cash_loans.CashLoanCompareView.as_view()),
