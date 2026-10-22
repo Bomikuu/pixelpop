@@ -279,8 +279,12 @@ controls. Runtime `--pd-*` tokens and shared dashboard primitives remain canonic
 this feature does not change portfolio tokens or introduce another visual theme.
 Use low variance (3/10), restrained motion (2/10) and medium density (5/10).
 
-Keep the daily date in the workspace header. Below a compact toolbar, show one
-daily calorie/macro overview, then a roughly two-thirds meals / one-third activity
+Keep the daily date in the workspace header. Daily overview has one Actions
+button in its header; it opens a modal of titled, described action buttons for
+meals, activity, weight, the library, calendar and targets. Selecting one closes
+the picker before opening its destination. Below the overview header, show the
+original four daily summary tiles (calories, protein, carbs and fat), each with
+progress, its daily target and remaining/over amount. Follow with a roughly two-thirds meals / one-third activity
 and weight split on desktop, stacked on mobile. Targets and weight entry belong
 in separate dialogs. Meals expose food details on expansion; duplication and
 save-as-preset live in a secondary menu. Missing entries use short inline states,
@@ -299,7 +303,10 @@ smaller supporting row; charts and sortable history live in their dedicated view
 Compare equal immediately preceding ranges, label both date spans, and bound
 requests to 366 days. Food/net averages use food-logged days only, while total
 active burn includes activity-only dates. Weight charts plot actual dated readings.
-Logging-calendar dots mean records exist, not that a health target was achieved.
+The larger logging calendar colors food-logged days green at or below the current
+food calorie target and red above it; unlogged dates remain neutral. Include a
+legend and keep selection distinct with an outline. This compares recorded food
+only, never net calories, and is not a judgment about health or day completion.
 
 Reuse opens a reviewed draft; selection never creates a meal. Presets and optional
 goal weight sync through Django, not browser-only storage. Presets are independent

@@ -12,7 +12,10 @@ OWN-WORLD: Existing dashboard white surfaces, Instrument Sans, cobalt actions,
 solid borders, compact radius, Lucide and shared shadcn/Radix/Recharts primitives.
 STORY: Choose the daily date, review food or net, log/edit entries, then inspect
 independently selected reporting dates. Reuse always opens a reviewed draft.
-FIRST VIEWPORT: Compact toolbar, consolidated calorie/macro progress and a
+FIRST VIEWPORT: One Actions button inside Daily overview opens a modal of titled,
+described action cards, then closes before the chosen destination opens. Keep the
+Food/Net switch separate as a display mode. Four original-style calorie/macro summary tiles
+with per-tile progress and remaining/over amounts, followed by a
 meal-first split with activity and weight in the side column. Stack on mobile.
 FORM: Existing dashboard identity is intentional. Variance 3/10, motion 2/10,
 density 5/10. Contextual disclosures and dialogs, not another nested card system.
@@ -30,6 +33,9 @@ FINISH: Source-reviewed; rendered recapture and runtime verification still neede
   Reporting is inclusive, at most 366 days, with equal elapsed comparison bounds.
 - Weight points are actual readings; no synthetic daily measurements. One reading
   is a compact number, not an oversized empty chart. Goals support either direction.
+- The enlarged calendar uses green for logged food at/below the current calorie
+  target, red above it, and no fill for unlogged dates. A legend names each state;
+  the selected date has a separate outline. Compare food only, not net burn.
 - Historical foods, copied meals and presets retain quantities. Selection never
   saves. Presets/goal weight are Django-owned and available across devices.
 - Stable per-draft meal request keys and payload signatures handle uncertain saves;

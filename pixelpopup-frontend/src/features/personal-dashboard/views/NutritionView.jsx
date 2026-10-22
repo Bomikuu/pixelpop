@@ -18,7 +18,7 @@ import NutritionCalendarDialog from "../components/nutrition/NutritionCalendarDi
 import NutritionSuggestions from "../components/nutrition/NutritionSuggestions";
 import NutritionToolbar from "../components/nutrition/NutritionToolbar";
 
-export default function NutritionView({ request, notify, date, onDateChange, onLeave }) {
+export default function NutritionView({ request, notify, date, onDateChange, onLeave, actionRequest, onActionHandled }) {
   const [version, setVersion] = useState(0);
   const [state, setState] = useState({ loading: true, data: null, error: "", date: null });
   const [reportProfile, setReportProfile] = useState(null);
@@ -67,6 +67,16 @@ export default function NutritionView({ request, notify, date, onDateChange, onL
     !state.data.profile.daily_target_protein_g || !state.data.profile.daily_target_carbs_g ||
     !state.data.profile.daily_target_fat_g || !state.data.profile.has_weight_entry
   ));
+
+  useEffect(() => {
+    if (!actionRequest || state.loading || state.error || !state.data || state.date !== date || setupRequired) return;
+    focusReturn.current = addEntryTrigger.current;
+    if (actionRequest === "meal") {
+      setMealDraft(null);
+      setEditing("new");
+    } else if (actionRequest === "activity") setEditingActivity("new");
+    onActionHandled(null);
+  }, [actionRequest, state.loading, state.error, state.data, state.date, date, setupRequired, onActionHandled]);
 
   function openMeal(meal = null) {
     focusReturn.current = document.activeElement;
@@ -176,11 +186,10 @@ export default function NutritionView({ request, notify, date, onDateChange, onL
   return <div className="space-y-5">
     {state.loading && state.date === date && state.data && <p role="status" className="text-xs text-slate-600">Refreshing nutrition…</p>}
     {state.date !== date || (state.loading && !state.data) ? <Panel title="Nutrition"><p role="status" className="py-8 text-sm text-slate-600">Loading meals and insights…</p></Panel> : state.error ? <ErrorState message={state.error} retry={() => setVersion((value) => value + 1)} /> : state.data ? <>
-      <NutritionToolbar entryRef={addEntryTrigger} onCalendar={() => { focusReturn.current = document.activeElement; setCalendarOpen(true); }} onTargets={() => { focusReturn.current = document.activeElement; setSettingsOpen(true); }} onMeal={() => { focusReturn.current = addEntryTrigger.current; setMealDraft(null); setEditing("new"); }} onActivity={() => { focusReturn.current = addEntryTrigger.current; setEditingActivity("new"); }} />
-      <DailyNutritionOverview summary={state.data.summary} profile={state.data.profile} basis={basis} onBasisChange={setBasis} />
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+      <DailyNutritionOverview summary={state.data.summary} profile={state.data.profile} basis={basis} onBasisChange={setBasis} actions={<NutritionToolbar entryRef={addEntryTrigger} onCalendar={() => { focusReturn.current = addEntryTrigger.current; setCalendarOpen(true); }} onTargets={() => { focusReturn.current = addEntryTrigger.current; setSettingsOpen(true); }} onMeal={() => { focusReturn.current = addEntryTrigger.current; setMealDraft(null); setEditing("new"); }} onActivity={() => { focusReturn.current = addEntryTrigger.current; setEditingActivity("new"); }} onWeight={() => { focusReturn.current = addEntryTrigger.current; setWeightOpen(true); }} onLibrary={() => { focusReturn.current = addEntryTrigger.current; setLibraryOpen(true); }} />} />
+      <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
         <NutritionDay date={date} meals={state.data.meals} onAdd={() => openMeal()} onEdit={openMeal} onDuplicate={(meal) => { focusReturn.current = addEntryTrigger.current; reuseMeal(meal); }} onOpenLibrary={() => { focusReturn.current = document.activeElement; setLibraryOpen(true); }} onSavePreset={(meal) => { focusReturn.current = addEntryTrigger.current; setPresetEditing({ initialMeal: meal }); }} onDelete={(meal) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeleting(meal); }} />
-        <div className="min-w-0 space-y-5"><NutritionActivityPanel activities={state.data.activities} totalKcal={state.data.summary.day_activity_kcal} onAdd={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEdit={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDelete={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} /><NutritionWeightPanel date={date} weights={state.data.summary.weights} baseline={state.data.summary.weight_baseline} targetWeight={state.data.profile.target_weight_kg} onLog={() => { focusReturn.current = document.activeElement; setWeightOpen(true); }} /></div>
+        <div className="grid min-w-0 gap-5"><NutritionActivityPanel activities={state.data.activities} totalKcal={state.data.summary.day_activity_kcal} onAdd={() => { focusReturn.current = document.activeElement; setEditingActivity("new"); }} onEdit={(activity) => { focusReturn.current = document.activeElement; setEditingActivity(activity); }} onDelete={(activity) => { focusReturn.current = document.activeElement; setDeleteError(""); setDeletingActivity(activity); }} /><NutritionWeightPanel date={date} weights={state.data.summary.weights} baseline={state.data.summary.weight_baseline} targetWeight={state.data.profile.target_weight_kg} onLog={() => { focusReturn.current = document.activeElement; setWeightOpen(true); }} /></div>
       </div>
       <NutritionSuggestions summary={state.data.summary} profile={state.data.profile} meals={state.data.meals} request={request} refreshKey={version} onChoose={(meal) => { focusReturn.current = document.activeElement; reuseMeal(meal); }} />
       {setupRequired && <NutritionSetup profile={state.data.profile} onSave={saveSetup} onLeave={onLeave} />}

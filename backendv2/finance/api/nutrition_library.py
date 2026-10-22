@@ -1,14 +1,16 @@
 from calendar import monthrange
 from datetime import date
+from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from finance.models import Meal, MealItem, MealPreset
+from finance.models import Meal, MealItem, MealPreset, NutritionProfile
+from finance.services.nutrition import formatted_kcal
 from finance.services.audit import log_record, snapshot_record
 from finance.services.nutrition_library import library_page
 from .nutrition_serializers import MealSerializer
@@ -94,4 +96,11 @@ class NutritionCalendarView(PrivateMixin, APIView):
             raise ValidationError({"month": "Use YYYY-MM."})
         end = start.replace(day=monthrange(start.year, start.month)[1])
         days = Meal.objects.filter(user=request.user, date__range=(start, end)).order_by().values("date").annotate(meal_count=Count("id")).order_by("date")
-        return Response({"month": month, "days": [{"date": row["date"].isoformat(), "meal_count": row["meal_count"]} for row in days]})
+        totals = {row["meal__date"]: row["calories"] for row in MealItem.objects.filter(meal__user=request.user, meal__date__range=(start, end)).order_by().values("meal__date").annotate(calories=Sum("calories"))}
+        target = NutritionProfile.objects.filter(user=request.user).values_list("daily_target_kcal", flat=True).first()
+        rows = []
+        for row in days:
+            calories = totals.get(row["date"], Decimal("0"))
+            state = ("over_target" if calories > target else "within_target") if target is not None and target > 0 else None
+            rows.append({"date": row["date"].isoformat(), "meal_count": row["meal_count"], "calories": formatted_kcal(calories), "calorie_status": state})
+        return Response({"month": month, "target_kcal": formatted_kcal(target) if target is not None else None, "days": rows})

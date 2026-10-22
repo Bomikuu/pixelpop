@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db import close_old_connections
 from django.test import TransactionTestCase, skipUnlessDBFeature
 
-from finance.models import AuditEvent, Meal, MealPreset, NutritionMealSave, WeightEntry
+from finance.models import AuditEvent, Meal, MealPreset, NutritionActivity, NutritionMealSave, WeightEntry
 from finance.services.nutrition import nutrition_summary
 from finance.services.nutrition_library import save_meal_once
 from .test_nutrition import NutritionApiBase
@@ -51,7 +51,7 @@ class NutritionLibraryTests(NutritionApiBase):
         history = self.client.get(root + "meals/history/", {"q": "Tuna", "page_size": 1}).data
         self.assertEqual(history["count"], 1)
         self.assertEqual(self.client.get(root + "foods/", {"q": "Tuna"}).data["results"][0]["source_date"], str(self.day))
-        self.assertEqual(self.client.get(root + "calendar/", {"month": "2026-09"}).data["days"], [{"date": str(self.day), "meal_count": 1}])
+        self.assertEqual(self.client.get(root + "calendar/", {"month": "2026-09"}).data["days"], [{"date": str(self.day), "meal_count": 1, "calories": "330.00", "calorie_status": None}])
         for params in ({"page_size": 51}, {"page": 0}, {"q": "x" * 161}, {"page": "bad"}):
             self.assertEqual(self.client.get(root + "foods/", params).status_code, 400)
         self.assertEqual(self.client.get(root + "calendar/", {"month": "bad"}).status_code, 400)
@@ -105,6 +105,21 @@ class NutritionLibraryTests(NutritionApiBase):
         self.assertEqual(other.status_code, 201)
         self.assertNotEqual(first.data["id"], other.data["id"])
         self.assertEqual(NutritionMealSave.objects.count(), 2)
+
+    def test_calendar_colors_compare_food_only_with_current_target(self):
+        root = "/api/v1/finance/nutrition/"
+        self.client.patch(root + "profile/", {"daily_target_kcal": "330"}, format="json")
+        self.client.post(root + "meals/", self.meal_payload(), format="json")
+        response = self.client.get(root + "calendar/", {"month": "2026-09"}).data
+        self.assertEqual(response["target_kcal"], "330.00")
+        self.assertEqual(response["days"][0]["calorie_status"], "within_target")
+        self.client.patch(root + "profile/", {"daily_target_kcal": "329.99"}, format="json")
+        NutritionActivity.objects.create(user=self.user, date=self.day, activity_type="walking", name="Walk", active_kcal="250", source="manual")
+        self.assertEqual(self.client.get(root + "calendar/", {"month": "2026-09"}).data["days"][0]["calorie_status"], "over_target")
+        self.client.patch(root + "profile/", {"daily_target_kcal": "1800"}, format="json")
+        self.assertEqual(self.client.get(root + "calendar/", {"month": "2026-09"}).data["days"][0]["calorie_status"], "within_target")
+        self.client.force_authenticate(self.other)
+        self.assertEqual(self.client.get(root + "calendar/", {"month": "2026-09"}).data["days"], [])
 
 
 class NutritionConcurrentSaveTests(TransactionTestCase):

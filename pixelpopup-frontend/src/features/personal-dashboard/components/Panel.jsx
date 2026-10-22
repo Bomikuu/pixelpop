@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Inbox } from "lucide-react";
 
-export function Panel({ title, description, action, children }) {
+export function Panel({ title, description, action, children, contentClassName }) {
   return (
     <Card className="min-w-0 shadow-none">
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
@@ -16,7 +16,7 @@ export function Panel({ title, description, action, children }) {
         </div>
         {action}
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className={contentClassName}>{children}</CardContent>
     </Card>
   );
 }
