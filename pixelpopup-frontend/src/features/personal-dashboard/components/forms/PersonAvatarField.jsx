@@ -4,7 +4,7 @@ import { Button } from "../../ui/button";
 import PersonAvatar from "../PersonAvatar";
 import { optimizePhoto } from "../../lib/imageUploads";
 
-export default function PersonAvatarField({ id, value, existingAvatar, name, disabled, onChange, error }) {
+export default function PersonAvatarField({ id, value, existingAvatar, name, disabled, onChange, error, label = "Avatar or logo" }) {
   const [preview, setPreview] = useState(existingAvatar || "");
   const [issue, setIssue] = useState("");
   const input = useRef(null);
@@ -33,7 +33,7 @@ export default function PersonAvatarField({ id, value, existingAvatar, name, dis
   return <div className="flex items-center gap-4 border-b border-[var(--pd-border)] pb-5">
     <PersonAvatar src={preview} name={name} alt="Avatar preview" className="size-20 text-xl sm:size-24" />
     <div className="min-w-0 flex-1 space-y-2">
-      <p className="text-sm font-semibold">Avatar or logo <span className="font-normal text-slate-600">(optional)</span></p>
+      <p className="text-sm font-semibold">{label} <span className="font-normal text-slate-600">(optional)</span></p>
       <input ref={input} id={id} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={disabled} onChange={select} />
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={() => input.current?.click()} disabled={disabled || processing} aria-describedby={`${id}-help`}>

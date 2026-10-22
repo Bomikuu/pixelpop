@@ -1,6 +1,5 @@
 import { createElement, useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { DropdownMenu } from "radix-ui";
 import {
   LayoutDashboard,
   Wallet,
@@ -17,13 +16,13 @@ import {
   Plus,
   Menu,
   ChevronRight,
-  ChevronDown,
   ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
   PiggyBank,
   HeartHandshake,
   Utensils,
+  Activity,
   TriangleAlert,
   BriefcaseBusiness,
   FileClock,
@@ -32,14 +31,17 @@ import {
   Bell,
   LogOut,
   LoaderCircle,
+  UserRound,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useReminders } from "./hooks/useReminders";
 import { Button } from "./ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -56,6 +58,7 @@ import DashboardToasts from "./components/DashboardToasts";
 import { STANDARD_DASHBOARD_TOASTS_ENABLED } from "../../ui/mascot/dashboardCompanionConfig";
 import DatabaseBackup from "./components/DatabaseBackup";
 import DashboardLogin from "./components/DashboardLogin";
+import UserProfileSettings from "./components/UserProfileSettings";
 import BalanceCorrectionView from "./views/BalanceCorrectionView";
 import CalendarDialog from "./components/CalendarDialog";
 import { EmptyState, ErrorState, Panel } from "./components/Panel";
@@ -103,6 +106,21 @@ const tabs = [
   ["reports", "Monthly reports", FileChartColumn, "Insights", "Reports"],
   ["settings", "Settings", Settings, "Workspace"],
   ["events", "Events log", FileClock, "Workspace", "Activity log"],
+];
+
+const dashboardActionGroups = [
+  { title: "Daily tracking", items: [
+    { label: "Quick Entry", description: "Capture an entry for review.", Icon: Plus, target: "quick-entry-transactions", kind: "quick-entry" },
+    { label: "Add expense", description: "Record a new expense.", Icon: ArrowUpRight, target: "transactions", entity: "expense" },
+  ] },
+  { title: "Planning & bills", items: [
+    { label: "Add task", description: "Create a task or deadline.", Icon: ListChecks, target: "deadlines", entity: "deadline", record: { kind: "task" } },
+    { label: "Add bill", description: "Record a bill to track its due date.", Icon: Receipt, target: "bills", entity: "deadline", record: { kind: "bill" } },
+  ] },
+  { title: "Nutrition", items: [
+    { label: "Add meal", description: "Log food and macros for the selected day.", Icon: Utensils, target: "nutrition", kind: "meal" },
+    { label: "Add activity", description: "Log activity and active calories burned.", Icon: Activity, target: "nutrition", kind: "activity" },
+  ] },
 ];
 
 export default function Dashboard() {
@@ -170,6 +188,9 @@ export default function Dashboard() {
   }, []);
   const [nutritionDate, setNutritionDate] = useState(today);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [pageAction, setPageAction] = useState(null);
+  const [failedUserAvatar, setFailedUserAvatar] = useState(null);
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return (
@@ -207,7 +228,8 @@ export default function Dashboard() {
   const [companionActivity, setCompanionActivity] = useState(null);
   const launchingControl = useRef(null);
   const quickAddTrigger = useRef(null);
-  const quickAddOpening = useRef(false);
+  const pendingDashboardAction = useRef(null);
+  const pageHeadingRef = useRef(null);
   const restoreFocus = (event, removed = false) => {
     event.preventDefault();
     requestAnimationFrame(() => {
@@ -248,6 +270,7 @@ export default function Dashboard() {
     };
   }, [current]);
   const navigate = (target) => {
+    setPageAction(null);
     navigateRouter(
       "/dashboard" +
         (target ? "/" + (target === "loans" ? "people" : target) : "") +
@@ -379,11 +402,23 @@ export default function Dashboard() {
     },
     notify,
   };
-  const openQuickAdd = (entity, record) => {
-    quickAddOpening.current = true;
-    actions.openForm(entity, record);
-    launchingControl.current = quickAddTrigger.current;
+  const chooseDashboardAction = (action) => {
+    pendingDashboardAction.current = () => {
+      navigate(action.target);
+      setPageAction(action);
+    };
+    setActionsOpen(false);
   };
+  useEffect(() => {
+    if (!pageAction || pageAction.target !== currentTab || dashboard.status !== "ready" || pageAction.target === "nutrition") return;
+    launchingControl.current = quickAddTrigger.current || pageHeadingRef.current;
+    if (pageAction.kind === "quick-entry") setQuickEntryOpen(true);
+    else {
+      setDialog({ entity: pageAction.entity, record: pageAction.record });
+      setCompanionActivity(pageAction.entity);
+    }
+    setPageAction(null);
+  }, [pageAction, currentTab, dashboard.status]);
   async function searchSelect(row) {
     if (row.tab === "assets") {
       navigateRouter("/dashboard/assets/" + row.id + "?month=" + selectedMonth);
@@ -449,8 +484,26 @@ export default function Dashboard() {
       </main>
     );
   const shared = { dashboard, month: selectedMonth, ...actions };
+  const userAvatar = dashboard.data.user.avatar_url;
+  const renderUserFooter = (mobile = false) => (
+    <footer
+      aria-label="Signed-in user"
+      title={!mobile && collapsed ? dashboard.data.user.name : undefined}
+      className={"shrink-0 items-center gap-3 border-t border-[var(--pd-border)] bg-white px-4 py-4 " + (mobile ? "flex pb-[max(1rem,env(safe-area-inset-bottom))]" : "hidden lg:flex " + (collapsed ? "lg:justify-center lg:px-2" : ""))}
+    >
+      <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--pd-border)] bg-[var(--pd-soft)] text-slate-500">
+        {userAvatar && userAvatar !== failedUserAvatar ? (
+          <img src={userAvatar} width="40" height="40" alt="" className="size-full object-cover" onError={() => setFailedUserAvatar(userAvatar)} />
+        ) : <UserRound className="size-5" aria-hidden="true" />}
+      </span>
+      <div className={"min-w-0 " + (!mobile && collapsed ? "lg:sr-only" : "")}>
+        <p className="truncate text-sm font-semibold text-slate-950">{dashboard.data.user.name}</p>
+        <p className="mt-0.5 text-xs text-slate-500">Personal workspace</p>
+      </div>
+    </footer>
+  );
   const renderNavigation = (mobile = false) => (
-    <nav id={mobile ? "mobile-dashboard-links" : "dashboard-navigation"} aria-label="Dashboard" className={"space-y-1 px-3 pb-5 " + (mobile ? "" : "hidden lg:block")}>
+    <nav id={mobile ? "mobile-dashboard-links" : "dashboard-navigation"} aria-label="Dashboard" className={"space-y-1 px-3 pb-5 " + (mobile ? "" : "hidden lg:block lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain")}>
       {tabs.map(([path, title, icon, group, label = title], index) => (
         <div key={path}>
           {(index === 0 || group !== tabs[index - 1][3]) && <p className={"px-3 pb-2 text-xs font-medium text-slate-500 " + (index === 0 ? "pt-2 " : "pt-5 ") + (!mobile && collapsed ? "lg:hidden" : "")}>{group}</p>}
@@ -486,11 +539,11 @@ export default function Dashboard() {
       >
         <aside
           data-dashboard-sidebar
-          className="border-b bg-white lg:sticky lg:top-0 lg:h-dvh lg:overflow-y-auto lg:border-b-0 lg:border-r"
+          className="border-b bg-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r"
         >
           <div
             className={
-              "flex items-center justify-between gap-3 px-4 py-5 " +
+              "flex shrink-0 items-center justify-between gap-3 px-4 py-5 " +
               (collapsed ? "lg:flex-col lg:px-2" : "")
             }
           >
@@ -510,15 +563,15 @@ export default function Dashboard() {
               <DialogTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-11 lg:hidden" aria-label="Open dashboard navigation" aria-expanded={mobileNav} aria-controls="mobile-dashboard-navigation"><Menu /></Button>
               </DialogTrigger>
-              <DialogContent id="mobile-dashboard-navigation" className="personal-dashboard inset-y-0 left-0 top-0 flex h-dvh w-80 max-w-[calc(100%-3rem)] translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-y-0 border-l-0 p-0 sm:max-w-80 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 motion-reduce:animate-none [&_[data-slot=dialog-close]]:right-2 [&_[data-slot=dialog-close]]:top-2 [&_[data-slot=dialog-close]]:grid [&_[data-slot=dialog-close]]:size-11 [&_[data-slot=dialog-close]]:place-items-center" >
+              <DialogContent id="mobile-dashboard-navigation" className="personal-dashboard inset-y-0 left-0 top-0 flex h-dvh w-80 max-w-[calc(100%-3rem)] translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-y-0 border-l-0 p-0 sm:max-w-80 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 motion-reduce:animate-none [&_[data-slot=dialog-close]]:right-2 [&_[data-slot=dialog-close]]:top-2 [&_[data-slot=dialog-close]]:grid [&_[data-slot=dialog-close]]:size-11 [&_[data-slot=dialog-close]]:place-items-center">
                 <DialogHeader className="shrink-0 border-b px-5 py-5 pr-12 text-left">
                   <DialogTitle className="flex items-center gap-3 text-sm"><Wallet size={19} aria-hidden="true" />Personal workspace</DialogTitle>
                   <DialogDescription className="sr-only">Choose a page in your personal dashboard.</DialogDescription>
                 </DialogHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-3 pb-[env(safe-area-inset-bottom)]">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-3">
                   {renderNavigation(true)}
-                  <p className="border-t px-5 py-4 text-xs leading-5 text-slate-500">Private workspace<br />Signed in as {dashboard.data.user.name}</p>
                 </div>
+                {renderUserFooter(true)}
               </DialogContent>
             </Dialog>
             <Button
@@ -534,36 +587,18 @@ export default function Dashboard() {
             </Button>
           </div>
           {renderNavigation()}
-          <p
-            className={
-              "hidden border-t px-5 py-4 text-xs leading-5 text-slate-500 " +
-              (collapsed ? "" : "lg:block")
-            }
-          >
-            Private workspace
-            <br />
-            Signed in as {dashboard.data.user.name}
-          </p>
+          {renderUserFooter()}
         </aside>
         <main className="min-w-0 p-4 sm:p-6 lg:p-8">
           <header className="mb-4 border-b pb-4">
             <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
               <div className="flex min-w-0 flex-1 items-start gap-2">
-                {!tab && (
-                  <img
-                    src="/portfolio/assets/mico-ang-pixel-portrait.webp"
-                    alt="Miku’s pixel portrait"
-                    width="36"
-                    height="36"
-                    className="size-9 shrink-0 object-contain [image-rendering:pixelated]"
-                  />
-                )}
                 <div className="min-w-0">
                   <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="text-slate-500">Workspace</span>
                     <ChevronRight size={14} className="text-slate-500" aria-hidden="true" />
-                    <h1 className="text-sm! leading-5! font-semibold text-slate-950">
-                      {correctingBalances ? "Correct balances" : tab ? current?.[1] || "Page not found" : "Welcome back, Miku!"}
+                    <h1 ref={pageHeadingRef} tabIndex={-1} className="text-sm! leading-5! font-semibold text-slate-950">
+                      {correctingBalances ? "Correct balances" : tab ? current?.[1] || "Page not found" : `Welcome back, ${dashboard.data.user.name}!`}
                     </h1>
                   </nav>
                   <p className="mt-1 text-xs leading-5 text-slate-600">
@@ -591,10 +626,58 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : tab === "brainstorm" ? null : <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-                <NutritionDateControls id="workspace-month" date={selectedMonth} onChange={setMonth} mode="month" label={tab === "events" ? "Events month" : tab === "eod" ? "EOD month" : "Summary month"} />
-                <GlobalSearch request={dashboard.request} select={searchSelect} />
-              </div>}
+              <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : tab === "brainstorm" ? null : <div className="flex flex-wrap items-center gap-2">
+                  <NutritionDateControls id="workspace-month" date={selectedMonth} onChange={setMonth} mode="month" label={tab === "events" ? "Events month" : tab === "eod" ? "EOD month" : "Summary month"} />
+                  <GlobalSearch request={dashboard.request} select={searchSelect} />
+                </div>}
+                <Dialog open={actionsOpen} onOpenChange={(open) => {
+                  if (open) pendingDashboardAction.current = null;
+                  setActionsOpen(open);
+                }}>
+                  <DialogTrigger asChild>
+                    <Button ref={quickAddTrigger}>
+                      <LayoutDashboard aria-hidden="true" />
+                      Actions
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent
+                    className="personal-dashboard flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-3xl"
+                    onCloseAutoFocus={(event) => {
+                      if (!pendingDashboardAction.current) return;
+                      event.preventDefault();
+                      const action = pendingDashboardAction.current;
+                      pendingDashboardAction.current = null;
+                      quickAddTrigger.current?.focus();
+                      queueMicrotask(action);
+                    }}
+                  >
+                    <DialogHeader className="shrink-0 text-left">
+                      <DialogTitle>Dashboard actions</DialogTitle>
+                      <DialogDescription>Choose what to add or log.</DialogDescription>
+                    </DialogHeader>
+                    <div className="min-h-0 space-y-7 overflow-y-auto p-1">
+                      {dashboardActionGroups.map((group, index) => (
+                        <section key={group.title} aria-labelledby={`dashboard-actions-group-${index}`}>
+                          <h3 id={`dashboard-actions-group-${index}`} className="mb-3 text-sm font-semibold text-slate-950">{group.title}</h3>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {group.items.map((action) => {
+                              const Icon = action.Icon;
+                              return (
+                                <Button key={action.label} type="button" variant="outline" className="h-auto items-start justify-start gap-3 whitespace-normal p-4 text-left hover:border-blue-300 hover:bg-blue-50/50" onClick={() => chooseDashboardAction(action)}>
+                                  <Icon className="mt-0.5 size-5 shrink-0 text-[var(--pd-primary)]" aria-hidden="true" />
+                                  <span className="min-w-0"><span className="block font-semibold text-slate-950">{action.label}</span><span className="mt-1 block text-xs font-normal leading-5 text-slate-600">{action.description}</span></span>
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                    <DialogFooter className="shrink-0 border-t border-[var(--pd-border)] pt-4"><DialogClose asChild><Button variant="outline">Close</Button></DialogClose></DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             {!tab && (
               <div className="mt-3 flex flex-wrap justify-end gap-2">
@@ -614,49 +697,6 @@ export default function Dashboard() {
                   <CalendarDays aria-hidden="true" />
                   View calendar
                 </Button>
-                <DropdownMenu.Root>
-                  <DropdownMenu.Trigger asChild>
-                    <Button ref={quickAddTrigger}>
-                      <Plus aria-hidden="true" />
-                      Add new
-                      <ChevronDown aria-hidden="true" />
-                    </Button>
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Portal>
-                    <DropdownMenu.Content
-                      className="personal-dashboard z-50 min-w-44 rounded-md border border-[var(--pd-border)] bg-white p-1 text-[var(--pd-ink)] shadow-md"
-                      align="end"
-                      sideOffset={6}
-                      onCloseAutoFocus={(event) => {
-                        if (quickAddOpening.current) {
-                          event.preventDefault();
-                          quickAddOpening.current = false;
-                        }
-                      }}
-                    >
-                      <DropdownMenu.Item
-                        className="flex cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--pd-soft)] data-[highlighted]:text-slate-950"
-                        onSelect={() => { quickAddOpening.current = true; setQuickEntryOpen(true); }}
-                      >
-                        <Plus size={16} aria-hidden="true" />Quick Entry
-                      </DropdownMenu.Item>
-                      {[
-                        ["Task", ListChecks, "deadline", { kind: "task" }],
-                        ["Bill", Receipt, "deadline", { kind: "bill" }],
-                        ["Expense", ArrowUpRight, "expense"],
-                      ].map(([label, Icon, entity, record]) => (
-                        <DropdownMenu.Item
-                          key={label}
-                          className="flex cursor-pointer select-none items-center gap-2 rounded-sm px-3 py-2 text-sm outline-none data-[highlighted]:bg-[var(--pd-soft)] data-[highlighted]:text-slate-950"
-                          onSelect={() => openQuickAdd(entity, record)}
-                        >
-                          <Icon size={16} aria-hidden="true" />
-                          Add {label.toLowerCase()}
-                        </DropdownMenu.Item>
-                      ))}
-                    </DropdownMenu.Content>
-                  </DropdownMenu.Portal>
-                </DropdownMenu.Root>
               </div>
             )}
             {!tab && reminders.error && <p role="alert" className="mt-2 text-right text-xs text-red-700">{reminders.error}</p>}
@@ -727,7 +767,7 @@ export default function Dashboard() {
           ) : tab === "quick-entry-transactions" ? (
             <UnsettledTransactions dashboard={dashboard} notify={notify} />
           ) : tab === "nutrition" ? (
-          <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onDateChange={setNutritionDate} onLeave={() => navigate("")} />
+          <NutritionView request={dashboard.request} notify={notify} date={nutritionDate} onDateChange={setNutritionDate} onLeave={() => navigate("")} actionRequest={pageAction?.target === "nutrition" ? pageAction.kind : null} onActionHandled={setPageAction} />
           ) : tab === "events" ? (
             <EventsView dashboard={dashboard} month={selectedMonth} />
           ) : tab === "brainstorm" ? (
@@ -809,6 +849,15 @@ export default function Dashboard() {
             <BalanceCorrectionView dashboard={dashboard} notify={notify} />
           ) : tab === "settings" ? (
             <div className="space-y-6">
+              <UserProfileSettings
+                user={dashboard.data.user}
+                request={dashboard.request}
+                onSaved={() => {
+                  setFailedUserAvatar(null);
+                  dashboard.refresh();
+                  notify("Profile updated.");
+                }}
+              />
               <SummaryTiles
                 items={[
                   {
@@ -1002,7 +1051,7 @@ export default function Dashboard() {
             </DialogContent>
           </Dialog>
         )}
-        {quickEntryOpen && <QuickEntryDialog open={quickEntryOpen} onOpenChange={setQuickEntryOpen} dashboard={dashboard} notify={notify} restoreFocus={() => quickAddTrigger.current?.focus()} />}
+        {quickEntryOpen && <QuickEntryDialog open={quickEntryOpen} onOpenChange={setQuickEntryOpen} dashboard={dashboard} notify={notify} restoreFocus={() => (quickAddTrigger.current?.isConnected ? quickAddTrigger.current : pageHeadingRef.current)?.focus()} />}
         {dialog && (
           <FormDialog
             key={dialog.entity + "-" + (dialog.record?.id || "new")}
