@@ -1,0 +1,7 @@
+Tool: built-in imagegen
+Reference: pixelpopup-frontend/public/workspace-assets/smokey-today-transparent-v2.webp
+Output: pixelpopup-frontend/public/workspace-assets/smokey-quick-entry-v1.webp
+Delivery: alpha-preserving WebP, 264 x 320 pixels, 19,150 bytes.
+
+Final generation prompt:
+Use case: identity-preserve. Asset type: transparent mascot cutout for a compact Quick Entry finance form header. Input image is the existing Smokey character identity and illustration style reference. Make a sibling variation showing the same cream Siamese kitten with dark brown ears, muzzle and paws, pink inner ears, huge glossy blue eyes and a cheerful tilted head, holding one small white paper receipt in its front paws. Receipt contains just a few simple gray horizontal marks, no readable words, numbers or currency. Preserve the original black outlined cartoon shading and character proportions, including blue cheerful expression marks. Chest-up framing only: head, shoulders and front paws with receipt; no lower body, hind legs, feet or long tail. Compact portrait silhouette with all ears and receipt visible, legible at 110px wide. Genuinely transparent alpha background. No background shapes, no blob, no panel, no scenery, no ground shadow, no UI, no text, no watermark.

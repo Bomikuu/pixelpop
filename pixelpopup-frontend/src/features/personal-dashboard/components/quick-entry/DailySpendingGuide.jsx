@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Gauge, Info, RefreshCw, TriangleAlert } from "lucide-react";
+import { Gauge, Info, RefreshCw, TriangleAlert, Wallet } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Progress } from "../../ui/progress";
 import { today } from "../../lib/format";
@@ -14,7 +14,7 @@ function guideMinorUnits(value) {
   return cents + (fraction[2] >= "5" ? 1n : 0n);
 }
 
-export default function DailySpendingGuide({ dashboard, rows, date, status }) {
+export default function DailySpendingGuide({ dashboard, rows, date, status, compact = false }) {
   const day = today();
   const month = day.slice(0, 7);
   const overview = dashboard.data.overview;
@@ -56,6 +56,13 @@ export default function DailySpendingGuide({ dashboard, rows, date, status }) {
   const percentage = guide > 0n ? Number((used > 0n ? used : 0n) * 10000n / guide) / 100 : used > 0n ? 100 : 0;
   const tone = over ? "text-red-700" : "text-emerald-700";
   const Indicator = over ? TriangleAlert : Gauge;
+
+  if (compact) return <section className="capture-guide" data-over={over || undefined} aria-label="Today's daily spending guide">
+    <span className="capture-guide-icon"><Wallet size={23} aria-hidden="true" /></span>
+    <div className="capture-guide-amount"><span>{over ? "Over today's guide" : "Remaining for today"}</span><strong>{formatMinorUnits(over ? -remaining : remaining)}</strong><span>Daily budget estimate</span></div>
+    <div className="capture-guide-progress"><Progress value={Math.min(100, Math.max(0, percentage))} aria-label="Today's expense progress" aria-valuetext={`${formatMinorUnits(used)} in expenses against a ${formatMinorUnits(guide)} daily guide${over ? ", over the guide" : ""}`} className={over ? "[&_[data-slot=progress-indicator]]:bg-red-500" : "[&_[data-slot=progress-indicator]]:bg-emerald-500"} /><span>{Math.round(percentage)}% used</span></div>
+    <p className="sr-only">Remaining monthly budget divided by remaining days. Includes this draft's expenses for today. {uncertain ? "Unconfirmed drafts are excluded until the save is confirmed." : "Going over the guide does not prevent saving."}</p>
+  </section>;
 
   return <section aria-label="Today’s daily spending guide" className="border border-[var(--pd-border)] bg-white p-3 sm:p-4">
     <div className="flex flex-wrap items-center justify-between gap-2">

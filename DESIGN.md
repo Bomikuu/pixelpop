@@ -360,10 +360,19 @@ rows and debt/receivable shortcuts follow the supplied rounded-card reference.
 Keep the illustration clear of the amount and all controls. The mobile
 business home emphasizes plan progress, current saved actions, actual evidence
 and ownership counts, and continuity checks. Keep all detailed workspaces in
-navigation. Nutrition uses a calorie progress ring and a two-column macro/active
-burn grid on phones; retain the four original summary tiles on desktop. The ring
-uses recorded food or net values, clamps only its visual fill, and shows missing
-food as unknown. Preserve food-over-target warnings, target definitions, and
+navigation. Nutrition uses a compact calorie progress card on phones, with a transparent
+food-themed Smokey WebP over CSS dots and waves, and a three-column macro row.
+Keep the illustration beside the calories on small phones and alongside the full
+card on wider screens. The calorie heading opens the existing target controls.
+Keep one small Food/Net button inside the mobile summary card; it displays the
+current basis and switches to the other on press. Retain Nutrition tools in the
+outer header. Logged meal and food-item thumbnails use the supplied image URL
+when available, otherwise a compact transparent isometric food-bowl WebP, also
+falling back when an image fails. Keep the empty meal list's original icon and
+copy. Nutrition analytics summary tiles use one column below the desktop breakpoint;
+retain the existing desktop columns and all unknown-intake meanings.
+Retain the four original summary tiles on desktop. The bar uses recorded food or
+net values, clamps only its visual fill, and shows missing food as unknown. Preserve food-over-target warnings, target definitions, and
 the distinction between logged active burn and total expenditure.
 
 Mobile motion explains navigation and actions. The Quick actions sheet arrives
@@ -379,14 +388,39 @@ On phones, shared record forms fill the visual viewport with fixed header/action
 
 The two dashboards share the Mico Workspace PWA identity and existing brand artwork. Installation guidance belongs in More and the expanded desktop sidebar. Preserve public-page metadata when leaving a workspace. The first release caches only a static offline document and app icons: private data, authenticated HTML, API calls, downloads and public portfolio routes stay on the network. Never replay writes or AI requests offline. Service-worker updates wait for workspace windows to close, with a notice to save first and no forced reload.
 
+### Quick Entry Capture
+
+The default Quick Entry dialog uses the supplied amount-first reference: a small
+receipt-holding Smokey cutout, Expense/Income choices, a large peso amount,
+the real daily-guide preview, four category shortcuts with More, an optional
+description and one Save button. Keep light workspace surfaces and neutral black
+dark-mode surfaces, cobalt actions, semantic expense/income accents and restrained
+state transitions. The transparent receipt WebP is 264×320px, approximately 19 KB.
+
+Save one entry for today through the existing quick-entry endpoint, without an
+account; state that account assignment happens in Entry review. The optional note
+becomes the transaction description, falling back to its category or type. Amounts
+retain exact cents. The guide reuses the existing calculation and includes the
+valid draft amount; it never prevents saving. An uncertain response freezes the
+entry and reuses its request ID until confirmed, preventing duplicate saves.
+
+Keep the original QuickEntryDialog and batch form intact behind Full Quick Entry.
+Confirm discarding an unsaved single-entry draft before leaving or switching to
+the full form. Keep category search behind See all, safe-area footer spacing,
+keyboard focus restoration, semantic labels and reduced-motion behavior.
+
 ### Personal Dashboard Daily Priorities
 
-The Summary tab starts with a compact Today list above the financial metrics.
-Use the overview's current-date counts across all months for overdue items,
-tasks and bills due today, and transactions awaiting account assignment. Reuse
-the overdue review, Planning tab and entry-review workflow; keep Remind tomorrow.
-Use one flat panel with divided rows, clear action labels and inline errors.
-Keep the selected reporting month separate from these current priorities.
+The desktop Today tab uses an underline navigation rail and a compact greeting
+banner with the same transparent Smokey WebP as mobile, over CSS textures.
+Arrange the six primary financial figures in two columns, preserving the summary
+tile pattern and hover movement. Show comparisons and small trends only where
+recorded historical data exists. Place attention items and compact deadlines
+beside today's task and bill list, with All, Tasks and Bills filters. Keep extra
+financial figures and the original deadline views in expandable details.
+Use current-date priorities independently of the selected reporting month. Reuse
+the overdue review, task completion, payment and entry-review workflows; keep
+Remind tomorrow. Preserve the existing mobile home and black dark-mode surfaces.
 
 Provide a skip link and focus the page heading after route changes, waiting for
 the mobile navigation drawer to close and preserving active dialog focus.

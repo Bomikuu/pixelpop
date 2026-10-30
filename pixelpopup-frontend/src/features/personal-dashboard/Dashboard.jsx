@@ -79,7 +79,7 @@ import useWorkspaceMobile from "../workspace-mobile/useWorkspaceMobile";
 
 const loadFormDialog = () => import("./components/forms/FormDialog");
 const loadCalendarDialog = () => import("./components/CalendarDialog");
-const loadQuickEntryDialog = () => import("./components/quick-entry/QuickEntryDialog");
+const loadQuickEntryDialog = () => import("./components/quick-entry/QuickCaptureDialog");
 
 const BalanceCorrectionView = lazy(() => import("./views/BalanceCorrectionView"));
 const InsightsView = lazy(() => import("./views/InsightsView"));
