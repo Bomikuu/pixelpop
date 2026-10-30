@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowDownLeft, ArrowUp, ArrowUpRight, Bell, CalendarDays, ChevronRight, CircleCheck, CreditCard, Landmark, TriangleAlert, Users, Wallet } from "lucide-react";
 import { money, dateLabel, monthLabel } from "../personal-dashboard/lib/format";
 import AnimatedNumber from "../personal-dashboard/components/AnimatedNumber";
+import { SummaryTilePattern } from "../personal-dashboard/components/SummaryTiles";
 import UnsettledReminder from "../personal-dashboard/components/quick-entry/UnsettledReminder";
 
 function FlowChange({ comparison }) {
@@ -32,7 +33,8 @@ export default function MobilePersonalHome({ overview: o, month, user, accounts 
         </div>
       </div>
       <dl className="workspace-today-cashflow" aria-label={`Income and expenses for ${monthLabel(month)}`}>
-        {[{ key: "income", label: "Income", Icon: ArrowDownLeft }, { key: "expenses", label: "Expenses", Icon: ArrowUpRight }].map(({ key, label, Icon }) => <div key={key} className="workspace-today-flow" data-flow={key}>
+        {[{ key: "income", label: "Income", Icon: ArrowDownLeft }, { key: "expenses", label: "Expenses", Icon: ArrowUpRight }].map(({ key, label, Icon }) => <div key={key} className="group workspace-summary-tile workspace-today-flow" data-flow={key}>
+          <SummaryTilePattern tone={key === "income" ? "positive" : "negative"} />
           <dt><span className="workspace-today-icon"><Icon size={19} aria-hidden="true" /></span>{label}</dt>
           <dd><span className="workspace-today-flow-value"><AnimatedNumber value={o.month[key]} format={money} /></span><FlowChange comparison={comparisons[key]} /></dd>
           {o.previous_month?.month && o.previous_month[key] != null && <dd className="workspace-today-previous">vs. {monthLabel(o.previous_month.month)}: {money(o.previous_month[key])}{comparisons[key]?.noBaseline && <span className="block">No percentage baseline</span>}</dd>}
@@ -58,8 +60,8 @@ export default function MobilePersonalHome({ overview: o, month, user, accounts 
     </section>
 
     <div className="workspace-today-positions">
-      <button type="button" className="workspace-today-position" onClick={() => navigate("accounts")}><span className="workspace-today-icon"><CreditCard size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Credit-card debt</span><strong><AnimatedNumber value={o.position.debt} format={money} /></strong></span><ChevronRight size={16} aria-hidden="true" /></button>
-      <button type="button" className="workspace-today-position" onClick={() => navigate("loans")}><span className="workspace-today-icon"><Users size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Owed to you</span><strong><AnimatedNumber value={o.position.receivables} format={money} /></strong></span><ChevronRight size={16} aria-hidden="true" /></button>
+      <button type="button" className="group workspace-summary-tile workspace-today-position" onClick={() => navigate("accounts")}><SummaryTilePattern tone="negative" /><span className="workspace-today-icon"><CreditCard size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Credit-card debt</span><strong><AnimatedNumber value={o.position.debt} format={money} /></strong></span><ChevronRight size={16} aria-hidden="true" /></button>
+      <button type="button" className="group workspace-summary-tile workspace-today-position" onClick={() => navigate("loans")}><SummaryTilePattern tone="neutral" /><span className="workspace-today-icon"><Users size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Owed to you</span><strong><AnimatedNumber value={o.position.receivables} format={money} /></strong></span><ChevronRight size={16} aria-hidden="true" /></button>
     </div>
 
     <section aria-labelledby="mobile-next-deadlines">
