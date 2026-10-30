@@ -16,12 +16,20 @@ import ApplicationFollowUps from "./ApplicationFollowUps";
 import ApplicationListItem from "./ApplicationListItem";
 import ApplicationBudget from "./ApplicationBudget";
 import { jobApi, statuses } from "./api";
+import { useSearchParams } from "react-router-dom";
 
-export default function JobApplicationsView({ applicationId, initialTab = "applications", navigate, notify }) {
+export default function JobApplicationsView({ applicationId, initialTab = "applications", navigate, notify, resumeEditor = false, onDirtyChange }) {
+  const [params, setParams] = useSearchParams();
+  const compose = params.get("compose");
   const [tab, setTab] = useState(initialTab), [data, setData] = useState(null), [profile, setProfile] = useState(null), [settings, setSettings] = useState(null);
   const [query, setQuery] = useState(""), [status, setStatus] = useState("all"), [page, setPage] = useState(1), [version, setVersion] = useState(0);
   const [error, setError] = useState(""), [loading, setLoading] = useState(true), [dialog, setDialog] = useState(null);
   const refresh = useCallback(() => setVersion((value) => value + 1), []);
+  useEffect(() => {
+    if (compose !== "application" || applicationId || initialTab !== "applications") return;
+    setDialog((current) => current || "application");
+    setParams((current) => { const next = new URLSearchParams(current); next.delete("compose"); return next; }, { replace: true });
+  }, [compose, applicationId, initialTab, setParams]);
   useEffect(() => { setTab(initialTab); }, [initialTab]);
   useEffect(() => {
     const controller = new AbortController();
@@ -45,7 +53,7 @@ export default function JobApplicationsView({ applicationId, initialTab = "appli
     navigate(value === "applications" ? "applications" : `applications/${value}`);
   }
   if (applicationId && !/^\d+$/.test(applicationId)) return <EmptyState title="This application does not exist" action={<Button onClick={() => navigate("applications")}>Back to applications</Button>}/>;
-  if (applicationId) return <>{error && <ErrorState message={error} retry={refresh}/>}<ApplicationDetail key={applicationId} applicationId={applicationId} profile={profile} settings={settings} navigate={navigate} onBack={() => navigate("applications")} onProfile={() => setDialog("profile")} onProfileChanged={profileChanged} onSettings={showSettings} notify={notify}/>{dialog === "profile" && profile && <ApplicantProfileForm profile={profile} onCancel={() => setDialog(null)} onSaved={(saved) => { setProfile(saved); setDialog(null); refresh(); }} notify={notify}/>}</>;
+  if (applicationId) return <>{error && <ErrorState message={error} retry={refresh}/>}<ApplicationDetail key={applicationId} applicationId={applicationId} profile={profile} settings={settings} navigate={navigate} onBack={() => navigate("applications")} onProfile={() => setDialog("profile")} onProfileChanged={profileChanged} onSettings={showSettings} notify={notify} resumeEditor={resumeEditor} onDirtyChange={onDirtyChange}/>{dialog === "profile" && profile && <ApplicantProfileForm profile={profile} onCancel={() => setDialog(null)} onSaved={(saved) => { setProfile(saved); setDialog(null); refresh(); }} notify={notify}/>}</>;
   return <div className="space-y-4"><Tabs value={tab} onValueChange={selectTab}><div className="flex flex-wrap items-center justify-between gap-3"><TabsList variant="line" className="max-w-full overflow-x-auto"><TabsTrigger value="applications"><BriefcaseBusiness size={16}/>Applications</TabsTrigger><TabsTrigger value="followups"><CalendarClock size={16}/>Follow-ups</TabsTrigger><TabsTrigger value="profile"><UserRound size={16}/>Applicant profile</TabsTrigger><TabsTrigger value="answers"><MessageSquare size={16}/>Reusable answers</TabsTrigger><TabsTrigger value="ai"><Settings2 size={16}/>Application AI</TabsTrigger></TabsList><Button asChild size="sm" variant="outline"><a href={applicationProfile.resume} download><Download size={15}/>Download my résumé</a></Button></div>
     <TabsContent value="applications" className="mt-4 space-y-4">
       <SummaryTiles items={[{ label: "Tracked applications", value: data?.summary?.total ?? 0, icon: "count" }, { label: "Submitted", value: data?.summary?.applied ?? 0, icon: "completed" }, { label: "Interviewing", value: data?.summary?.interviewing ?? 0, icon: "loans" }, { label: "Follow-ups due", value: data?.summary?.follow_ups_due ?? 0, icon: "deadline", statusTone: data?.summary?.follow_ups_due ? "negative" : "neutral" }]}/>

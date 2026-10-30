@@ -25,6 +25,9 @@ All strings are at most 2000 characters. Never give an ATS probability or score.
 """,
     "tailor": """Create a complete role-tailored résumé proposal using only reviewed facts. Also return changes (at most 80), one for EVERY changed, added or removed section, with section_title, reason, and sources (exact facts/resume_text quotes supporting the change).
 Cover these goals together: naturally place genuinely supported posting keywords; turn responsibilities into achievement-focused bullets using actual outcomes and real numbers ONLY when supplied; remove clichés, filler and repetition without changing the underlying claim; prioritize relevant roles/projects/bullets within existing section order and shorten less relevant material without hiding employment history; write a concise credible role-specific summary; strengthen source-backed differentiators with precise wording. Preserve the supplied layout's section labels and structure. Do not add learning goals or hypothetical achievements as employment experience.
+Optimize for substantive alignment with this specific posting. Prioritize required qualifications before preferred ones. When posting_requirements is supplied, use it as a prioritization guide, not as proof of applicant experience; its statuses are an earlier analysis and sources remain authoritative. Respect any current applicant limitation even when a keyword appears elsewhere in their sources.
+Expand terse but relevant confirmed contributions into concrete, readable bullets describing the applicant's action, implementation or approach, and recorded result. Use only details entailed by the supplied facts and quotations; every added factual clause needs support. Prefer precise unquantified contributions over vague claims when no metric is recorded. Do not infer ownership, architecture, production scale, outcomes or proficiency from a project name or tool list. Do not trade useful specificity for unnecessary brevity or repeat keywords to inflate apparent alignment.
+If stronger wording needs missing facts, keep the current accurate claim and include up to five focused clarification questions in warnings, highest-impact first. Ask for the actual project/task, personal contribution, tools or recorded outcome needed; do not put proposed facts, placeholders or unconfirmed examples into the résumé body. Never claim or guarantee a high ATS, match or acceptance score.
 Explain specifically why each section changed and what facts support it. Empty sources are allowed for deleting filler or purely structural edits, but never for new factual claims. Changes do not approve themselves. All change strings are at most 2000 characters.
 """,
     "check": """This is a final recruiter/readiness review of the CURRENT SAVED résumé, NOT a rewrite. Set requirements and evidence to [].
@@ -76,6 +79,20 @@ def resume_context(profile, artifact, mode, application=None):
     if not body.strip():
         raise ValidationError("Add reviewed résumé text to your profile, or save a résumé draft first.")
     context = {"saved_revision": artifact.revision, "resume_sections": split_sections(body)}
+    if mode == "tailor" and application:
+        assessment = application.artifacts.filter(kind="assessment").first()
+        if assessment and assessment.assessment_digest == source_fingerprint(application, profile):
+            from .requirements import requirement_decisions
+            rows = requirement_decisions(application, profile, assessment)["current"]
+            context["posting_requirements"] = []
+            for row in rows:
+                decision = row.get("applicant_decision") or {}
+                context["posting_requirements"].append({
+                    "requirement": row["text"], "importance": row["importance"],
+                    "support": row["status"], "posting_excerpt": row["posting_excerpt"],
+                    "limitation": decision.get("note", "")
+                    if decision.get("decision") == "not_met" and not decision.get("stale") else "",
+                })
     answers = accepted_clarifications(application, profile) if application else None
     accepted_answers = answers
     if mode in ("fix", "clarify"):

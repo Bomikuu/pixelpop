@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BriefcaseBusiness, CalendarClock, CheckCircle2, FileCheck2, FileSearch, FileText, History, Info, LayoutDashboard, MessageSquare, Pencil, Receipt, Sparkles, UserRound } from "lucide-react";
 import { Button } from "../../personal-dashboard/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../personal-dashboard/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../personal-dashboard/ui/tabs";
 import { Panel, ErrorState, EmptyState } from "../../personal-dashboard/components/Panel";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../../personal-dashboard/ui/alert-dialog";
@@ -31,7 +32,7 @@ import InterviewGapPreparation from "./InterviewGapPreparation";
 import TailoringClarificationForm, { priorityTailoringQuestion } from "./TailoringClarificationForm";
 import { jobApi, labels, packageKinds, fieldError, generationLabel, isResumeReport } from "./api";
 
-export default function ApplicationDetail({ applicationId, profile, settings, onBack, onProfile, onProfileChanged, onSettings, navigate, notify }) {
+export default function ApplicationDetail({ applicationId, profile, settings, onBack, onProfile, onProfileChanged, onSettings, navigate, notify, resumeEditor = false, onDirtyChange }) {
   const [record, setRecord] = useState(null), [error, setError] = useState(""), [busy, setBusy] = useState(false), [progress, setProgress] = useState(""), [dialog, setDialog] = useState(null), [confirm, setConfirm] = useState(null);
   const [section, setSection] = useState("overview"), [kind, setKind] = useState("resume"), [edits, setEdits] = useState({});
   const [reviewDirty, setReviewDirty] = useState(false), [reviewBusy, setReviewBusy] = useState(false), [reviewVersion, setReviewVersion] = useState(0);
@@ -43,6 +44,9 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
   const [tailoringQuestion, setTailoringQuestion] = useState(null);
   const [proposalFocus, setProposalFocus] = useState(null);
   const [resumeSectionFocus, setResumeSectionFocus] = useState(null);
+  const [resumeTransfer, setResumeTransfer] = useState({ reviewNotes: [], undo: null });
+  const [resumePanel, setResumePanel] = useState("preview");
+  const resumeEditorLauncher = useRef(null);
   const resultBannerRef = useRef(null);
   const load = useCallback(async (signal) => {
     const result = await jobApi(`applications/${applicationId}/`, { signal }); setRecord(result); setRefreshKey((value) => value + 1); return result;
@@ -53,6 +57,11 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
   const assessmentDirty = edits.assessment !== undefined && edits.assessment !== (assessment?.body || "");
   const hasDocumentUnsaved = Object.entries(edits).some(([key, text]) => text !== (getArtifact(key)?.body || ""));
   const hasUnsaved = reviewDirty || hasDocumentUnsaved;
+  const hasEditingDraft = hasUnsaved || Boolean(resumeTransfer.experienceDraft?.text?.trim());
+  useEffect(() => {
+    onDirtyChange?.(resumeEditor && hasEditingDraft);
+    return () => onDirtyChange?.(false);
+  }, [resumeEditor, hasEditingDraft, onDirtyChange]);
   const actionBusy = busy || reviewBusy;
   const pendingCount = (key) => record?.pending_proposals?.find((item) => item.kind === key)?.count || 0;
   const provider = settings?.providers.find((item) => item.id === settings.settings.provider);
@@ -80,19 +89,21 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
     setActivity((previous) => previous && ({ ...previous, message, items: previous.items.map((item) => item.kind === key ? { ...item, ...patch } : item) }));
   }
   useEffect(() => {
-    const unload = (event) => { if (hasUnsaved) { event.preventDefault(); event.returnValue = ""; } };
+    const unload = (event) => { if (hasEditingDraft) { event.preventDefault(); event.returnValue = ""; } };
     window.addEventListener("beforeunload", unload); return () => window.removeEventListener("beforeunload", unload);
-  }, [hasUnsaved]);
+  }, [hasEditingDraft]);
   async function refresh() {
     try { setError(""); await load(); }
     catch (issue) { setError(issue.message); }
   }
-  function back() { if (hasUnsaved) setConfirm({ back: true }); else onBack(); }
+  function back() { if (hasEditingDraft) setConfirm({ back: true }); else onBack(); }
   function applySection(next, nextKind) {
     if (nextKind) setKind(nextKind);
     else if (next === "interview") setKind("interview_prep");
     else if (next === "drafts" && kind === "interview_prep") setKind("resume");
     setSection(next);
+    if (next === "drafts" && nextKind === "resume") navigate(`applications/${applicationId}/resume`);
+    else if (resumeEditor) navigate(`applications/${applicationId}`);
   }
   function changeSection(next, nextKind) {
     if (reviewDirty && (next !== section || nextKind && nextKind !== kind)) setConfirm({ section: next, nextKind });
@@ -101,13 +112,33 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
   function changeWorkspace(next) {
     changeSection({ files: "drafts", activity: "timeline" }[next] || next);
   }
-  function openFile(key) { changeSection(key === "interview_prep" ? "interview" : "drafts", key); }
-  function editResumeSection(key) { setResumeSectionFocus({ key }); openFile("resume"); }
-  function openReview(key, proposalId = null) { setProposalFocus(proposalId); changeSection("review", key); }
+  function openFile(key) {
+    if (key === "resume" && !resumeEditor) resumeEditorLauncher.current = document.activeElement;
+    changeSection(key === "interview_prep" ? "interview" : "drafts", key);
+  }
+  function openResumeEditor(panel = "preview") { setResumePanel(panel); openFile("resume"); }
+  function changeResumePanel(next) {
+    if (actionBusy) return;
+    if (reviewDirty && next !== resumePanel) setConfirm({ resumePanel: next });
+    else setResumePanel(next);
+  }
+  function closeResumeEditor() {
+    if (actionBusy) return;
+    if (reviewDirty) setConfirm({ section });
+    else navigate(`applications/${applicationId}`);
+  }
+  function editResumeSection(key) { setResumeSectionFocus({ key }); setResumePanel("preview"); openFile("resume"); }
+  function openReview(key, proposalId = null) {
+    if (resumeEditor) {
+      if (reviewDirty) { setError("Finish or discard the current proposal decisions before opening another proposal."); return; }
+      setKind(key); setProposalFocus(proposalId); setResumePanel("review");
+    } else { setProposalFocus(proposalId); changeSection("review", key); }
+  }
   function openAIResult(key, mode, proposalId) {
     if (hasUnsaved) { setError("Save your draft edits and review decisions before opening another AI result."); return; }
     if (mode === "clarify") { setDialog("resume_clarifications"); return; }
     setKind(key); setProposalFocus(proposalId || null);
+    if (resumeEditor && key !== "assessment") { setResumePanel(isResumeReport(mode) ? "generate" : "review"); return; }
     changeSection(isResumeReport(mode) ? "checks" : key === "assessment" ? "requirements" : "review");
   }
   function inspectRequirement(index) {
@@ -190,8 +221,8 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
         notify(result.proposal_id ? `${resultLabel} ready. Your saved document is unchanged—review the new proposal.` : `${resultLabel} complete. The new result is saved and ready to view.`);
         updateRequest(key, { status: "ready", proposalId: result.proposal_id, endedAt: Date.now(), detail: isResumeReport(item.mode) ? "The report is saved against this résumé revision and current sources. The résumé itself was not changed." : key === "assessment" ? "The saved assessment and requirement evidence are available for inspection." : "Your review proposal is saved. Accepting reviewed changes is a separate action; the existing draft was kept." }, `${resultLabel} is ready to review.`);
       }
-      if (proposalKind) { setKind(proposalKind); setReviewVersion((value) => value + 1); setSection("review"); }
-      else if (items.some((item) => isResumeReport(item.mode))) { setKind("resume"); setSection("checks"); }
+      if (proposalKind) { setKind(proposalKind); setReviewVersion((value) => value + 1); if (resumeEditor) setResumePanel("review"); else setSection("review"); }
+      else if (items.some((item) => isResumeReport(item.mode))) { setKind("resume"); if (resumeEditor) setResumePanel("generate"); else setSection("checks"); }
       else setSection("requirements");
       setActivity((previous) => ({ ...previous, endedAt: Date.now(), message: "All requested results are loaded. Open an assessment or review a proposal; no application has been submitted." }));
       requestAnimationFrame(() => resultBannerRef.current?.scrollIntoView({ block: "nearest", behavior: "instant" }));
@@ -215,7 +246,25 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
     else navigate(destination);
   }
   if (!record) return error ? <ErrorState message={error} retry={refresh}/> : <p className="py-10 text-center text-sm text-slate-600">Loading application…</p>;
+  const resumeOptimizationProps = {
+    opportunities: record.resume_opportunities, check: record.resume_check,
+    dirty: edits.resume !== undefined && edits.resume !== (getArtifact("resume")?.body || ""),
+    blockedReason: actionBusy ? actionMessage : hasUnsaved ? "Save your draft edits and proposal decisions before generating." : generationBlockedReason,
+    busy: actionBusy, saved: !!getArtifact("resume")?.body?.trim(), pendingCount: pendingCount("resume"),
+    onGenerate: (mode) => requestGeneration("resume", mode), onReview: () => openReview("resume"), onEditSection: editResumeSection,
+    preferences: settings?.settings,
+    exampleBlockedReason: preparationBlockedReason || (!record.requirement_decisions?.some((row) => row.status !== "supported") ? "No unresolved requirements in the current assessment." : ""),
+    onExample: () => setPreparationRequest({ mode: "example" }),
+    onPreparation: () => resumeEditor ? changeResumePanel("experience") : openFile("interview_prep"),
+    onSettings: () => {
+      if (hasUnsaved && resumeEditor) setError("Save your résumé and finish proposal decisions before opening AI settings.");
+      else if (hasUnsaved) setConfirm({ settings: true });
+      else onSettings();
+    },
+  };
+
   return <div className="space-y-4">
+    {!resumeEditor && <>
     <ApplicationHeader record={record} assessment={assessment} dirty={assessmentDirty} busy={actionBusy} prepareBlocked={!canGenerate || hasUnsaved} prepared={packagePrepared} prepareStatus={generationStatus} onBack={back} onRefresh={refresh} onEdit={() => setDialog("posting")} onConvert={openConversion} onPrepare={preparePackage} onChecks={() => changeSection("checks")} onRequirements={() => changeSection("requirements")} onFlags={() => openFile("assessment")} onProposals={() => openReview(record.pending_proposals?.find((item) => item.count > 0)?.kind || "resume")} onSettings={() => { if (hasUnsaved) setConfirm({ settings: true }); else onSettings(); }}/>
     <Tabs value={workspace} onValueChange={changeWorkspace}>
     <div className="sticky top-0 z-30 -mx-1 overflow-x-auto border-b bg-[var(--pd-bg,#f8fafc)] px-1 py-2">
@@ -256,6 +305,7 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
                 busy={actionBusy} busyMessage={actionMessage} canGenerate={canGenerate} generationBlockedReason={generationBlockedReason}
                 opportunities={record.resume_opportunities} resumeCheck={record.resume_check} optimizationBlockedReason={hasUnsaved ? "Save your draft edits and proposal decisions before requesting another report or proposal." : ""}
                 showOptimization={false} onChecks={() => changeSection("checks")} focusRequest={key === "resume" ? resumeSectionFocus : null} onFocusHandled={setResumeSectionFocus}
+                onOpenEditor={openResumeEditor}
                 assessmentContext={{ role: record.role, company: record.company, decisions: record.requirement_decisions }} notify={notify}
               />}
             </TabsContent>)}
@@ -276,7 +326,8 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
     <TabsContent value="checks" className="mt-2 space-y-4">
       <ApplicationChecklist checklist={record.checklist} onAction={checklistAction} busy={actionBusy || reviewDirty}/>
       <Panel title="Résumé & recruiter checks" description="Source-backed preparation checks, not an ATS test or a hiring prediction.">
-        <ResumeOptimization opportunities={record.resume_opportunities} check={record.resume_check} dirty={edits.resume !== undefined && edits.resume !== (getArtifact("resume")?.body || "")} blockedReason={actionBusy ? actionMessage : hasUnsaved ? "Save your draft edits and proposal decisions before requesting another report or proposal." : generationBlockedReason} busy={actionBusy} saved={!!getArtifact("resume")?.body?.trim()} pendingCount={pendingCount("resume")} onGenerate={(mode) => requestGeneration("resume", mode)} onReview={() => openReview("resume")} onEditSection={editResumeSection} preferences={settings?.settings} exampleBlockedReason={preparationBlockedReason || (!record.requirement_decisions?.some((row) => row.status !== "supported") ? "No unresolved requirements in the current assessment." : "")} onExample={() => setPreparationRequest({ mode: "example" })} onPreparation={() => openFile("interview_prep")} onSettings={() => { if (hasUnsaved) setConfirm({ settings: true }); else onSettings(); }}/>
+        <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-slate-600">Tailor and generate your résumé in the expanded editor.</p><Button type="button" data-resume-editor-launch variant="outline" disabled={actionBusy} onClick={() => openResumeEditor("generate")}><Sparkles size={15}/>Open tailoring tools</Button></div>
+        <ResumeOptimization {...resumeOptimizationProps} checkOnly/>
       </Panel>
     </TabsContent>
     <TabsContent value="activity" className="mt-2 space-y-4">
@@ -287,6 +338,33 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
       </Tabs>
     </TabsContent>
     </Tabs>
+    </>}
+    <Dialog open={resumeEditor} onOpenChange={(open) => { if (!open) closeResumeEditor(); }}>
+      <DialogContent showCloseButton={false} className="personal-dashboard inset-0! flex h-dvh! w-screen! max-w-none! translate-x-0! translate-y-0! flex-col gap-0 overflow-hidden rounded-none! border-0 bg-[var(--pd-bg,#f8fafc)] p-0 sm:max-w-none!"
+        onEscapeKeyDown={(event) => { if (actionBusy) event.preventDefault(); }} onInteractOutside={(event) => event.preventDefault()}
+        onCloseAutoFocus={(event) => { event.preventDefault(); requestAnimationFrame(() => {
+          const launcher = resumeEditorLauncher.current;
+          if (launcher?.isConnected) launcher.focus();
+          else document.querySelector('[data-resume-editor-launch]')?.focus();
+        }); }}>
+        <DialogHeader className="sr-only"><DialogTitle>Résumé editor</DialogTitle><DialogDescription>Edit, tailor and review this posting’s résumé in a full-page workspace.</DialogDescription></DialogHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
+          {error && <ErrorState message={error}/>}
+          {(actionBusy || activity?.items?.some((item) => item.status === "failed")) && <AIActivityPanel activity={activity} busy={actionBusy} onReview={openAIResult} onUsage={() => changeSection("usage")} onDismiss={() => setActivity(null)}/>}
+          <ArtifactEditor applicationId={applicationId} kind="resume" artifact={getArtifact("resume")} body={edits.resume ?? getArtifact("resume")?.body ?? ""} profile={profile} pendingCount={pendingCount("resume")}
+            onChange={(value) => setEdits((previous) => ({ ...previous, resume: value }))} onSave={() => saveDraft("resume")} onReview={() => markReviewed("resume")} onOpenReview={() => openReview("resume")}
+            busy={actionBusy} busyMessage={actionMessage} notify={notify} onChecks={() => changeResumePanel("generate")} focusRequest={resumeSectionFocus} onFocusHandled={setResumeSectionFocus}
+            resumeWorkspace={{ record, onExit: closeResumeEditor, transferState: resumeTransfer, onTransferStateChange: setResumeTransfer,
+              editorPanel: resumePanel, onEditorPanelChange: changeResumePanel,
+              assessmentDirty, comparisonBlockedReason: resumeOptimizationProps.blockedReason,
+              onCompareRequirements: () => requestGeneration("assessment"), onResolveRequirement: setGapRow,
+              generationTools: <>{!profile?.sources_confirmed && <Button type="button" size="sm" variant="outline" disabled={actionBusy} onClick={onProfile}><UserRound size={15}/>Review profile sources</Button>}<ResumeOptimization {...resumeOptimizationProps}/></>,
+              experienceBlockedReason: resumeOptimizationProps.exampleBlockedReason, onGenerateExperience: resumeOptimizationProps.onExample,
+              proposalTools: <ProposalReview key={`editor-proposal-${kind}-${proposalFocus || "default"}`} applicationId={applicationId} kind={kind === "assessment" ? "resume" : kind} sourceDigest={record.source_digest} version={reviewVersion} targetProposalId={proposalFocus} onKindChange={setKind} onUpdated={reviewedDraftUpdated} onDirtyChange={setReviewDirty} onBusyChange={setReviewBusy} onActivity={reviewActivity} notify={notify} disabled={busy} draftDirty={hasDocumentUnsaved} onOpenDrafts={() => changeResumePanel("preview")}/>,
+            }}/>
+        </div>
+      </DialogContent>
+    </Dialog>
     {dialog === "posting" && <ApplicationForm record={record} onCancel={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }} notify={notify}/>}
     {dialog === "resume_clarifications" && record.resume_check && <ResumeClarificationForm record={record} autoAnswerBlockedReason={generationBlockedReason || (hasUnsaved ? "Save your draft edits and review decisions before drafting answers." : "")} onCancel={() => setDialog(null)} onSaved={async () => { await load(); setDialog(null); await requestQuote(["resume"], "fix"); }} notify={notify}/>}
     {dialog === "activity" && <ApplicationActivityForm applicationId={applicationId} onCancel={() => setDialog(null)} onSaved={() => { setDialog(null); refresh(); }} notify={notify}/>}
@@ -297,6 +375,6 @@ export default function ApplicationDetail({ applicationId, profile, settings, on
     {dialog === "final_checks" && <SubmissionReviewForm record={record} onCancel={() => setDialog(null)} onSaved={async () => { await load(); setDialog(null); }} notify={notify}/>}
     {(dialog === "follow_up" || dialog === "reschedule") && <FollowUpForm record={record} mode={dialog === "reschedule" ? "reschedule" : "record"} onCancel={() => setDialog(null)} onSaved={async () => { await load(); setDialog(null); }} notify={notify}/>}
     {quote && <GenerationQuoteDialog quote={quote} busy={busy} onCancel={() => setQuote(null)} onConfirm={runGeneration}/>}
-    <AlertDialog open={!!confirm} onOpenChange={(open) => { if (!open) setConfirm(null); }}><AlertDialogContent className="personal-dashboard"><AlertDialogHeader><AlertDialogTitle>{confirm?.back || confirm?.settings || confirm?.section || confirm?.destination ? "Leave unsaved changes?" : confirm?.kind === "assessment" ? "Generate a new assessment?" : "Create a new document proposal?"}</AlertDialogTitle><AlertDialogDescription>{confirm?.back || confirm?.settings || confirm?.section || confirm?.destination ? "Save your draft and review decisions first if you want to keep them." : "Your saved drafts and proposals will be kept. Next, review the API cost estimate before confirming generation."}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => { const action = confirm; setConfirm(null); if (action.back) onBack(); else if (action.settings) onSettings(); else if (action.destination) navigate(action.destination); else if (action.section) { setReviewDirty(false); applySection(action.section, action.nextKind); } else requestQuote([action.kind], action.mode); }}>{confirm?.back || confirm?.settings || confirm?.section || confirm?.destination ? "Leave without saving" : "Review estimate"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+    <AlertDialog open={!!confirm} onOpenChange={(open) => { if (!open) setConfirm(null); }}><AlertDialogContent className="personal-dashboard"><AlertDialogHeader><AlertDialogTitle>{confirm?.back || confirm?.settings || confirm?.section || confirm?.destination || confirm?.resumePanel ? "Leave unsaved changes?" : confirm?.kind === "assessment" ? "Generate a new assessment?" : "Create a new document proposal?"}</AlertDialogTitle><AlertDialogDescription>{confirm?.back || confirm?.settings || confirm?.section || confirm?.destination || confirm?.resumePanel ? "Save your draft and review decisions first if you want to keep them." : "Your saved drafts and proposals will be kept. Next, review the API cost estimate before confirming generation."}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => { const action = confirm; setConfirm(null); if (action.back) onBack(); else if (action.settings) onSettings(); else if (action.destination) navigate(action.destination); else if (action.resumePanel) { setReviewDirty(false); setResumePanel(action.resumePanel); } else if (action.section) { setReviewDirty(false); applySection(action.section, action.nextKind); } else requestQuote([action.kind], action.mode); }}>{confirm?.back || confirm?.settings || confirm?.section || confirm?.destination || confirm?.resumePanel ? "Leave without saving" : "Review estimate"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
   </div>;
 }
