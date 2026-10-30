@@ -159,6 +159,14 @@ def overview(month=None):
     first_history_year, first_history_month = divmod(start.year * 12 + start.month - 12, 12)
     history_start = start.replace(year=max(2000, first_history_year), month=first_history_month + 1 if first_history_year >= 2000 else 1)
     history_rows = list(Transaction.objects.filter(date__range=(history_start, end)).order_by().values("date", "kind", "receipt_state", "category__name").annotate(amount=Sum("amount"), count=Count("id")))
+    # Reuse the history aggregation for the mobile daily cashflow chart.
+    received_by_day = {}
+    for row in history_rows:
+        if row["kind"] == "income" and row["receipt_state"] == "received" and start <= row["date"] <= end:
+            key = str(row["date"])
+            received_by_day[key] = received_by_day.get(key, ZERO) + row["amount"]
+    for row in daily:
+        row["income"] = received_by_day.get(row["date"], ZERO)
     history_rebates = list(CashLoanPosting.objects.filter(kind="rebate", date__range=(history_start, end)).order_by().values("date").annotate(interest_total=Sum("interest"), fees_total=Sum("fees")))
     for offset in range(11, -1, -1):
         index = start.year * 12 + start.month - 1 - offset

@@ -1,0 +1,112 @@
+.mobile-money-page {
+  --money-positive: #047857;
+  --money-negative: #be123c;
+  --money-positive-soft: #ecfdf5;
+  --money-negative-soft: #fff1f2;
+  display: grid;
+  min-width: 0;
+  gap: 24px;
+  color: var(--pd-ink);
+}
+html[data-site-theme="dark"] .mobile-money-page {
+  --money-positive: #6ee7b7;
+  --money-negative: #fda4af;
+  --money-positive-soft: #10251c;
+  --money-negative-soft: #2b131c;
+}
+.money-surface { min-width: 0; overflow: hidden; border: 1px solid var(--pd-border); border-radius: 12px; background: var(--site-surface); }
+.money-muted { color: var(--site-secondary); font-size: 11px; line-height: 1.5; }
+.money-section-heading { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.money-section-heading h2 { margin: 0; font-size: 15px; font-weight: 650; line-height: 1.4; letter-spacing: -0.02em; }
+.money-section-heading > span { flex-shrink: 0; color: var(--site-secondary); font-size: 11px; }
+.personal-dashboard .money-section-heading > button { display: inline-flex; min-height: 44px; flex-shrink: 0; align-items: center; gap: 4px; padding-inline: 4px; border: 0; background: transparent; color: var(--site-link); font-size: 12px; font-weight: 500; }
+.money-icon { display: inline-grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 50%; background: var(--site-accent-soft); color: var(--site-link); }
+[data-tone="positive"] > .money-icon,
+[data-tone="positive"] > dt > .money-icon { background: var(--money-positive-soft); color: var(--money-positive); }
+[data-tone="negative"] > .money-icon,
+[data-tone="negative"] > dt > .money-icon { background: var(--money-negative-soft); color: var(--money-negative); }
+.money-change { color: var(--site-secondary); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.money-change[data-tone="positive"] { color: var(--money-positive); }
+.money-change[data-tone="negative"] { color: var(--money-negative); }
+.money-balance { border-radius: 16px; }
+.money-balance .workspace-today-banner { min-height: 200px; padding: 18px; }
+.money-balance .workspace-today-banner > .money-balance-artwork { position: absolute; z-index: 0; right: -4px; bottom: -12px; width: 34%; max-width: 180px; height: auto; pointer-events: none; }
+.money-balance .workspace-today-balance { max-width: 70%; font-size: clamp(27px, 7.4vw, 36px); }
+.money-balance-comparison { display: flex; max-width: 66%; flex-wrap: wrap; align-items: baseline; gap: 4px 7px; margin-top: 10px; font-size: 10px; line-height: 1.5; color: var(--site-secondary); font-variant-numeric: tabular-nums; }
+.money-balance-caption { max-width: 65%; margin-top: 14px; color: var(--site-secondary); font-size: 11px; line-height: 1.5; }
+.money-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: -12px; }
+.money-metric { padding: 12px; }
+.money-metric dt { display: flex; align-items: center; gap: 6px; color: var(--site-secondary); font-size: 11px; }
+.money-metric .money-icon { width: 28px; height: 28px; flex-basis: 28px; }
+.money-metric dd { margin: 4px 0 0; }
+.money-metric .money-metric-value { margin-top: 10px; font-size: 17px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.money-quick-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 44px; gap: 6px; }
+.personal-dashboard .money-quick-actions > button { display: flex; min-width: 0; min-height: 56px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 8px 2px; border: 1px solid var(--pd-border); border-radius: 10px; background: var(--site-surface); color: var(--pd-ink); font-size: 10px; font-weight: 500; }
+.money-quick-actions .money-icon { width: 28px; height: 28px; flex-basis: 28px; }
+.money-records { margin: 0; padding: 0 12px; list-style: none; }
+.money-records > li + li { border-top: 1px solid var(--pd-border); }
+.personal-dashboard .money-record { display: flex; width: 100%; min-width: 0; min-height: 72px; align-items: center; gap: 10px; padding: 12px 0; border: 0; background: transparent; text-align: left; }
+.money-record-name { display: grid; min-width: 0; flex: 1; gap: 5px; }
+.money-record-name > strong { overflow: hidden; color: var(--pd-ink); font-size: 12px; font-weight: 550; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.money-record-name > span { color: var(--site-secondary); font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+.money-record-amount { display: grid; min-width: 0; max-width: 45%; flex-shrink: 0; gap: 5px; text-align: right; font-variant-numeric: tabular-nums; }
+.money-record-amount > strong { color: var(--pd-ink); font-size: 12px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.money-record[data-tone="positive"] .money-record-amount > strong { color: var(--money-positive); }
+.money-record[data-tone="negative"] .money-record-amount > strong { color: var(--money-negative); }
+.money-record-amount > span { color: var(--site-secondary); font-size: 10px; }
+.money-month-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.personal-dashboard .money-month-item { display: flex; min-width: 0; min-height: 84px; align-items: center; gap: 8px; padding: 12px 10px; text-align: left; }
+.money-month-item > span:not(.money-icon) { display: grid; min-width: 0; flex: 1; gap: 4px; }
+.money-month-item > span:not(.money-icon) > span { color: var(--site-secondary); font-size: 10px; line-height: 1.4; }
+.money-month-item strong { color: var(--pd-ink); font-size: 12px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.money-month-item > svg:last-child { flex-shrink: 0; color: var(--site-secondary); }
+.money-month-item .money-icon { width: 30px; height: 30px; flex-basis: 30px; }
+.money-chart-panel { padding: 14px 12px; }
+.money-chart-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 12px; color: var(--site-secondary); font-size: 11px; }
+.money-chart-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.money-chart-legend i,
+.money-category-legend i { display: inline-block; width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; }
+.money-chart-empty { display: grid; min-height: 128px; place-items: center; color: var(--site-secondary); font-size: 12px; line-height: 1.5; text-align: center; }
+.money-chart-data { margin-top: 12px; color: var(--site-secondary); font-size: 11px; }
+.money-chart-data > summary { display: flex; min-height: 44px; align-items: center; cursor: pointer; color: var(--site-link); }
+.money-chart-data table { width: 100%; font-size: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+.money-chart-data :is(th, td) { padding: 8px 4px; border-bottom: 1px solid var(--pd-border); }
+.money-chart-data th:first-child { text-align: left; font-weight: 500; }
+.money-category-composition { display: grid; align-items: center; gap: 12px; }
+.money-donut { position: relative; width: 164px; height: 164px; margin: auto; }
+.money-donut > div:last-child { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; pointer-events: none; }
+.money-donut strong { font-size: 17px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.money-donut span { color: var(--site-secondary); font-size: 10px; }
+.money-category-legend { display: grid; min-width: 0; gap: 12px; }
+.money-category-legend > div { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 8px; }
+.money-category-legend dt { display: flex; min-width: 0; align-items: center; gap: 6px; color: var(--site-secondary); font-size: 11px; overflow-wrap: anywhere; }
+.money-category-legend dd { display: flex; flex-shrink: 0; align-items: baseline; gap: 10px; font-size: 11px; font-variant-numeric: tabular-nums; }
+.money-category-legend dd > span { color: var(--site-secondary); font-size: 10px; }
+.money-category-legend dd > strong { font-weight: 550; }
+.money-compare-selectors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.money-compare-selectors label { display: grid; min-width: 0; gap: 5px; color: var(--site-secondary); font-size: 11px; }
+.personal-dashboard .money-compare-selectors select { width: 100%; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid var(--site-field-border); border-radius: 6px; background: var(--site-surface); color: var(--pd-ink); font-size: 16px; }
+.money-compare-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-block: 16px; }
+.money-compare-totals > div { min-width: 0; }
+.money-compare-totals dt { color: var(--site-secondary); font-size: 10px; }
+.money-compare-totals dd { margin-top: 6px; font-size: 12px; font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.personal-dashboard :is(.money-back, .money-link) { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; justify-self: start; padding: 4px; border: 0; background: transparent; color: var(--site-link); font-size: 13px; }
+.mobile-money-page :is(button, select, summary):focus-visible { outline: 2px solid var(--site-link); outline-offset: 3px; }
+.mobile-money-page button { transition: background-color 160ms ease-out, border-color 160ms ease-out; }
+.personal-dashboard .mobile-money-page button:active { background-color: var(--site-accent-soft); }
+@media (min-width: 430px) {
+  .money-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .money-metric { padding: 10px 8px; }
+  .money-metric dt { flex-direction: column; align-items: start; }
+  .money-metric .money-metric-value { font-size: clamp(12px, 2.9vw, 18px); }
+  .money-metric .money-muted { font-size: 10px; }
+  .money-category-composition { grid-template-columns: 132px minmax(0, 1fr); }
+  .money-donut { width: 132px; height: 132px; }
+  .money-quick-actions > button { flex-direction: row; gap: 6px; }
+}
+@media (hover: hover) {
+  .personal-dashboard .mobile-money-page :is(.money-record, .money-quick-actions > button):hover { background: var(--site-soft); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-money-page button { transition: none; }
+}

@@ -1,0 +1,6 @@
+Tool: built-in image_gen
+Reference: pixelpopup-frontend/public/workspace-assets/smokey-today-transparent-v2.webp
+Output: pixelpopup-frontend/public/workspace-assets/smokey-money-v1.webp
+Post-processing: trim transparent margins, downsize to fit 320 x 360, WebP quality 82; preserve alpha.
+
+Use case: illustration-story. Asset type: transparent mobile finance banner mascot. Use the reference image for Smokey's exact identity and illustration style: cream Siamese kitten, chocolate brown ears/muzzle/paws, oversized glossy blue eyes, pink inner ears, warm thick hand-drawn outlines. Create a money-themed variation of this same kitten: upper-body only, looking happily at viewer, holding a small teal wallet with two simple pale green banknotes peeking out and one small gold coin in a paw. Keep the friendly face and two little blue excitement marks. Composition: centered isolated bust, compact portrait suitable for the right side of a dashboard banner; no lower legs or floor. True transparent alpha background everywhere around subject and between limbs. No backdrop, no waves/dots/glow/shadow panel, no text, no watermark, no fake checkerboard. Flat softly shaded polished cartoon, matching reference closely.

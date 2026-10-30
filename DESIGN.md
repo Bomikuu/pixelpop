@@ -394,6 +394,28 @@ On phones, shared record forms fill the visual viewport with fixed header/action
 
 The two dashboards share the Mico Workspace PWA identity and existing brand artwork. Installation guidance belongs in More and the expanded desktop sidebar. Preserve public-page metadata when leaving a workspace. The first release caches only a static offline document and app icons: private data, authenticated HTML, API calls, downloads and public portfolio routes stay on the network. Never replay writes or AI requests offline. Service-worker updates wait for workspace windows to close, with a notice to save first and no forced reload.
 
+### Mobile Transactions
+
+On phones, Money opens a reference-led transactions overview: a current-balance
+banner with transparent money-themed Smokey, four compact metrics, expense/income/
+transfer shortcuts, five recent transactions, a daily cashflow chart, monthly
+shortcuts, category composition, month comparison and three recent movements.
+Use the existing CSS dots/waves, black dark-mode surfaces and exact recorded
+amounts. Keep the compact shared masthead and centered Quick actions navigation.
+The mascot WebP is 320×352px and approximately 21 KB; its background stays transparent.
+
+Received income excludes expected receipts. Net income is received income less
+expenses; savings rate uses that difference divided by received income and stays
+unknown when received income is zero. Do not imply transfers are expenses or that
+the difference was deposited into savings. Credits are excluded from the positive
+category donut and explicitly described. Daily income reuses the overview's existing
+history aggregation without additional database queries. Chart data has an accessible
+table alternative; periods, zero baselines and unavailable values stay explicit.
+
+View all opens the original record lists through the moneyView query parameter;
+incoming transaction filters still open the full list directly. Preserve editing,
+deletion, history and pagination. Keep the desktop transaction page unchanged.
+
 ### Quick Entry Capture
 
 The default Quick Entry dialog uses the supplied amount-first reference: a small

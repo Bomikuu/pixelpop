@@ -98,6 +98,7 @@ const EventsView = lazy(() => import("./views/EventsView"));
 const BrainstormView = lazy(() => import("./views/BrainstormView"));
 const EodView = lazy(() => import("./views/EodView"));
 const UnsettledTransactions = lazy(() => import("./components/quick-entry/UnsettledTransactions"));
+const MobileTransactionsPage = lazy(() => import("../workspace-mobile/MobileTransactionsPage"));
 
 const tabs = [
   ["", "Dashboard", LayoutDashboard, "Home"],
@@ -981,6 +982,8 @@ export default function Dashboard() {
                 {...shared}
               />
             </div>
+          ) : tab === "transactions" && mobile ? (
+            <MobileTransactionsPage {...shared} onMore={() => setActionsOpen(true)} />
           ) : (
             <div className="space-y-6">
               {tab === "accounts" && (
