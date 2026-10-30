@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Users } from "lucide-react";
 import { utilityPresets, choiceIcon, institutionFor, cashKinds, coverageTypes } from "../../lib/presets";
 import { requestId } from "../../lib/format";
@@ -32,8 +32,31 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
   const [personErrors, setPersonErrors] = useState({});
   const [personSaving, setPersonSaving] = useState(false);
   const [createdContact, setCreatedContact] = useState(null);
+  const pendingErrorFocus = useRef(null);
   const dirty = JSON.stringify(initial) !== JSON.stringify(values) || Object.values(personDraft).some(Boolean);
   const fields = definition.fields.filter((field) => !field.when || field.when(values));
+
+  function showErrors(next, inlinePerson = false) {
+    pendingErrorFocus.current = {
+      prefix: inlinePerson ? "new-contact" : "finance",
+      names: Object.keys(next).filter((name) => next[name]),
+    };
+    if (inlinePerson) setPersonErrors(next);
+    else setErrors(next);
+  }
+
+  useEffect(() => {
+    // Wait for errors to render and saving controls to become focusable again.
+    if (saving || personSaving || !pendingErrorFocus.current) return;
+    const { prefix, names } = pendingErrorFocus.current;
+    pendingErrorFocus.current = null;
+    for (const name of names) {
+      const control = document.getElementById(`${prefix}-${name}`);
+      control?.focus();
+      if (control && document.activeElement === control) return;
+    }
+    document.getElementById(`${prefix}-form-error`)?.focus();
+  }, [errors, personErrors, saving, personSaving]);
 
   const sources = {
     accounts: data.accounts.filter((account) => account.active && account.kind !== "fund").map(accountChoiceOption),
@@ -65,8 +88,7 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
     const personFields = personDefinition.fields.filter((field) => !field.when || field.when(personDraft));
     const invalid = validateForm({ entity: "person", fields: personFields, values: personDraft });
     if (Object.keys(invalid).length) {
-      setPersonErrors(invalid);
-      document.getElementById("new-contact-" + Object.keys(invalid)[0])?.focus();
+      showErrors(invalid, true);
       return;
     }
     setPersonSaving(true);
@@ -87,8 +109,7 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
       const mapped = error.fields && typeof error.fields === "object" && !Array.isArray(error.fields)
         ? Object.fromEntries(Object.entries(error.fields).map(([name, value]) => [name, Array.isArray(value) ? value.join(" ") : String(value)]))
         : {};
-      setPersonErrors({ ...mapped, common: mapped.detail || mapped.non_field_errors || error.message });
-      document.getElementById("new-contact-" + Object.keys(mapped)[0])?.focus();
+      showErrors({ ...mapped, common: mapped.detail || mapped.non_field_errors || error.message }, true);
     } finally {
       setPersonSaving(false);
     }
@@ -116,8 +137,7 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
     if (saving || personSaving) return;
     const invalid = validateForm({ entity, fields, values, getAccountState: accountState });
     if (Object.keys(invalid).length) {
-      setErrors(invalid);
-      document.getElementById("finance-" + Object.keys(invalid)[0])?.focus();
+      showErrors(invalid);
       return;
     }
     const { path, body, method, notification } = buildSubmission({
@@ -132,8 +152,7 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
       const mapped = error.fields && typeof error.fields === "object" && !Array.isArray(error.fields)
         ? Object.fromEntries(Object.entries(error.fields).map(([name, value]) => [name, Array.isArray(value) ? value.join(" ") : String(value)]))
         : {};
-      setErrors({ ...mapped, common: mapped.detail || mapped.non_field_errors || error.message });
-      document.getElementById("finance-" + Object.keys(mapped)[0])?.focus();
+      showErrors({ ...mapped, common: mapped.detail || mapped.non_field_errors || error.message });
     } finally {
       setSaving(false);
     }
@@ -150,8 +169,10 @@ export default function FormDialog({ entity, record, data, mutate, close, notify
         : "Manual tracking in Philippine pesos. Your records stay in Django.";
 
   return <FormModalShell
-    title={definition.title} description={description} error={errors.common}
-    busy={saving || personSaving} dirty={dirty} onSubmit={save} onCancel={close} scrollBody={entity === "person"}
+    title={definition.title} description={description}
+    error={errors.common || (Object.values(errors).some(Boolean) ? "Check the highlighted fields before saving." : "")}
+    errorId="finance-form-error"
+    busy={saving || personSaving} dirty={dirty} onSubmit={save} onCancel={close} scrollBody
     onCloseAutoFocus={restoreFocus} submitDisabled={insufficientAccount || fields.some((field) => field.type === "image" && ["__processing__", "__invalid__"].includes(values[field.name]))}
     saveLabel={entity === "person" ? "Save person" : "Save record"}
   >

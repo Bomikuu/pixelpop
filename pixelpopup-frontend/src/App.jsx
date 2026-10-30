@@ -10,6 +10,7 @@ import {
 import { OverlayHost } from "./ui/overlay";
 import publicMascotMessages from "./data/cat-mascot-messages.json";
 import PortfolioModern from "./pages/portfolio/PortfolioModern";
+import { SiteThemeRoute } from "./ui/theme/SiteTheme";
 const RoamingCatMascot = lazy(() => import("./ui/mascot/RoamingCatMascot"));
 const StationaryCatMascot = lazy(() => import("./ui/mascot/StationaryCatMascot"));
 const UiKitPage = lazy(() => import("./pages/UiKitPage"));
@@ -142,6 +143,7 @@ function PublicExtras() {
 export default function App() {
   return (
     <BrowserRouter>
+      <SiteThemeRoute />
       <PublicExtras />
 
       <div className="w-full">

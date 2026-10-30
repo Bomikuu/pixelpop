@@ -115,6 +115,11 @@ await mkdir(dashboardDirectory, { recursive: true });
 await writeFile(path.join(dashboardDirectory, "index.html"), template
   .replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex,nofollow" />')
   .replace(/<title>.*?<\/title>/, "<title>Personal workspace</title>"));
+const businessDirectory = path.join(dist, "business");
+await mkdir(businessDirectory, { recursive: true });
+await writeFile(path.join(businessDirectory, "index.html"), template
+  .replace(/<meta name="robots"[^>]*>/, '<meta name="robots" content="noindex,nofollow" />')
+  .replace(/<title>.*?<\/title>/, "<title>Business workspace</title>"));
 const fallbackDirectory = path.join(dist, "_fallback");
 await mkdir(fallbackDirectory, { recursive: true });
 await writeFile(path.join(fallbackDirectory, "index.html"), template);

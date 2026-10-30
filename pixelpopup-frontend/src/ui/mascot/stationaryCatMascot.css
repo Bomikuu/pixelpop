@@ -20,6 +20,9 @@
   border: 0 !important;
   background: transparent !important;
 }
+@media (max-width: 1023px) {
+  .stationary-cat-mascot { --smokey-bottom: max(calc(16px + var(--smokey-mobile-inset, 0px)), env(safe-area-inset-bottom)); }
+}
 
 .stationary-cat-mascot__pose {
   position: absolute;

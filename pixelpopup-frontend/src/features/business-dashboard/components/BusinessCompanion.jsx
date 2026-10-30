@@ -6,5 +6,5 @@ export default function BusinessCompanion({ notification, pendingCount, dismiss 
   const { pathname } = useLocation();
   const section = pathname.includes("/applications/ai") ? "applications/ai" : pathname.split("/")[2] || "";
   const response = notification ? { ...notification, message: `${smokeyAcknowledgement(notification)}\n\n${notification.message}` } : null;
-  return <StationaryCatMascot notification={response} pendingCount={pendingCount} dismiss={dismiss} messages={dashboardSmokeyMessages("business", section)}/>;
+  return <StationaryCatMascot mobileBottomInset="calc(80px + env(safe-area-inset-bottom, 0px))" notification={response} pendingCount={pendingCount} dismiss={dismiss} messages={dashboardSmokeyMessages("business", section)}/>;
 }

@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState } from "react";
+import { createElement, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -14,7 +14,6 @@ import {
   FileChartColumn,
   Settings,
   Plus,
-  Menu,
   ChevronRight,
   ShieldCheck,
   PanelLeftClose,
@@ -31,7 +30,9 @@ import {
   Bell,
   LogOut,
   LoaderCircle,
+  RefreshCw,
   UserRound,
+  Search,
 } from "lucide-react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { useReminders } from "./hooks/useReminders";
@@ -48,7 +49,6 @@ import {
 } from "./ui/dialog";
 import { TooltipProvider } from "./ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
-import FormDialog from "./components/forms/FormDialog";
 import { DeleteDialog, HistoryDialog } from "./components/ActionDialogs";
 import GlobalSearch from "./components/GlobalSearch";
 import RecordList from "./components/RecordList";
@@ -59,33 +59,47 @@ import { STANDARD_DASHBOARD_TOASTS_ENABLED } from "../../ui/mascot/dashboardComp
 import DatabaseBackup from "./components/DatabaseBackup";
 import DashboardLogin from "./components/DashboardLogin";
 import UserProfileSettings from "./components/UserProfileSettings";
-import BalanceCorrectionView from "./views/BalanceCorrectionView";
-import CalendarDialog from "./components/CalendarDialog";
+import DashboardPageBoundary from "./components/DashboardPageBoundary";
+import DeferredDashboardDialog from "./components/DeferredDashboardDialog";
 import { EmptyState, ErrorState, Panel } from "./components/Panel";
 import OverviewView from "./views/OverviewView";
-import InsightsView from "./views/InsightsView";
-import CalendarView from "./views/CalendarView";
-import FundsView from "./views/FundsView";
-import BillsView from "./views/BillsView";
-import SubscriptionView from "./views/SubscriptionView";
 import SubscriptionAlertsDialog from "./components/subscriptions/SubscriptionAlertsDialog";
-import PeopleView from "./views/PeopleView";
-import PersonHistoryView from "./views/PersonHistoryView";
-import SharedBillView from "./views/SharedBillView";
-import AssetDetailView from "./views/AssetDetailView";
-import AccountDetailView from "./views/AccountDetailView";
-import CashLoanDetailView from "./cash-loans/CashLoanDetailView";
-import NutritionView from "./views/NutritionView";
-import EventsView from "./views/EventsView";
-import BrainstormView from "./views/BrainstormView";
-import EodView from "./views/EodView";
-import QuickEntryDialog from "./components/quick-entry/QuickEntryDialog";
-import UnsettledTransactions from "./components/quick-entry/UnsettledTransactions";
 import ReminderSettings from "./components/reminders/ReminderSettings";
 import ReminderChecklistDialog from "./components/reminders/ReminderChecklistDialog";
 import NutritionDateControls from "./components/nutrition/NutritionDateControls";
 import { dateLabel, money, today, words } from "./lib/format";
 import "./styles/theme.css";
+import WorkspaceBottomNav from "../workspace-mobile/WorkspaceBottomNav";
+import WorkspaceSwitcher from "../workspace-mobile/WorkspaceSwitcher";
+import useWorkspacePwa from "../workspace-pwa/useWorkspacePwa";
+import WorkspacePwaControls from "../workspace-pwa/WorkspacePwaControls";
+import ThemeToggle from "../../ui/theme/ThemeToggle";
+import WorkspaceMobileHeader from "../workspace-mobile/WorkspaceMobileHeader";
+import WorkspaceMobilePage from "../workspace-mobile/WorkspaceMobilePage";
+import WorkspaceQuickActionGrid from "../workspace-mobile/WorkspaceQuickActionGrid";
+import useWorkspaceMobile from "../workspace-mobile/useWorkspaceMobile";
+
+const loadFormDialog = () => import("./components/forms/FormDialog");
+const loadCalendarDialog = () => import("./components/CalendarDialog");
+const loadQuickEntryDialog = () => import("./components/quick-entry/QuickEntryDialog");
+
+const BalanceCorrectionView = lazy(() => import("./views/BalanceCorrectionView"));
+const InsightsView = lazy(() => import("./views/InsightsView"));
+const CalendarView = lazy(() => import("./views/CalendarView"));
+const FundsView = lazy(() => import("./views/FundsView"));
+const BillsView = lazy(() => import("./views/BillsView"));
+const SubscriptionView = lazy(() => import("./views/SubscriptionView"));
+const PeopleView = lazy(() => import("./views/PeopleView"));
+const PersonHistoryView = lazy(() => import("./views/PersonHistoryView"));
+const SharedBillView = lazy(() => import("./views/SharedBillView"));
+const AssetDetailView = lazy(() => import("./views/AssetDetailView"));
+const AccountDetailView = lazy(() => import("./views/AccountDetailView"));
+const CashLoanDetailView = lazy(() => import("./cash-loans/CashLoanDetailView"));
+const NutritionView = lazy(() => import("./views/NutritionView"));
+const EventsView = lazy(() => import("./views/EventsView"));
+const BrainstormView = lazy(() => import("./views/BrainstormView"));
+const EodView = lazy(() => import("./views/EodView"));
+const UnsettledTransactions = lazy(() => import("./components/quick-entry/UnsettledTransactions"));
 
 const tabs = [
   ["", "Dashboard", LayoutDashboard, "Home"],
@@ -123,9 +137,40 @@ const dashboardActionGroups = [
   ] },
 ];
 
+const mobileDashboardActions = [
+  { label: "Add EOD", description: "Write an end-of-day entry.", Icon: BookOpenText, target: "eod", compose: "eod-entry" },
+  { label: "Add loan", description: "Record money lent to someone.", Icon: HeartHandshake, target: "people", view: "loans", entity: "loan" },
+  { label: "Add shared bill", mobileLabel: "Shared bill", description: "Create a shared bill and its participants.", Icon: Receipt, target: "people", view: "shared", compose: "shared-bill" },
+];
+
 export default function Dashboard() {
-  const navigateRouter = useNavigate(),
+  const mobile = useWorkspaceMobile();
+  const pwa = useWorkspacePwa();
+  const rawNavigateRouter = useNavigate(),
     location = useLocation();
+  const profileDraft = useRef(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileExit, setProfileExit] = useState(null);
+  const pendingProfileNavigation = useRef(null);
+  const guardProfileNavigation = useCallback((proceed) => {
+    if (location.pathname.replace(/\/+$/, "") === "/dashboard/settings" && (profileDraft.current?.dirty || profileDraft.current?.saving)) {
+      setProfileExit({ proceed });
+      return false;
+    }
+    proceed();
+    return true;
+  }, [location.pathname]);
+  const navigateRouter = useCallback((target, options, afterNavigation) => {
+    const proceed = () => {
+      rawNavigateRouter(target, options);
+      afterNavigation?.();
+    };
+    if (typeof target === "string" && target.split("?")[0] === location.pathname) {
+      proceed();
+      return true;
+    }
+    return guardProfileNavigation(proceed);
+  }, [rawNavigateRouter, guardProfileNavigation, location.pathname]);
   const [params, setParams] = useSearchParams();
   const selectedMonth = /^\d{4}-\d{2}$/.test(params.get("month") || "")
     ? params.get("month")
@@ -154,6 +199,7 @@ export default function Dashboard() {
     refresh: dashboard.refresh,
   });
   const [mobileNav, setMobileNav] = useState(false);
+  const moreButton = useRef(null);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
@@ -189,6 +235,7 @@ export default function Dashboard() {
   const [nutritionDate, setNutritionDate] = useState(today);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [pageAction, setPageAction] = useState(null);
   const [failedUserAvatar, setFailedUserAvatar] = useState(null);
   const [collapsed, setCollapsed] = useState(() => {
@@ -221,6 +268,7 @@ export default function Dashboard() {
   const [overdueItems, setOverdueItems] = useState(null);
   const [overdueLoading, setOverdueLoading] = useState(false);
   const [overdueError, setOverdueError] = useState("");
+  const overdueTrigger = useRef(null);
   const calendarTrigger = useRef(null);
   const calendarEditing = useRef(false);
   const notificationId = useRef(0);
@@ -228,8 +276,26 @@ export default function Dashboard() {
   const [companionActivity, setCompanionActivity] = useState(null);
   const launchingControl = useRef(null);
   const quickAddTrigger = useRef(null);
+  const mobileActionTrigger = useRef(null);
+  const mobileSearchTrigger = useRef(null);
+  const pendingMobileSearch = useRef(null);
   const pendingDashboardAction = useRef(null);
   const pageHeadingRef = useRef(null);
+  const mobileHeadingRef = useRef(null);
+  const mainRef = useRef(null);
+  const mobileRouteFocus = useRef(false);
+  const previousPath = useRef(location.pathname);
+  const focusPageHeading = useCallback(() => {
+    if (!document.querySelector('[data-slot="dialog-content"], [data-slot="alert-dialog-content"]')) {
+      (window.matchMedia("(max-width: 1023px)").matches ? mobileHeadingRef.current : pageHeadingRef.current)?.focus();
+    }
+  }, []);
+  useEffect(() => {
+    if (previousPath.current === location.pathname || dashboard.status !== "ready") return;
+    previousPath.current = location.pathname;
+    const frame = requestAnimationFrame(focusPageHeading);
+    return () => cancelAnimationFrame(frame);
+  }, [location.pathname, dashboard.status, focusPageHeading]);
   const restoreFocus = (event, removed = false) => {
     event.preventDefault();
     requestAnimationFrame(() => {
@@ -248,8 +314,8 @@ export default function Dashboard() {
       );
     } else if (tab === "expenses") {
       navigateRouter(
-        "/dashboard/transactions?month=" + selectedMonth,
-        { replace: true, state: { transactionKind: "expense" } },
+        "/dashboard/transactions?month=" + selectedMonth + "&transactions.kind=expense",
+        { replace: true },
       );
     }
   }, [tab, selectedMonth, navigateRouter]);
@@ -269,17 +335,23 @@ export default function Dashboard() {
       else meta.remove();
     };
   }, [current]);
-  const navigate = (target) => {
+  const navigate = (target, afterNavigation, query = "") => {
     setPageAction(null);
-    navigateRouter(
+    return navigateRouter(
       "/dashboard" +
         (target ? "/" + (target === "loans" ? "people" : target) : "") +
         "?month=" +
         selectedMonth +
-        (target === "loans" ? "&view=loans" : ""),
+        (target === "loans" ? "&view=loans" : "") +
+        (query ? "&" + query : ""),
+      undefined,
+      () => {
+        mobileRouteFocus.current = mobileNav;
+        setMobileNav(false);
+        setCompanionActivity(null);
+        afterNavigation?.();
+      },
     );
-    setMobileNav(false);
-    setCompanionActivity(null);
   };
   const openOverdueItem = (item) => {
     const month = item.due_date.slice(0, 7);
@@ -305,6 +377,7 @@ export default function Dashboard() {
   };
   const reviewOverdue = async () => {
     if (overdueLoading) return;
+    overdueTrigger.current = document.activeElement;
     setOverdueLoading(true);
     setOverdueError("");
     try {
@@ -321,8 +394,10 @@ export default function Dashboard() {
       }
       if (items.length === 1) openOverdueItem(items[0]);
       else if (items.length > 1) setOverdueItems(items);
-      else
-        setOverdueError("No overdue items remain. Refresh to update the count.");
+      else {
+        dashboard.refresh({ resources: [] });
+        notify("No overdue items remain.");
+      }
     } catch (error) {
       setOverdueError(
         error.message || "Could not load overdue items. Try again.",
@@ -334,6 +409,7 @@ export default function Dashboard() {
   const setMonth = (month) =>
     setParams((previous) => {
       const updated = new URLSearchParams(previous);
+      for (const key of [...updated.keys()]) if (key.endsWith(".page")) updated.delete(key);
       updated.set("month", month);
       return updated;
     });
@@ -404,22 +480,30 @@ export default function Dashboard() {
   };
   const chooseDashboardAction = (action) => {
     pendingDashboardAction.current = () => {
-      navigate(action.target);
-      setPageAction(action);
+      const query = new URLSearchParams();
+      if (action.view) query.set("view", action.view);
+      if (action.compose) query.set("compose", action.compose);
+      navigate(action.target, () => {
+        if (!action.compose) setPageAction(action);
+      }, query.toString());
     };
     setActionsOpen(false);
   };
   useEffect(() => {
     if (!pageAction || pageAction.target !== currentTab || dashboard.status !== "ready" || pageAction.target === "nutrition") return;
-    launchingControl.current = quickAddTrigger.current || pageHeadingRef.current;
+    launchingControl.current = (mobile ? mobileActionTrigger.current : quickAddTrigger.current) || pageHeadingRef.current;
     if (pageAction.kind === "quick-entry") setQuickEntryOpen(true);
     else {
       setDialog({ entity: pageAction.entity, record: pageAction.record });
       setCompanionActivity(pageAction.entity);
     }
     setPageAction(null);
-  }, [pageAction, currentTab, dashboard.status]);
-  async function searchSelect(row) {
+  }, [pageAction, currentTab, dashboard.status, mobile]);
+  function searchSelect(row) {
+    if (row.tab === "settings") openSearchResult(row);
+    else guardProfileNavigation(() => openSearchResult(row));
+  }
+  async function openSearchResult(row) {
     if (row.tab === "assets") {
       navigateRouter("/dashboard/assets/" + row.id + "?month=" + selectedMonth);
       return;
@@ -485,6 +569,8 @@ export default function Dashboard() {
     );
   const shared = { dashboard, month: selectedMonth, ...actions };
   const userAvatar = dashboard.data.user.avatar_url;
+  const shortcutParams = new URLSearchParams(params);
+  shortcutParams.set("month", selectedMonth);
   const renderUserFooter = (mobile = false) => (
     <footer
       aria-label="Signed-in user"
@@ -507,8 +593,8 @@ export default function Dashboard() {
       {tabs.map(([path, title, icon, group, label = title], index) => (
         <div key={path}>
           {(index === 0 || group !== tabs[index - 1][3]) && <p className={"px-3 pb-2 text-xs font-medium text-slate-500 " + (index === 0 ? "pt-2 " : "pt-5 ") + (!mobile && collapsed ? "lg:hidden" : "")}>{group}</p>}
-          <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal " + (mobile ? "h-11 " : "h-9 " + (collapsed ? "lg:justify-center lg:px-0 " : "")) + (tab === path ? "bg-blue-50 text-[var(--pd-primary)]" : "text-slate-600")}>
-            <a href={"/dashboard" + (path ? "/" + path : "") + "?month=" + selectedMonth} aria-current={tab === path ? "page" : undefined} aria-label={label} title={!mobile && collapsed ? label : undefined} onClick={(event) => {
+          <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal " + (mobile ? "h-11 " : "h-9 " + (collapsed ? "lg:justify-center lg:px-0 " : "")) + (currentTab === path ? "bg-blue-50 text-[var(--pd-primary)]" : "text-slate-600")}>
+            <a href={"/dashboard" + (path ? "/" + path : "") + "?month=" + selectedMonth} aria-current={currentTab === path ? "page" : undefined} aria-label={label} title={!mobile && collapsed ? label : undefined} onClick={(event) => {
               if (!event.metaKey && !event.ctrlKey) { event.preventDefault(); navigate(path); }
             }}>
               {createElement(icon, { size: 17, className: "shrink-0", "aria-hidden": true })}
@@ -519,27 +605,29 @@ export default function Dashboard() {
       ))}
       <div className="mt-3 border-t pt-3">
         <Button asChild variant="ghost" className={"w-full justify-start px-3 font-normal text-slate-600 " + (mobile ? "h-11" : collapsed ? "lg:justify-center lg:px-0" : "")}>
-          <a href="/business" aria-label="Business dashboard" title={!mobile && collapsed ? "Business dashboard" : undefined}><BriefcaseBusiness size={17} aria-hidden="true" /><span className={!mobile && collapsed ? "lg:hidden" : ""}>Business dashboard</span></a>
+          <a href="/business" aria-label="Business dashboard" title={!mobile && collapsed ? "Business dashboard" : undefined} onClick={(event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigateRouter("/business"); } }}><BriefcaseBusiness size={17} aria-hidden="true" /><span className={!mobile && collapsed ? "lg:hidden" : ""}>Business dashboard</span></a>
         </Button>
         <Button type="button" variant="ghost" className={"w-full justify-start px-3 font-normal text-slate-600 " + (mobile ? "h-11" : collapsed ? "lg:justify-center lg:px-0" : "")} aria-label="Log out" title={!mobile && collapsed ? "Log out" : undefined} onClick={(event) => { logoutTrigger.current = event.currentTarget; setLogoutError(""); setLogoutOpen(true); }}>
           <LogOut size={17} aria-hidden="true" /><span className={!mobile && collapsed ? "lg:hidden" : ""}>Log out</span>
         </Button>
       </div>
+      {(mobile || !collapsed) && <WorkspacePwaControls pwa={pwa} />}
     </nav>
   );
   return (
     <TooltipProvider>
       <div
         className={
-          "personal-dashboard min-h-screen bg-slate-50 lg:grid " +
+          "personal-dashboard workspace-mobile-shell min-h-screen bg-slate-50 lg:grid " +
           (collapsed
             ? "lg:grid-cols-[80px_minmax(0,1fr)]"
             : "lg:grid-cols-[248px_minmax(0,1fr)]")
         }
       >
+        <a href="#dashboard-main" className="sr-only z-50 rounded-md border border-[var(--pd-border)] bg-white font-medium text-[var(--pd-primary)] focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:p-3" onClick={(event) => { event.preventDefault(); mainRef.current?.focus(); }}>Skip to dashboard content</a>
         <aside
           data-dashboard-sidebar
-          className="border-b bg-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r"
+          className="hidden border-b bg-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r"
         >
           <div
             className={
@@ -547,7 +635,8 @@ export default function Dashboard() {
               (collapsed ? "lg:flex-col lg:px-2" : "")
             }
           >
-            <div className="flex items-center gap-3">
+            <WorkspaceSwitcher workspace="personal" onSwitch={() => navigateRouter("/business/clients")} />
+            <div className="hidden items-center gap-3 lg:flex">
               <span className="grid size-9 place-items-center rounded-lg bg-[var(--pd-primary)] text-white">
                 <Wallet size={20} aria-hidden="true" />
               </span>
@@ -560,13 +649,16 @@ export default function Dashboard() {
               </span>
             </div>
             <Dialog open={mobileNav} onOpenChange={setMobileNav}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-11 lg:hidden" aria-label="Open dashboard navigation" aria-expanded={mobileNav} aria-controls="mobile-dashboard-navigation"><Menu /></Button>
-              </DialogTrigger>
-              <DialogContent id="mobile-dashboard-navigation" className="personal-dashboard inset-y-0 left-0 top-0 flex h-dvh w-80 max-w-[calc(100%-3rem)] translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-y-0 border-l-0 p-0 sm:max-w-80 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 motion-reduce:animate-none [&_[data-slot=dialog-close]]:right-2 [&_[data-slot=dialog-close]]:top-2 [&_[data-slot=dialog-close]]:grid [&_[data-slot=dialog-close]]:size-11 [&_[data-slot=dialog-close]]:place-items-center">
+              <DialogContent id="mobile-dashboard-navigation" overlayClassName="workspace-mobile-backdrop" className="personal-dashboard workspace-navigation-drawer inset-y-0 left-0 top-0 flex h-dvh w-80 max-w-[calc(100%-3rem)] translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-y-0 border-l-0 p-0 sm:max-w-80 data-[state=open]:slide-in-from-left data-[state=closed]:slide-out-to-left data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100 motion-reduce:animate-none [&_[data-slot=dialog-close]]:right-2 [&_[data-slot=dialog-close]]:top-2 [&_[data-slot=dialog-close]]:grid [&_[data-slot=dialog-close]]:size-11 [&_[data-slot=dialog-close]]:place-items-center" onCloseAutoFocus={(event) => {
+                if (!mobileRouteFocus.current) { event.preventDefault(); requestAnimationFrame(() => { if (window.matchMedia("(min-width: 1024px)").matches) focusPageHeading(); else moreButton.current?.focus(); }); return; }
+                mobileRouteFocus.current = false;
+                event.preventDefault();
+                requestAnimationFrame(focusPageHeading);
+              }}>
                 <DialogHeader className="shrink-0 border-b px-5 py-5 pr-12 text-left">
                   <DialogTitle className="flex items-center gap-3 text-sm"><Wallet size={19} aria-hidden="true" />Personal workspace</DialogTitle>
                   <DialogDescription className="sr-only">Choose a page in your personal dashboard.</DialogDescription>
+                  <WorkspaceSwitcher workspace="personal" onSwitch={() => navigateRouter("/business/clients")} />
                 </DialogHeader>
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-3">
                   {renderNavigation(true)}
@@ -589,10 +681,18 @@ export default function Dashboard() {
           {renderNavigation()}
           {renderUserFooter()}
         </aside>
-        <main className="min-w-0 p-4 sm:p-6 lg:p-8">
-          <header className="mb-4 border-b pb-4">
+        <main ref={mainRef} id="dashboard-main" tabIndex={-1} className="min-w-0 p-4 sm:p-6 lg:p-8">
+          <WorkspaceMobileHeader
+            headingRef={mobileHeadingRef}
+            title={correctingBalances ? "Correct balances" : tab ? current?.[1] || "Page not found" : "Today"}
+            subtitle={tab ? "Personal workspace" : `Welcome back, ${dashboard.data.user.name}!`}
+            actions={<><Button ref={mobileSearchTrigger} type="button" variant="outline" size="icon" aria-label="Search workspace" onClick={() => setMobileSearchOpen(true)}><Search size={19} aria-hidden="true" /></Button><Button type="button" variant="outline" size="icon" aria-label="Refresh workspace" aria-busy={dashboard.refreshing} disabled={dashboard.refreshing} onClick={dashboard.refresh}><RefreshCw size={18} className={dashboard.refreshing ? "motion-safe:animate-spin" : ""} aria-hidden="true" /></Button></>}
+          >
+            {tab === "nutrition" ? <NutritionDateControls id="mobile-nutrition-date" date={nutritionDate} onChange={setNutritionDate} /> : !["settings", "brainstorm"].includes(tab) ? <NutritionDateControls id="mobile-workspace-month" date={selectedMonth} onChange={setMonth} mode="month" label="Reporting month" /> : null}
+          </WorkspaceMobileHeader>
+          <header className="mb-4 hidden border-b pb-4 lg:block">
             <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-              <div className="flex min-w-0 flex-1 items-start gap-2">
+              <div className="flex min-w-0 flex-[1_1_20rem] items-start gap-2">
                 <div className="min-w-0">
                   <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="text-slate-500">Workspace</span>
@@ -626,40 +726,44 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
-                {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : tab === "brainstorm" ? null : <div className="flex flex-wrap items-center gap-2">
+              <div className="flex w-full max-w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                {tab === "nutrition" ? <NutritionDateControls date={nutritionDate} onChange={setNutritionDate} /> : tab === "brainstorm" ? null : tab === "settings" ? <GlobalSearch request={dashboard.request} select={searchSelect} /> : <div className="flex flex-wrap items-center gap-2">
                   <NutritionDateControls id="workspace-month" date={selectedMonth} onChange={setMonth} mode="month" label={tab === "events" ? "Events month" : tab === "eod" ? "EOD month" : "Summary month"} />
                   <GlobalSearch request={dashboard.request} select={searchSelect} />
                 </div>}
+                <ThemeToggle />
                 <Dialog open={actionsOpen} onOpenChange={(open) => {
                   if (open) pendingDashboardAction.current = null;
                   setActionsOpen(open);
                 }}>
                   <DialogTrigger asChild>
-                    <Button ref={quickAddTrigger}>
+                    <Button ref={quickAddTrigger} className="hidden lg:inline-flex">
                       <LayoutDashboard aria-hidden="true" />
                       Actions
                     </Button>
                   </DialogTrigger>
                   <DialogContent
-                    className="personal-dashboard flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-3xl"
+                    id="personal-quick-actions"
+                    overlayClassName="workspace-mobile-backdrop"
+                    className="personal-dashboard workspace-quick-sheet flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-3xl"
                     onCloseAutoFocus={(event) => {
-                      if (!pendingDashboardAction.current) return;
                       event.preventDefault();
+                      (mobile ? mobileActionTrigger.current : quickAddTrigger.current)?.focus();
+                      if (!pendingDashboardAction.current) return;
                       const action = pendingDashboardAction.current;
                       pendingDashboardAction.current = null;
-                      quickAddTrigger.current?.focus();
                       queueMicrotask(action);
                     }}
                   >
                     <DialogHeader className="shrink-0 text-left">
-                      <DialogTitle>Dashboard actions</DialogTitle>
+                      <DialogTitle>{mobile ? "Quick actions" : "Dashboard actions"}</DialogTitle>
                       <DialogDescription>Choose what to add or log.</DialogDescription>
                     </DialogHeader>
-                    <div className="min-h-0 space-y-7 overflow-y-auto p-1">
+                    <div className="lg:hidden"><WorkspaceQuickActionGrid items={[...dashboardActionGroups].sort((a, b) => tab === "nutrition" ? Number(b.title === "Nutrition") - Number(a.title === "Nutrition") : 0).flatMap((group) => group.items).concat(mobileDashboardActions)} onChoose={chooseDashboardAction} /></div>
+                    <div className="hidden min-h-0 space-y-7 overflow-y-auto p-1 lg:block">
                       {dashboardActionGroups.map((group, index) => (
                         <section key={group.title} aria-labelledby={`dashboard-actions-group-${index}`}>
-                          <h3 id={`dashboard-actions-group-${index}`} className="mb-3 text-sm font-semibold text-slate-950">{group.title}</h3>
+                          <h3 id={`dashboard-actions-group-${index}`} className="mb-3 text-sm font-semibold text-slate-950">{group.title}{group.title === "Nutrition" && <span className="ml-2 inline-block text-xs font-normal text-slate-600">{dateLabel(nutritionDate)}</span>}</h3>
                           <div className="grid gap-3 sm:grid-cols-2">
                             {group.items.map((action) => {
                               const Icon = action.Icon;
@@ -674,7 +778,7 @@ export default function Dashboard() {
                         </section>
                       ))}
                     </div>
-                    <DialogFooter className="shrink-0 border-t border-[var(--pd-border)] pt-4"><DialogClose asChild><Button variant="outline">Close</Button></DialogClose></DialogFooter>
+                    <DialogFooter className="hidden shrink-0 border-t border-[var(--pd-border)] pt-4 lg:flex"><DialogClose asChild><Button variant="outline">Close</Button></DialogClose></DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>
@@ -701,51 +805,28 @@ export default function Dashboard() {
             )}
             {!tab && reminders.error && <p role="alert" className="mt-2 text-right text-xs text-red-700">{reminders.error}</p>}
           </header>
-          {!tab && dashboard.data.overview.attention.overdue > 0 && (
-            <div
-              role="status"
-              className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900"
-            >
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
-                  <TriangleAlert size={19} aria-hidden="true" />
-                </span>
-                <div>
-                  <p>
-                    <strong>
-                      {dashboard.data.overview.attention.overdue} overdue{" "}
-                      {dashboard.data.overview.attention.overdue === 1
-                        ? "item"
-                        : "items"}
-                    </strong>{" "}
-                    across all months{" "}
-                    {dashboard.data.overview.attention.overdue === 1
-                      ? "needs"
-                      : "need"}{" "}
-                    attention.
-                  </p>
-                  {overdueError && (
-                    <p role="alert" className="mt-1 text-xs">
-                      {overdueError}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                onClick={reviewOverdue}
-                disabled={overdueLoading}
-              >
-                {overdueLoading
-                  ? "Loading…"
-                  : dashboard.data.overview.attention.overdue === 1
-                    ? "Review item"
-                    : "Review items"}
-                {!overdueLoading && <ChevronRight aria-hidden="true" />}
-              </Button>
-            </div>
-          )}
-          {!current ? (
+          {!tab && reminders.error && <p role="alert" className="mb-3 text-sm text-red-700 lg:hidden">{reminders.error}</p>}
+          <Dialog open={mobileSearchOpen} onOpenChange={setMobileSearchOpen}><DialogContent className="personal-dashboard flex h-[min(32rem,calc(100dvh-2rem))] flex-col" onCloseAutoFocus={(event) => {
+            event.preventDefault(); mobileSearchTrigger.current?.focus();
+            const row = pendingMobileSearch.current; pendingMobileSearch.current = null;
+            if (row) queueMicrotask(() => searchSelect(row));
+          }}><DialogHeader><DialogTitle>Search workspace</DialogTitle><DialogDescription>Find a saved record.</DialogDescription></DialogHeader><GlobalSearch request={dashboard.request} select={(row) => { pendingMobileSearch.current = row; setMobileSearchOpen(false); }} /></DialogContent></Dialog>
+          <div className={`mb-4 flex-wrap items-center justify-between gap-2 text-xs text-slate-600 ${dashboard.refreshError ? "flex" : "hidden lg:flex"}`} aria-live="polite" aria-atomic="true">
+            {dashboard.refreshError ? <>
+              <p role="alert" className="text-red-800">Could not refresh the workspace. {dashboard.monthPending ? "The selected month is unavailable." : "Your last loaded data is still shown."} {dashboard.refreshError}</p>
+              <Button type="button" variant="outline" size="sm" onClick={dashboard.refresh}>Retry refresh</Button>
+            </> : <>
+              <p role="status">{dashboard.refreshing ? "Refreshing workspace…" : dashboard.updatedAt ? <>Last updated <time dateTime={new Date(dashboard.updatedAt).toISOString()}>{new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" }).format(new Date(dashboard.updatedAt))} PHT</time></> : null}</p>
+              <Button type="button" variant="ghost" size="sm" disabled={dashboard.refreshing} aria-busy={dashboard.refreshing} onClick={dashboard.refresh}><RefreshCw className={"size-4 " + (dashboard.refreshing ? "motion-safe:animate-spin" : "")} aria-hidden="true" />Refresh workspace</Button>
+            </>}
+          </div>
+          <WorkspaceMobilePage viewKey={location.pathname}>
+          <DashboardPageBoundary key={location.pathname}>
+          {dashboard.monthPending && !["settings", "nutrition", "brainstorm"].includes(tab) ? (
+            <Panel title="Selected month">
+              {dashboard.refreshError ? <ErrorState message="This month's information could not load. Your saved records have not changed." retry={dashboard.refresh} /> : <p role="status" className="text-sm text-slate-600">Loading the selected month…</p>}
+            </Panel>
+          ) : !current ? (
             <EmptyState
               title="This dashboard page does not exist"
               action={
@@ -753,7 +834,7 @@ export default function Dashboard() {
               }
             />
           ) : tab === "" ? (
-            <OverviewView {...shared} navigate={navigate} />
+            <OverviewView {...shared} navigate={navigate} reviewOverdue={reviewOverdue} overdueLoading={overdueLoading} overdueError={overdueError} onReminders={reminders.openChecklist} />
           ) : ["spending", "reports"].includes(tab) ? (
             <InsightsView dashboard={dashboard} reports={tab === "reports"} />
           ) : tab === "calendar" ? (
@@ -852,9 +933,11 @@ export default function Dashboard() {
               <UserProfileSettings
                 user={dashboard.data.user}
                 request={dashboard.request}
+                draftRef={profileDraft}
+                onSavingChange={setProfileSaving}
                 onSaved={() => {
                   setFailedUserAvatar(null);
-                  dashboard.refresh();
+                  dashboard.refresh({ resources: [] });
                   notify("Profile updated.");
                 }}
               />
@@ -947,11 +1030,6 @@ export default function Dashboard() {
                   }[tab] || tab
                 }
                 kind={tab === "income" ? "income" : undefined}
-                initialTransactionKind={
-                  tab === "transactions" && location.state?.transactionKind === "expense"
-                    ? "expense"
-                    : ""
-                }
                 bills={tab === "bills"}
                 title={current[1]}
                 fixedParams={
@@ -968,6 +1046,8 @@ export default function Dashboard() {
               )}
             </div>
           )}
+          </DashboardPageBoundary>
+          </WorkspaceMobilePage>
         </main>
         <DashboardCompanion
           tab={sharedBillRoute ? "shared" : currentTab}
@@ -985,6 +1065,31 @@ export default function Dashboard() {
             setNotices((items) => items.filter((item) => item.id !== id))
           }
         />}
+        <AlertDialog open={Boolean(profileExit)} onOpenChange={(open) => { if (!open) setProfileExit(null); }}>
+          <AlertDialogContent className="personal-dashboard" onCloseAutoFocus={(event) => {
+            if (!pendingProfileNavigation.current) return;
+            event.preventDefault();
+            const proceed = pendingProfileNavigation.current;
+            pendingProfileNavigation.current = null;
+            queueMicrotask(() => {
+              profileDraft.current = null;
+              proceed();
+            });
+          }}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Leave profile settings?</AlertDialogTitle>
+              <AlertDialogDescription>{profileSaving ? "Your profile is saving. Wait for it to finish before leaving." : profileDraft.current?.dirty ? "Your profile has unsaved changes. Keep editing or discard them before leaving." : "Your profile is saved. You can leave settings."}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep editing</AlertDialogCancel>
+              <AlertDialogAction disabled={profileSaving} onClick={() => {
+                pendingProfileNavigation.current = profileExit?.proceed;
+                profileDraft.current = null;
+                setProfileExit(null);
+              }}>{profileDraft.current?.dirty ? "Discard changes & leave" : "Leave settings"}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <AlertDialog open={logoutOpen} onOpenChange={(open) => { if (!logoutPending.current) setLogoutOpen(open); }}>
           <AlertDialogContent className="personal-dashboard" onEscapeKeyDown={(event) => { if (logoutPending.current) event.preventDefault(); }} onCloseAutoFocus={(event) => { if (logoutTrigger.current?.isConnected) { event.preventDefault(); logoutTrigger.current.focus(); } }}>
             <AlertDialogHeader>
@@ -1013,7 +1118,10 @@ export default function Dashboard() {
               if (!open) setOverdueItems(null);
             }}
           >
-            <DialogContent className="personal-dashboard max-h-[85dvh] overflow-y-auto bg-white sm:max-w-xl">
+            <DialogContent className="personal-dashboard max-h-[85dvh] overflow-y-auto bg-white sm:max-w-xl" onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              requestAnimationFrame(() => (overdueTrigger.current?.isConnected ? overdueTrigger.current : pageHeadingRef.current)?.focus());
+            }}>
               <DialogHeader className="pr-8">
                 <DialogTitle className="flex items-center gap-2 text-red-900">
                   <TriangleAlert size={20} aria-hidden="true" />
@@ -1051,39 +1159,73 @@ export default function Dashboard() {
             </DialogContent>
           </Dialog>
         )}
-        {quickEntryOpen && <QuickEntryDialog open={quickEntryOpen} onOpenChange={setQuickEntryOpen} dashboard={dashboard} notify={notify} restoreFocus={() => (quickAddTrigger.current?.isConnected ? quickAddTrigger.current : pageHeadingRef.current)?.focus()} />}
+        {quickEntryOpen && <DeferredDashboardDialog
+          load={loadQuickEntryDialog}
+          title="Quick Entry"
+          description="Preparing your entry form."
+          onClose={() => setQuickEntryOpen(false)}
+          restoreFocus={(event) => {
+            event.preventDefault();
+            (quickAddTrigger.current?.isConnected ? quickAddTrigger.current : pageHeadingRef.current)?.focus();
+          }}
+          dialogProps={{
+            open: quickEntryOpen,
+            onOpenChange: setQuickEntryOpen,
+            dashboard,
+            notify,
+            restoreFocus: () => (quickAddTrigger.current?.isConnected ? quickAddTrigger.current : pageHeadingRef.current)?.focus(),
+          }}
+        />}
         {dialog && (
-          <FormDialog
+          <DeferredDashboardDialog
             key={dialog.entity + "-" + (dialog.record?.id || "new")}
-            {...dialog}
-            data={dashboard.data}
-            mutate={dashboard.mutate}
-            close={() => setDialog(null)}
-            notify={notify}
+            load={loadFormDialog}
+            title="Record details"
+            description="Preparing the form for your selected record."
+            onClose={() => setDialog(null)}
             restoreFocus={restoreFocus}
+            dialogProps={{
+              ...dialog,
+              data: dashboard.data,
+              mutate: dashboard.mutate,
+              close: () => setDialog(null),
+              notify,
+              restoreFocus,
+            }}
           />
         )}
         {calendarOpen && (
-          <CalendarDialog
-            dashboard={dashboard}
-            initialMonth={selectedMonth}
-            close={() => setCalendarOpen(false)}
+          <DeferredDashboardDialog
+            load={loadCalendarDialog}
+            title="Calendar"
+            description="Opening your tasks and bills."
+            onClose={() => setCalendarOpen(false)}
             restoreFocus={(event) => {
               event.preventDefault();
               if (!calendarEditing.current)
                 requestAnimationFrame(() => calendarTrigger.current?.focus());
             }}
-            openForm={(entity, record) => {
-              calendarEditing.current = true;
-              setCalendarOpen(false);
-              actions.openForm(entity, record);
-              launchingControl.current = calendarTrigger.current;
-            }}
-            settleDeadline={async (record) => {
-              calendarEditing.current = !["task", "reminder"].includes(record.kind);
-              setCalendarOpen(false);
-              launchingControl.current = calendarTrigger.current;
-              await actions.settleDeadline(record);
+            dialogProps={{
+              dashboard,
+              initialMonth: selectedMonth,
+              close: () => setCalendarOpen(false),
+              restoreFocus: (event) => {
+                event.preventDefault();
+                if (!calendarEditing.current)
+                  requestAnimationFrame(() => calendarTrigger.current?.focus());
+              },
+              openForm: (entity, record) => {
+                calendarEditing.current = true;
+                setCalendarOpen(false);
+                actions.openForm(entity, record);
+                launchingControl.current = calendarTrigger.current;
+              },
+              settleDeadline: async (record) => {
+                calendarEditing.current = !["task", "reminder"].includes(record.kind);
+                setCalendarOpen(false);
+                launchingControl.current = calendarTrigger.current;
+                await actions.settleDeadline(record);
+              },
             }}
           />
         )}
@@ -1096,6 +1238,14 @@ export default function Dashboard() {
             restoreFocus={(event) => restoreFocus(event, true)}
           />
         )}
+        <WorkspaceBottomNav actionButtonRef={mobileActionTrigger} actionControls="personal-quick-actions" actionOpen={actionsOpen} onAction={() => { pendingDashboardAction.current = null; setActionsOpen(true); }} moreButtonRef={moreButton} moreControls="mobile-dashboard-navigation" moreOpen={mobileNav} onMore={() => setMobileNav(true)} onNavigate={(href) => {
+          setPageAction(null);
+          navigateRouter(href, undefined, () => { setMobileNav(false); setCompanionActivity(null); });
+        }} items={[
+          { key: "today", label: "Today", href: `/dashboard?${shortcutParams}`, Icon: LayoutDashboard, active: currentTab === "" },
+          { key: "money", label: "Money", href: `/dashboard/transactions?${shortcutParams}`, Icon: Wallet, active: ["transactions", "income", "bills", "quick-entry-transactions", "accounts", "assets", "funds", "people", "spending", "reports"].includes(currentTab) },
+          { key: "nutrition", label: "Nutrition", href: `/dashboard/nutrition?${shortcutParams}`, Icon: Utensils, active: currentTab === "nutrition" },
+        ]}/>
         {history && (
           <HistoryDialog
             target={history}

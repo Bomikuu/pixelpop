@@ -225,6 +225,27 @@ Borders are one pixel and neutral. The system does not combine strong borders wi
 
 The fixed white header uses a simple `<MA/>` wordmark on a sharp-cornered navy rectangle, plain-language links, a résumé action, a visible numeric progress value on desktop, and a four-pixel full-width progress track at all sizes. The initials remain white and the surrounding code syntax remains cobalt, with no logo hover animation. Mobile navigation expands below the header without changing visual language.
 
+### Light and Dark Appearance
+
+The public portfolio and its subpages, personal dashboard, and business dashboard
+share a light/dark preference. Follow the device theme until a visitor chooses
+with the sun/moon control, then remember that choice across reloads, routes, and
+browser tabs. Set the initial mode before React paints. Keep the control visible
+in the portfolio header, both workspace headers, and personal sign-in, with a
+44px target, a descriptive action label, and visible keyboard focus. Collapse the
+portfolio navigation below 1024px so the control fits beside its mobile menu.
+
+Light mode preserves the current palette. Dark mode uses a #0b1220 canvas,
+#131f32 surfaces, #e8eef8 primary text, restrained slate separators, and brighter
+cobalt links. Filled primary actions retain cobalt with white labels. Adapt
+fields, menus, portaled dialogs, status messages, and the hero readability layer;
+preserve artwork, existing navy proof sections, document export colors, and chart
+category meanings. Theme the installed workspace's runtime theme-color as well.
+
+Shared appearance roles live in `src/ui/theme/siteTheme.css`; dashboard `--pd-*`
+roles reuse them. Scope the appearance to portfolio/workspace routes, including
+their portals, so authored invitation and demo themes keep their own palettes.
+
 ### Project Reporting
 
 Cortico retains its original animated metric cards and interactive traffic timeline at the user's request. Preserve supplied figures and the timeline's explanation that intermediate values are a linear interpolation rather than reported monthly traffic. The About section explains Mico's responsibilities rather than showing project-count or years-of-experience counters.
@@ -263,13 +284,127 @@ Job application details use the existing dashboard's white surfaces, slate text,
 
 Keep five sticky primary tabs: Overview, Requirements, Checks, Files / Preview, and Activity. Overview uses a roughly 70/30 desktop split with a sticky review summary; it stacks on smaller screens. Show a short fit narrative, at most three priority findings, and three recent activities. Full evidence, original posting, recruiter checks, proposal review, documents, and usage remain available in their dedicated workspaces. Compact status shortcuts use real application data, never invented build results or reviewer metadata.
 
+Keep the original inline résumé editor and preview in Files / Preview. Expand editor opens a viewport-filling modal, with `/business/applications/:id/resume` preserving browser navigation and direct links. The modal covers the sidebar and page chrome, traps focus, locks background scrolling and restores its launcher on close. Preserve draft text when opening or closing it; use the existing save, revision, source review and Word/PDF export rules. Put revisions, document exports and focused preview in More actions. Keep Import JSON, External AI prompt, Tailor résumé and Save draft visible.
+
+Move the Tailor résumé workflow into the expanded editor. Its supporting pane switches between Preview, Tailor & check, Proposals and Experience drafts. Keep final checks accessible on the posting’s Checks tab with a link to expanded tailoring. Quote approval, generation activity and proposal review remain in the editor flow. Keep locally written experience text across supporting-pane changes and confirm before discarding unsaved proposal decisions. Disable dismissal during save or generation requests.
+
+Start Tailor & check with at most three requirement gaps, required criteria first. Include partial or missing evidence, recorded limitations and quotation/reconfirmation flags; expand posting excerpts and source evidence on demand. Open the existing evidence-decision form directly from a gap without closing the editor. Stale assessments hide earlier priorities and offer reassessment through the existing cost quote. External prompt focus starts with the current priorities; suggest up to three confirmed projects by posting-term matches against names, system types and tools, with editable checkbox selections. Selections guide emphasis, never evidence status, and all confirmed sources remain available. These prompt controls do not change shared AI settings or make a paid request.
+
+The versioned JSON contract is `schemaVersion: 1`, Markdown `header`, ordered `sections` with plain-text `title` and Markdown `content`, and optional `reviewNotes`. Accept a file or pasted JSON, validate before preview, and require review of the full replacement before applying it to an unsaved draft. Keep the 30,000-character document limit and a 256 KB JSON limit; provide Undo import until another edit or save. External prompts include the whole current document, posting and confirmed sources and request every section, including unchanged content. Offer emphasis, detail, focus and confirmed/exploratory experience controls. Exploratory prompts can invent possible contributions and outcomes as unverified reviewNotes. The Experience drafts pane lets the user edit suggestions and insert selected wording into a chosen section after review; it never changes shared profile facts or evidence coverage automatically. These notes remain available for the current application session and in JSON export; they are not saved as profile facts. No external AI request is sent automatically.
+
 Long prose and evidence use explicit expansion controls. Document previews have their own viewport-based scroll region; never constrain the entire editor or form to constrain its preview. Focus preview opens a near-screen-sized accessible dialog with a clear exit, not browser fullscreen. Preserve unsaved draft text across tab switches, confirm before leaving unsaved proposal decisions, and retain all existing source-review and AI-cost approval gates.
 
 Application profile keeps reusable project records separate from freeform facts. Tools, contributions, optional year/outcomes and ASTA/independent/client context save through the profile form; edits reset confirmation. Only user-confirmed project details are generation sources. Conservative/strong emphasis and review-questions/exclude defaults belong in Application AI settings and remain visible in Checks → Tailor résumé. Strong changes emphasis, never invents proficiency, years or outcomes.
 
-Generate experience examples opens a compact shared-field parameter form, then the existing cost quote. Hypothetical examples and linked study plans are separate Interview preparation proposals, not résumé facts. Approve wording for preparation is distinct from Record my actual contribution, which requires factual confirmation. Unconfirmed examples never enter résumé exports or change assessment evidence coverage. Offer one priority clarification before source-backed tailoring, with an explicit option to continue unresolved. Accepted examples and accepted résumé changes can seed preparation only after another explicit cost approval; no automatic paid follow-up. Keep long examples collapsed, preserve earlier preparation, and reject stale or foreign proposal references.
+Generate experience examples opens a compact shared-field parameter form, then the existing cost quote. Hypothetical examples and linked study plans remain separate Interview preparation proposals. Approve wording for preparation is distinct from Record my actual contribution, which requires factual confirmation. Examples do not automatically enter a résumé or change assessment evidence coverage; the expanded editor offers a separate, user-reviewed insertion step for editable draft wording. Keep uninserted experience drafts when switching panels or closing and reopening the editor within the same application. Offer one priority clarification before source-backed tailoring, with an explicit option to continue unresolved. Accepted examples and accepted résumé changes can seed preparation only after another explicit cost approval; no automatic paid follow-up. Keep long examples collapsed, preserve earlier preparation, and reject stale or foreign proposal references.
 
 Final check → Resolve issues offers Auto-answer all through the existing quote and spending guard. Draft answers use reviewed profile/résumé sources, confirmed ASTA/independent projects and prior factual answers; never treat hypothetical examples or checklist suggestions as history. Preserve existing replies, show a compact batch review with expandable sources and longer answers, and require one accuracy confirmation before saving. The one-pass résumé fix has its own separate cost approval and proposal review. Show honest request activity and allow recovery of saved answers without another paid call; reject results from changed checklists, sources or saved answer versions. Keep the modal's shared scroll body and fixed footer, alongside the existing individual-answer controls.
+
+### Dashboard Mobile and Installed App
+
+Below 1024px, use dedicated mobile headers and home compositions instead of
+stacking desktop controls. The header has a page title, a short workspace or
+welcome line, theme control, and refresh; personal search opens from an icon.
+The compact masthead uses the existing MA cube artwork and Mico Workspace name,
+with Personal or Business shown beneath the wordmark. Keep Instrument Sans for
+tasks and data; Saira Condensed is reserved for the wordmark and Quick actions
+title. The business home summary uses the existing delivery navy with pale blue
+supporting text. Personal Today follows the supplied light balance-card reference,
+using theme-aware surfaces so it also works in dark mode.
+Keep the page title at 18px with a short welcome/workspace line. Place the reporting
+month beside it when space allows, wrapping only on narrow screens. Nutrition day
+controls use one full-width row with all four controls retained and a readable
+16px date input. Keep vertical padding at 8px to limit the sticky header's height.
+Workspace switching belongs in the More drawer through a labeled, two-choice
+Personal / Business segmented toggle. Preserve guarded navigation and the selected
+workspace when a draft prevents leaving; retain keyboard arrow-key navigation.
+Preserve desktop headers, sidebars, route/query state, and draft guards.
+
+The bottom bar is 80px plus the phone's safe-area inset, with five slots and a
+raised cobalt circular plus in the exact center. Personal navigation is Today,
+Money, Quick actions, Nutrition, More. Business navigation is Today, Clients,
+Quick actions, Applications, More; without a leadership plan, use Clients,
+Applications, Quick actions, Templates, More. The plus opens a rounded, floating
+bottom sheet above the bar, with three columns of circular icons and short action
+labels, following the supplied mobile references. Personal actions reuse expense,
+Quick Entry, task, bill, meal, and activity forms. Mobile adds EOD, loan, and shared
+bill creation for nine actions in three rows; nutrition actions come first
+on Nutrition. Business actions open the existing client, application, or active
+week action form after guarded navigation. Consume the compose intent once, with
+no saved writes on navigation. Restore focus to the plus when dismissed and pass
+focus into the destination form after the sheet closes. EOD and shared bills
+consume a one-time compose intent after arrival;
+EOD opens group setup first when no groups exist. Loan creation opens the existing
+People loans form. More retains grouped navigation and its user footer. Hide
+bottom navigation with the keyboard and
+cover it with the full-page résumé editor.
+
+Personal mobile Today leads with current cash/bank balance, selected-month
+income/expenses, attention rows, debt/receivables, and a short upcoming list;
+the full existing financial figures remain in an expandable section. The balance
+card uses a transparent cutout of the supplied Smokey illustration as a WebP
+(296×320px, approximately 13 KB), anchored to the banner's right edge. Render
+the pale blue waves and halftone dots separately in CSS. Use neutral charcoal
+textures in dark mode; workspace dark surfaces and the app theme color are black
+and charcoal, with cobalt retained for actions and focus. Keep the texture behind
+the balance and reserve space beside the account caption. Show the current cash
+balance versus the previous calendar month's closing balance, reconstructed from
+the same recorded account ledger and independent of the reporting-month selector.
+Include the prior amount and date, and omit a percentage for a zero baseline.
+The card includes
+actual cash/bank/e-wallet account count and names, and a Manage accounts action.
+Income and expense comparisons reuse the existing previous-month data, with no
+percentage badge for a zero baseline. Do not fabricate debt trends or
+imply these manually tracked accounts have a live bank connection. Attention
+rows and debt/receivable shortcuts follow the supplied rounded-card reference.
+Keep the illustration clear of the amount and all controls. The mobile
+business home emphasizes plan progress, current saved actions, actual evidence
+and ownership counts, and continuity checks. Keep all detailed workspaces in
+navigation. Nutrition uses a calorie progress ring and a two-column macro/active
+burn grid on phones; retain the four original summary tiles on desktop. The ring
+uses recorded food or net values, clamps only its visual fill, and shows missing
+food as unknown. Preserve food-over-target warnings, target definitions, and
+the distinction between logged active burn and total expenditure.
+
+Mobile motion explains navigation and actions. The Quick actions sheet arrives
+from the centered plus in 280ms, with a capped 125ms icon stagger and a faster
+160ms exit. The navigation marker moves between the five slots in 240ms. Page
+changes use a short 180ms transition without remounting views; initial loading
+and the full-screen resume editor skip that transition. More slides from the
+left, and press states acknowledge taps. No scrolling reveals or continuous
+decorative loops. Respect reduced motion, cancel interrupted page animations,
+keep content visible by default, and preserve existing focus restoration.
+
+On phones, shared record forms fill the visual viewport with fixed header/actions and one scrolling field region. Respect keyboard resizing, safe areas, validation focus and discard confirmation. Dashboard Smokey sits above the 80px bottom navigation; while a phone dialog or keyboard owns the screen, defer its bubble without dismissing queued notifications. Existing inline errors remain in the form. Public companion positioning stays unchanged.
+
+The two dashboards share the Mico Workspace PWA identity and existing brand artwork. Installation guidance belongs in More and the expanded desktop sidebar. Preserve public-page metadata when leaving a workspace. The first release caches only a static offline document and app icons: private data, authenticated HTML, API calls, downloads and public portfolio routes stay on the network. Never replay writes or AI requests offline. Service-worker updates wait for workspace windows to close, with a notice to save first and no forced reload.
+
+### Personal Dashboard Daily Priorities
+
+The Summary tab starts with a compact Today list above the financial metrics.
+Use the overview's current-date counts across all months for overdue items,
+tasks and bills due today, and transactions awaiting account assignment. Reuse
+the overdue review, Planning tab and entry-review workflow; keep Remind tomorrow.
+Use one flat panel with divided rows, clear action labels and inline errors.
+Keep the selected reporting month separate from these current priorities.
+
+Provide a skip link and focus the page heading after route changes, waiting for
+the mobile navigation drawer to close and preserving active dialog focus.
+Keep list searches, periods, categories, transaction types, pagination and asset
+view modes in resource-scoped URL parameters; preserve unrelated parameters.
+Overview tabs also restore from the URL. Offer Clear filters and inline date-range
+errors. On refresh failure, retain records only for the same query and label them
+as the last loaded results. Keep manual workspace refresh available.
+
+Load record forms, Quick Entry and the calendar dialog on demand. While loading,
+keep an accessible, dismissible dialog with a clear status; failed loads offer
+Retry and Reload workspace. Hand focus to the loaded dialog and restore its
+launcher when dismissed. Preserve existing draft and save protections.
+
+Record forms keep their header and save/cancel actions visible while fields
+scroll. After validation fails, focus an affected control once saving has ended
+and inline errors are rendered; use a focusable error summary for general or
+unavailable fields. Keep drafts intact, including an inline new-person draft.
 
 ### Personal Nutrition Workspace
 
@@ -279,7 +414,7 @@ controls. Runtime `--pd-*` tokens and shared dashboard primitives remain canonic
 this feature does not change portfolio tokens or introduce another visual theme.
 Use low variance (3/10), restrained motion (2/10) and medium density (5/10).
 
-Keep the daily date in the workspace header. Daily overview has one Actions
+Keep the daily date in the workspace header. Daily overview has one Nutrition tools
 button in its header; it opens a modal of titled, described action buttons for
 meals, activity, weight, the library, calendar and targets. Selecting one closes
 the picker before opening its destination. Below the overview header, show the

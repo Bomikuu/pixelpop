@@ -13,7 +13,7 @@ export default function HeroSection() {
   return (
     <section id="top" className="portfolio-hero-surface relative isolate min-h-svh overflow-hidden border-b border-slate-200 bg-white pt-[4.75rem]">
       <SourceMapScene />
-      <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(90deg,#ffffff_0%,rgba(255,255,255,0.98)_34%,rgba(255,255,255,0.76)_49%,rgba(255,255,255,0.18)_70%,transparent_100%)]" aria-hidden="true" />
+      <div className="portfolio-hero-scrim pointer-events-none absolute inset-0 z-[1]" aria-hidden="true" />
 
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4.75rem)] max-w-7xl items-center px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
         <Reveal immediate className="flex w-full max-w-[47rem] flex-col justify-center">

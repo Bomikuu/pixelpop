@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CalendarDays, FolderPen, Info, LayoutGrid, Table2 } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { today } from "../lib/format";
@@ -26,6 +27,7 @@ const shiftDay = (date, amount) => {
 };
 
 export default function EodView({ dashboard, notify, month, onMonthChange }) {
+  const [params, setParams] = useSearchParams();
   const [groupId, setGroupId] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [viewMode, setViewMode] = useState(() => {
@@ -87,7 +89,7 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
       detailRef.current?.focus({ preventScroll: true });
     });
   }
-  function open(kind, record = null, date = null) {
+  const open = useCallback((kind, record = null, date = null) => {
     launchRef.current = document.activeElement;
     setError(""); setFieldErrors({}); setPreview(null); setReplaceRows([]); setDialog({ kind, record });
     if (kind === "import") setRawJson("");
@@ -95,8 +97,17 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
       ...record, group: String(record.group), items: (record.items?.length ? record.items : record.bullet_list || []).join("\n"), in_progress: (record.in_progress || []).join("\n"),
     } : { ...emptyEntry, group: groupId, date: date || selectedDate || (month === today().slice(0, 7) ? today() : `${month}-01`) } : kind === "group" ? { name: record?.name || "" } : {};
     setDraft(next); setOpenedDraft(next);
-  }
+  }, [groupId, month, selectedDate]);
   function close() { if (!saving) { setDialog(null); setError(""); setFieldErrors({}); setPreview(null); setReplaceRows([]); } }
+  useEffect(() => {
+    if (params.get("compose") !== "eod-entry" || groupsState.loading || groupsState.error || (groups.length && !groupId)) return;
+    if (!dialog) open(groups.length ? "entry" : "group");
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("compose");
+      return next;
+    }, { replace: true });
+  }, [params, setParams, groupsState.loading, groupsState.error, groups.length, groupId, dialog, open]);
   function set(name, value) { setDraft((previous) => ({ ...previous, [name]: value })); setError(""); setFieldErrors((previous) => ({ ...previous, [name]: null })); }
   async function copy(text, label) {
     try { await navigator.clipboard.writeText(text); setCopied(label); notify(`${label} copied.`); }

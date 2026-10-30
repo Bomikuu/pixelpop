@@ -3,7 +3,7 @@ export async function financeApi(path, options = {}, csrf = "") {
   const cancel = () => controller.abort();
   options.signal?.addEventListener("abort", cancel, { once: true });
   if (options.signal?.aborted) cancel();
-  const timeout = setTimeout(cancel, options.download ? 150000 : 20000);
+  const timeout = setTimeout(cancel, options.download ? 150000 : (options.timeoutMs || 20000));
   try {
     const response = await fetch("/api/v1/finance/" + path, {
       ...options,

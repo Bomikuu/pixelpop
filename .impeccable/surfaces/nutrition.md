@@ -12,7 +12,7 @@ OWN-WORLD: Existing dashboard white surfaces, Instrument Sans, cobalt actions,
 solid borders, compact radius, Lucide and shared shadcn/Radix/Recharts primitives.
 STORY: Choose the daily date, review food or net, log/edit entries, then inspect
 independently selected reporting dates. Reuse always opens a reviewed draft.
-FIRST VIEWPORT: One Actions button inside Daily overview opens a modal of titled,
+FIRST VIEWPORT: One Nutrition tools button inside Daily overview opens a modal of titled,
 described action cards, then closes before the chosen destination opens. Keep the
 Food/Net switch separate as a display mode. Four original-style calorie/macro summary tiles
 with per-tile progress and remaining/over amounts, followed by a

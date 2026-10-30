@@ -1,0 +1,172 @@
+:root {
+  --site-canvas: #f8fafc;
+  --site-surface: #ffffff;
+  --site-soft: #f1f5f9;
+  --site-ink: #0f172a;
+  --site-secondary: #475569;
+  --site-muted: #64748b;
+  --site-border: #e2e8f0;
+  --site-field-border: #94a3b8;
+  --site-link: #2f5bff;
+  --site-accent-soft: #eff6ff;
+  --site-accent-border: #bfdbfe;
+  --site-hero: #ffffff;
+}
+
+html[data-site-surface] {
+  background-color: var(--site-canvas);
+  color-scheme: light;
+  /* Portal controls need the same tokens as their workspace owner. */
+  --pd-primary: #2f5bff;
+  --pd-ink: var(--site-ink);
+  --pd-muted: var(--site-secondary);
+  --pd-border: var(--site-border);
+  --pd-soft: var(--site-soft);
+}
+
+html[data-site-surface] .site-theme-toggle {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--site-field-border);
+  border-radius: 8px;
+  background: var(--site-surface);
+  color: var(--site-ink);
+  cursor: pointer;
+}
+
+html[data-site-surface] .site-theme-toggle:hover {
+  background: var(--site-soft);
+  border-color: var(--site-link);
+}
+
+html[data-site-surface] .site-theme-toggle:focus-visible {
+  outline: 2px solid var(--site-link);
+  outline-offset: 3px;
+}
+
+html[data-site-surface="workspace"] :where(header) .site-theme-toggle {
+  width: 36px;
+  height: 36px;
+  flex-basis: 36px;
+  border-color: var(--pd-border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-xs);
+}
+
+html[data-site-surface="workspace"] :where(header) .site-theme-toggle > svg {
+  width: 16px;
+  height: 16px;
+}
+
+html[data-site-surface="workspace"] :where(header) .site-theme-toggle:hover {
+  background: var(--site-accent-soft);
+  border-color: var(--site-accent-border);
+  color: var(--site-link);
+}
+
+@media (max-width: 1023px), (pointer: coarse) {
+  html[data-site-surface="workspace"] :where(header) .site-theme-toggle {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+}
+
+.portfolio-hero-scrim {
+  background: linear-gradient(90deg, var(--site-hero) 0%, color-mix(in srgb, var(--site-hero) 98%, transparent) 34%, color-mix(in srgb, var(--site-hero) 76%, transparent) 49%, color-mix(in srgb, var(--site-hero) 18%, transparent) 70%, transparent 100%);
+}
+
+/* Keep print/export surfaces in the existing light palette. */
+@media screen {
+  html[data-site-surface][data-site-theme="dark"] {
+    --site-canvas: #0b1220;
+    --site-surface: #131f32;
+    --site-soft: #1a2941;
+    --site-ink: #e8eef8;
+    --site-secondary: #c2cede;
+    --site-muted: #a3b2c8;
+    --site-border: #34455f;
+    --site-field-border: #6e809c;
+    --site-link: #91adff;
+    --site-accent-soft: #192d50;
+    --site-accent-border: #45649a;
+    --site-hero: #0b1220;
+    color: var(--site-ink);
+    color-scheme: dark;
+
+    &[data-site-surface="workspace"] {
+      --site-canvas: #000000;
+      --site-surface: #101010;
+      --site-soft: #1a1a1a;
+      --site-ink: #f4f4f5;
+      --site-secondary: #d4d4d8;
+      --site-muted: #a1a1aa;
+      --site-border: #333333;
+      --site-field-border: #737373;
+      --site-accent-soft: #202020;
+      --site-accent-border: #494949;
+      --site-hero: #000000;
+
+      .personal-dashboard {
+        --workspace-summary-surface: #101010;
+        --workspace-summary-muted: #d4d4d8;
+      }
+    }
+
+    :is(.modern-portfolio, .personal-dashboard) { color-scheme: dark; }
+
+    /* Bridge the existing fixed-color utilities to semantic roles. Exact class
+       matches preserve artwork, charts, white labels, and native dark panels. */
+    :is(.bg-white, [class~="bg-white/95"], [class~="bg-white/90"], [class~="bg-white/80"]) { background-color: var(--site-surface); }
+    :is(.bg-slate-50, [class~="bg-slate-50/70"], [class~="bg-slate-50/60"], [class~="bg-slate-50/40"], [class~="bg-slate-50/95"], [class~="bg-[#f8fafc]"], .portfolio-hero-surface) { background-color: var(--site-canvas); }
+    :is(.bg-slate-100, .bg-slate-200, [class~="bg-slate-100/70"], [class~="bg-slate-200/80"], .portfolio-placeholder) { background-color: var(--site-soft); }
+    :is([class~="bg-[#f3f6ff]"], [class~="bg-[#fbfdff]"], [class~="bg-[#f8fbff]"], [class~="bg-[#f2f7ff]"], [class~="bg-[#f6f9fd]"], [class~="bg-[#f1f6fd]"], [class~="bg-[#eef3f8]"], [class~="bg-[#f6f9ff]"], [class~="bg-[#f8faff]"], [class~="bg-[#f7fbff]"], [class~="bg-[#f1f6fc]"], [class~="bg-[#f3f6fa]"]) { background-color: var(--site-surface); }
+    :is([class~="bg-[#f7f4ff]"], [class~="bg-[#f2f0ff]"]) { background-color: var(--site-surface); }
+    :is(.bg-blue-50, .bg-blue-100, [class~="bg-blue-50/30"], [class~="bg-blue-50/40"], [class~="bg-blue-50/50"], [class~="bg-blue-50/60"], [class~="bg-blue-50/70"], [class~="bg-blue-50/80"], [class~="bg-blue-100/70"], [class~="bg-[#eff6ff]"], [class~="bg-[#eaf1ff]"], [class~="bg-[#edf4ff]"], [class~="bg-[#edf5ff]"], [class~="bg-[#e8efff]"], [class~="bg-[#edf2ff]"], [class~="bg-[#e7f0ff]"], [class~="bg-[#e6efff]"], [class~="bg-[#dce7ff]"]) { background-color: var(--site-accent-soft); }
+    :is([class~="hover:bg-white"]:hover, [class~="hover:bg-slate-50"]:hover, [class~="hover:bg-slate-100"]:hover, [class~="hover:bg-slate-200"]:hover, .portfolio-service-card:hover, .portfolio-service-card:focus-within) { background-color: var(--site-soft); }
+    :is([class~="hover:bg-blue-50"]:hover, [class~="hover:bg-blue-50/60"]:hover, [class~="hover:bg-blue-100/70"]:hover, [class~="focus-visible:bg-blue-50/60"]:focus-visible) { background-color: var(--site-accent-soft); }
+    [class~="data-[state=active]:bg-white"][data-state="active"] { background-color: var(--site-surface); }
+
+    :is(.text-slate-950, .text-slate-900, .text-slate-800, [class~="text-[#081a30]"], [class~="text-[#0b1733]"], [class~="text-[#07152e]"]) { color: var(--site-ink); }
+    :is([class~="text-[#211746]"], [class~="text-[#30265b]"], [class~="text-[#453b63]"]) { color: var(--site-ink); }
+    :is(.text-slate-700, .text-slate-600, [class~="text-[#475569]"], [class~="text-[#52677d]"], [class~="text-[#536b86]"], [class~="text-[#385474]"], [class~="text-[#334a63]"], [class~="text-[#456282]"]) { color: var(--site-secondary); }
+    :is(.text-slate-500, [class~="text-[#64748b]"], [class~="text-[#647990]"], [class~="text-[#60758b]"], [class~="text-[#718399]"], [class~="text-[#687d94]"], [class~="text-[#6b7f95]"]) { color: var(--site-muted); }
+    :is([class~="text-[#51466c]"], [class~="text-[#74668f]"], [class~="text-[#6b5f89]"], [class~="text-[#8a80a1]"]) { color: var(--site-secondary); }
+    :is(.text-blue-950, .text-blue-900, .text-blue-800, .text-blue-700, .text-blue-600, [class~="text-[#2f5bff]"], [class~="text-[#2146d0]"], [class~="text-[#2448d8]"], [class~="text-[#2149dc]"], [class~="text-[#163cb8]"], [class~="text-[#1746bd]"], [class~="text-[#173dcc]"], [class~="text-[#245cc7]"], [class~="text-[#2563eb]"], [class~="text-[var(--pd-primary)]"]) { color: var(--site-link); }
+    :is([class~="hover:text-blue-700"]:hover, [class~="hover:text-[#2f5bff]"]:hover, [class~="hover:text-[#2149dc]"]:hover) { color: var(--site-link); }
+    :is([class~="placeholder:text-slate-400"], [class~="placeholder:text-slate-500"])::placeholder { color: var(--site-muted); }
+
+    :is(.border-slate-100, .border-slate-200, .border-slate-300, [class~="border-slate-300/80"], [class~="border-[#ccdaea]"], [class~="border-[#dce5f0]"], [class~="border-[#dbe7f3]"], [class~="border-[#d7e3ef]"], [class~="border-[#bfd0e2]"], [class~="border-[#dbe6f0]"], [class~="border-[#dce4ec]"], [class~="border-[#b8cce2]"], [class~="border-[#dbe5f4]"], [class~="border-[#cbd9e8]"], [class~="border-[#d7e8ff]"], [class~="border-[#d7e4f2]"], [class~="border-[#dce7f3]"]) { border-color: var(--site-border); }
+    .border-slate-400 { border-color: var(--site-field-border); }
+    :is(.border-blue-100, .border-blue-200, .border-blue-300, [class~="border-[#b8c7ff]"], [class~="border-[#a9cfff]"]) { border-color: var(--site-accent-border); }
+    :is(.divide-slate-100, .divide-slate-200) > :not(:last-child) { border-color: var(--site-border); }
+
+    /* Status meaning stays consistent in forms, calendars, and review panels. */
+    :is(.bg-red-50, .bg-red-100, .bg-red-200, .bg-rose-50, .bg-rose-100, [class~="bg-red-50/50"], [class~="bg-red-50/70"], [class~="bg-red-100/70"], [class~="bg-rose-50/30"], [class~="bg-rose-50/50"], [class~="bg-rose-50/60"], [class~="bg-rose-100/60"], [class~="bg-rose-200/40"], [class~="bg-rose-200/50"], [class~="bg-rose-200/70"]) { background-color: #351d2b; }
+    :is(.text-red-700, .text-red-800, .text-red-900, .text-red-950, .text-rose-600, .text-rose-700, .text-rose-800, .text-rose-900) { color: #fda4af; }
+    :is(.border-red-100, .border-red-200, .border-red-300, .border-rose-200, .border-rose-300, [class~="border-rose-200/70"]) { border-color: #874354; }
+    :is(.bg-amber-50, .bg-amber-100, [class~="bg-amber-50/60"], [class~="bg-amber-50/70"], [class~="bg-[#fff8de]"]) { background-color: #352918; }
+    :is(.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950, [class~="text-[#6b5f4b]"]) { color: #fcd48a; }
+    :is(.border-amber-200, .border-amber-300, [class~="border-amber-200/60"]) { border-color: #8a6835; }
+    :is(.bg-emerald-50, .bg-emerald-100, .bg-emerald-200, [class~="bg-emerald-50/30"], [class~="bg-emerald-200/40"], [class~="bg-emerald-200/50"], [class~="bg-emerald-200/70"]) { background-color: #15332d; }
+    :is(.text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900, .text-emerald-950) { color: #8ce0bd; }
+    :is(.border-emerald-100, .border-emerald-200, .border-emerald-300, [class~="border-emerald-200/70"]) { border-color: #3a7a65; }
+
+    :is(.modern-portfolio, .personal-dashboard) ::selection { background: #36539a; color: #f1f5f9; }
+    .personal-dashboard { scrollbar-color: #6e809c var(--site-canvas); }
+    .personal-dashboard ::-webkit-scrollbar-track { background: var(--site-canvas); }
+    .personal-dashboard ::-webkit-scrollbar-thumb { background: #6e809c; }
+    .recharts-cartesian-axis-tick-value { fill: var(--site-muted); }
+    .recharts-cartesian-grid line { stroke: var(--site-border); }
+    .recharts-default-tooltip { color: #0f172a; color-scheme: light; }
+  }
+}
+
+@media print {
+  .site-theme-toggle { display: none !important; }
+}

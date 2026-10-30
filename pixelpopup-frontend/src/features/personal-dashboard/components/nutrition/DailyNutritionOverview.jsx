@@ -4,6 +4,7 @@ import { Panel } from "../Panel";
 import { Button } from "../../ui/button";
 import { SummaryTilePattern } from "../SummaryTiles";
 import { deriveDailyOverview, nutritionNumber as number } from "../../nutrition/dashboardModel";
+import useWorkspaceMobile from "../../../workspace-mobile/useWorkspaceMobile";
 
 export function NutritionProgress({ value, label, tone = "blue", className = "h-2" }) {
   const [fill, setFill] = useState(0);
@@ -29,7 +30,21 @@ function DailySummaryTile({ label, value, target, remaining, percentage, fill, u
   </div>;
 }
 
+function MobileNutritionSummary({ data, basis, status, tone }) {
+  const colors = { blue: "var(--pd-primary)", red: "#dc2626", green: "#059669", amber: "#d97706" };
+  return <>
+    <div className="workspace-calorie-ring" role="progressbar" aria-label={basis === "net" ? "Net calories against daily target" : "Food calories against daily target"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={data.percentage == null ? undefined : Math.round(data.fill)} aria-valuetext={data.calories == null ? "No food logged" : `${number(data.calories, 2)} of ${number(data.target, 2)} kcal; ${status}`} style={{ "--nutrition-ring-progress": `${data.fill}%`, "--nutrition-ring-color": colors[tone] }}>
+      <div><p className="text-sm text-slate-500">{basis === "net" ? "Net calories" : "Food calories"}</p><p className="workspace-mobile-value">{number(data.calories, 2)}</p><p className="mt-2 text-sm text-slate-600">of {number(data.target, 2)} kcal</p><p className={`mt-3 text-xs ${data.status === "over" ? "text-red-700" : "text-slate-500"}`}>{status}</p></div>
+    </div>
+    <div className="workspace-mobile-metrics">
+      {data.macros.map((macro) => <div key={macro.key} className="workspace-mobile-metric"><p className="text-sm text-slate-600">{macro.key === "protein" ? "Protein" : macro.key === "carbs" ? "Carbs" : "Fat"}</p><p className="mt-3 text-xl font-semibold tabular-nums">{number(macro.value, 2)}<span className="ml-1 text-xs font-normal text-slate-500">g</span></p><div className="mt-4"><NutritionProgress value={macro.fill} label={`${macro.key}: ${number(macro.value, 2)} of ${number(macro.target, 2)} g`} tone={macro.remaining != null && macro.remaining < 0 ? "red" : "blue"} /></div><p className="mt-3 text-xs text-slate-500">{macro.value == null ? "No food logged" : macro.remaining < 0 ? `${number(-macro.remaining, 2)} g over target` : `${number(macro.remaining, 2)} g remaining`} · of {number(macro.target, 2)} g</p></div>)}
+      <div className="workspace-mobile-metric"><p className="text-sm text-slate-600">Active burn</p><p className="mt-3 text-xl font-semibold tabular-nums">{number(data.burn, 2)}<span className="ml-1 text-xs font-normal text-slate-500">kcal</span></p><p className="mt-4 text-xs leading-5 text-slate-500">From the activity you logged. Excludes resting energy expenditure.</p></div>
+    </div>
+  </>;
+}
+
 export default function DailyNutritionOverview({ summary, profile, basis, onBasisChange, actions }) {
+  const mobile = useWorkspaceMobile();
   const data = deriveDailyOverview({ summary, profile, basis });
   const statuses = { unlogged: "No food logged", below: "Below target", approaching: "Approaching target", reached: "Target reached", over: "Over target" };
   const tone = data.status === "over" ? "red" : data.status === "reached" ? "green" : data.status === "approaching" ? "amber" : "blue";
@@ -37,11 +52,11 @@ export default function DailyNutritionOverview({ summary, profile, basis, onBasi
   const previous = summary?.days?.at(-2);
   const surplus = previous?.totals && data.target ? Number(previous.net_calories ?? previous.totals.calories) - data.target : 0;
   const selectedDate = summary?.date ? new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "long", month: "long", day: "2-digit", year: "numeric" }).format(new Date(`${summary.date}T12:00:00+08:00`)) : null;
-  return <Panel title="Daily overview" description={selectedDate && <time dateTime={summary.date}>{selectedDate}</time>} action={<div className="flex flex-wrap items-center justify-end gap-2"><div role="group" aria-label="Calorie basis" className="flex gap-1 rounded-md border border-[var(--pd-border)] p-1">{["food", "net"].map((value) => <Button key={value} size="sm" variant={basis === value ? "default" : "ghost"} aria-pressed={basis === value} onClick={() => onBasisChange(value)}>{value === "food" ? "Food" : "Net"}</Button>)}</div>{actions}</div>}>
-    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+  return <div className="workspace-nutrition-panel"><Panel title="Daily overview" description={selectedDate && <time dateTime={summary.date}>{selectedDate}</time>} action={<div className="flex flex-wrap items-center justify-end gap-2"><div role="group" aria-label="Calorie basis" className="flex gap-1 rounded-md border border-[var(--pd-border)] p-1">{["food", "net"].map((value) => <Button key={value} size="sm" variant={basis === value ? "default" : "ghost"} aria-pressed={basis === value} onClick={() => onBasisChange(value)}>{value === "food" ? "Food" : "Net"}</Button>)}</div>{actions}</div>}>
+    {mobile ? <MobileNutritionSummary data={data} basis={basis} status={statuses[data.status]} tone={tone} /> : <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       <DailySummaryTile label={basis === "net" ? "Calories · net" : "Calories"} value={data.calories} target={data.target} remaining={data.remaining} percentage={data.percentage} fill={data.fill} unit="kcal" icon={Flame} tone={tone} status={statuses[data.status]} />
       {data.macros.map((macro) => <DailySummaryTile key={macro.key} label={macro.key === "protein" ? "Protein" : macro.key === "carbs" ? "Carbs" : "Fat"} value={macro.value} target={macro.target} remaining={macro.remaining} percentage={macro.value != null && macro.target ? macro.value / macro.target * 100 : null} fill={macro.fill} unit="g" icon={icons[macro.key]} status={macro.value == null ? "No food logged" : undefined} />)}
-    </div>
+    </div>}
     <div className="mt-3">
         <p className="text-xs text-slate-600">Food {number(data.food, 2)} kcal · Active burn {number(data.burn, 2)} kcal{data.previousDelta != null && <span className="mt-1 block">{data.previousDelta > 0 ? "+" : ""}{number(data.previousDelta, 2)} kcal vs previous day ({basis})</span>}</p>
         {basis === "net" && <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-600"><Info className="size-3.5 shrink-0" aria-hidden="true" />Net isn’t total energy expenditure. Only logged active burn is subtracted.</p>}
@@ -59,5 +74,5 @@ export default function DailyNutritionOverview({ summary, profile, basis, onBasi
       </dl>
     </details>
     {surplus > 0 && <details className="mt-4 border-t border-[var(--pd-border)] pt-3 text-xs text-slate-600"><summary className="cursor-pointer">Previous-day surplus · {number(surplus, 2)} kcal</summary><p className="mt-2">{data.target - surplus > 0 ? `Optional one-day balance: ${number(data.target - surplus, 2)} kcal. ` : "No balance amount is suggested. "}Your daily food target stays {number(data.target)} kcal.</p></details>}
-  </Panel>;
+  </Panel></div>;
 }

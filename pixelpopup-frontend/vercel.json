@@ -1,6 +1,19 @@
 {
-  "headers": [{ "source": "/dashboard/:path*", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "private, no-store" }] }],
+  "headers": [
+    { "source": "/dashboard/:path*", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "private, no-store" }] },
+    { "source": "/business/:path*", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }, { "key": "Cache-Control", "value": "private, no-store" }] },
+    { "source": "/api/v1/leadership/:path*", "headers": [{ "key": "Cache-Control", "value": "private, no-store" }, { "key": "x-vercel-enable-rewrite-caching", "value": "0" }] },
+    { "source": "/api/v1/client-workflow/:path*", "headers": [{ "key": "Cache-Control", "value": "private, no-store" }, { "key": "x-vercel-enable-rewrite-caching", "value": "0" }] },
+    { "source": "/workspace-sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }, { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }] },
+    { "source": "/workspace.webmanifest", "headers": [{ "key": "Cache-Control", "value": "no-cache" }, { "key": "Content-Type", "value": "application/manifest+json" }] },
+    { "source": "/workspace-offline.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/workspace-icons/:path*", "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }] }
+  ],
   "rewrites": [
+    { "source": "/api/v1/leadership/:path*/", "destination": "https://pixelpopup-backend.vercel.app/api/v1/leadership/:path*/" },
+    { "source": "/api/v1/leadership/:path*", "destination": "https://pixelpopup-backend.vercel.app/api/v1/leadership/:path*" },
+    { "source": "/api/v1/client-workflow/:path*/", "destination": "https://pixelpopup-backend.vercel.app/api/v1/client-workflow/:path*/" },
+    { "source": "/api/v1/client-workflow/:path*", "destination": "https://pixelpopup-backend.vercel.app/api/v1/client-workflow/:path*" },
     { "source": "/api/v1/job-applications/:path*/", "destination": "https://pixelpopup-backend.vercel.app/api/v1/job-applications/:path*/" },
     { "source": "/api/v1/job-applications/:path*", "destination": "https://pixelpopup-backend.vercel.app/api/v1/job-applications/:path*" },
     { "source": "/api/v1/finance/:path*/", "destination": "https://pixelpopup-backend.vercel.app/api/v1/finance/:path*/" },
@@ -12,6 +25,8 @@
     { "source": "/static/admin/:path*", "destination": "https://pixelpopup-backend.vercel.app/static/admin/:path*" },
     { "source": "/dashboard", "destination": "/dashboard/index.html" },
     { "source": "/dashboard/:path*", "destination": "/dashboard/index.html" },
+    { "source": "/business", "destination": "/business/index.html" },
+    { "source": "/business/:path*", "destination": "/business/index.html" },
     { "source": "/", "destination": "/index.html" },
     { "source": "/portfolio", "destination": "/portfolio/index.html" },
     { "source": "/portfolio/:path*", "destination": "/portfolio/:path*/index.html" },

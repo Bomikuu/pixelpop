@@ -179,7 +179,7 @@ export default function DashboardCompanion({
       danger: notification.tone === "error",
       message: `${smokeyAcknowledgement(notification)}\n\n${notification.text}`,
     } : null;
-    return <StationaryCatMascot notification={response} pendingCount={pendingCount} dismiss={dismiss} messages={dashboardSmokeyMessages("personal", tab, overdue)}/>;
+    return <StationaryCatMascot mobileBottomInset="calc(80px + env(safe-area-inset-bottom, 0px))" notification={response} pendingCount={pendingCount} dismiss={dismiss} messages={dashboardSmokeyMessages("personal", tab, overdue)}/>;
   }
   return desktop ? (
     <RoamingCatMascot

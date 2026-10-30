@@ -5,6 +5,7 @@ import { CheckCircle2, MessageCircle, PartyPopper, TriangleAlert, X } from "luci
 import { Button } from "../../features/personal-dashboard/ui/button";
 import useStationaryGaze from "./useStationaryGaze";
 import "./stationaryCatMascot.css";
+import useWorkspaceObstructions from "../../features/workspace-mobile/useWorkspaceObstructions";
 
 const DEFAULT_MESSAGES = ["I'm right here. Keep going—I'll let you know when something is saved or needs your attention."];
 
@@ -17,12 +18,14 @@ const FRAMES = [
   { column: 5, top: 382 }, // wink
 ];
 
-export default function StationaryCatMascot({ notification, pendingCount = 0, dismiss, messages = DEFAULT_MESSAGES }) {
+export default function StationaryCatMascot({ notification, pendingCount = 0, dismiss, messages = DEFAULT_MESSAGES, mobileBottomInset = "0px" }) {
   const anchorRef = useRef(null);
   const messagesRef = useRef(null);
   const greetingIndex = useRef(0);
   const gaze = useStationaryGaze(anchorRef);
   const [greeting, setGreeting] = useState(null);
+  const { mobile, keyboardOpen, dialogOpen } = useWorkspaceObstructions(mobileBottomInset !== "0px");
+  const paused = mobileBottomInset !== "0px" && mobile && (keyboardOpen || dialogOpen);
   const message = notification || greeting;
   const pose = notification ? notification.danger ? 10 : 9 : greeting ? 11 : gaze;
   const close = () => {
@@ -31,9 +34,10 @@ export default function StationaryCatMascot({ notification, pendingCount = 0, di
   };
 
   return createPortal(
-    <div className="personal-dashboard stationary-cat-mascot">
+    <div className="personal-dashboard stationary-cat-mascot" style={{ "--smokey-mobile-inset": mobileBottomInset }}>
       <Toast.Provider duration={8000} swipeDirection="right">
-        {message && <Toast.Root
+        {/* Leave queued notifications intact while a phone form owns focus. */}
+        {message && !paused && <Toast.Root
           key={message.id}
           open
           type={message.danger ? "foreground" : "background"}
@@ -54,6 +58,7 @@ export default function StationaryCatMascot({ notification, pendingCount = 0, di
         <Toast.Viewport ref={messagesRef} className="stationary-cat-mascot__messages fixed z-[70] m-0 w-[calc(100%-2rem)] max-w-sm list-none p-0 outline-none" label="Smokey's notifications ({hotkey})"/>
       </Toast.Provider>
       <button
+        hidden={paused}
         ref={anchorRef}
         type="button"
         className="stationary-cat-mascot__cat fixed z-40 cursor-pointer rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--pd-primary)]"

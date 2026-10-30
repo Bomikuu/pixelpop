@@ -23,7 +23,7 @@ export default function InlinePersonCreator({
         <PersonFields prefix="new-contact" values={draft} onChange={onDraftChange}
           errors={errors} disabled={saving} />
       </div>
-      {errors.common && <p role="alert" className="mt-3 text-sm text-red-800">{errors.common}</p>}
+      {Object.values(errors).some(Boolean) && <p id="new-contact-form-error" tabIndex={-1} role="alert" className="mt-3 text-sm text-red-800 focus:outline-2 focus:outline-offset-2 focus:outline-[var(--pd-primary)]">{errors.common || "Check the highlighted fields before saving this person."}</p>}
       <div className="mt-4 flex justify-end">
         <Button type="button" size="sm" onClick={onSave} disabled={saving || ["__processing__", "__invalid__"].includes(draft.avatar_upload)} aria-busy={saving}>
           <Save aria-hidden="true" />{saving ? "Saving person…" : "Save person"}

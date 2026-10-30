@@ -6,6 +6,7 @@ import {
   portfolioServiceCatalog,
 } from "../services/portfolioServices";
 import LogoMark from "./LogoMark";
+import ThemeToggle from "../../../ui/theme/ThemeToggle";
 
 const navItems = [
   ["Work", "#work"],
@@ -89,21 +90,24 @@ export default function PortfolioNav({ routeBase = "" }) {
           </span>
         </a>
 
-        <button
-          type="button"
-          className="grid size-10 place-items-center rounded-lg border border-slate-300 text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff] md:hidden"
-          onClick={() => {
-            setMenuOpen((value) => !value);
-            setServicesOpen(false);
-          }}
-          aria-expanded={menuOpen}
-          aria-label="Toggle navigation"
-        >
-          {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
-        </button>
+        <div className="ml-auto flex items-center gap-2 lg:order-last lg:ml-4">
+          <ThemeToggle />
+          <button
+            type="button"
+            className="grid size-10 place-items-center rounded-lg border border-slate-300 text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff] lg:hidden"
+            onClick={() => {
+              setMenuOpen((value) => !value);
+              setServicesOpen(false);
+            }}
+            aria-expanded={menuOpen}
+            aria-label="Toggle navigation"
+          >
+            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+          </button>
+        </div>
 
-        <div className={`${menuOpen ? "flex" : "hidden"} absolute inset-x-0 top-full flex-col border-b border-slate-200 bg-white px-5 py-5 shadow-xl md:static md:flex md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0 md:shadow-none`}>
-          <div className="hidden md:block">
+        <div className={`${menuOpen ? "flex" : "hidden"} absolute inset-x-0 top-full flex-col border-b border-slate-200 bg-white px-5 py-5 shadow-xl lg:static lg:flex lg:flex-row lg:items-center lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none`}>
+          <div className="hidden lg:block">
             <button
               type="button"
               className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff] ${
@@ -125,12 +129,12 @@ export default function PortfolioNav({ routeBase = "" }) {
 
           <a
             href="/portfolio/services"
-            className="border-b border-slate-100 py-3 text-sm font-semibold text-slate-800 transition hover:text-[#2f5bff] md:hidden"
+            className="border-b border-slate-100 py-3 text-sm font-semibold text-slate-800 transition hover:text-[#2f5bff] lg:hidden"
             onClick={closeNavigation}
           >
             Services
           </a>
-          <div className="border-b border-slate-100 pb-3 md:hidden">
+          <div className="border-b border-slate-100 pb-3 lg:hidden">
             {dropdownServices.map((service) => (
               <a
                 key={service.id}
@@ -147,14 +151,14 @@ export default function PortfolioNav({ routeBase = "" }) {
             <a
               key={href}
               href={href.startsWith("/") ? href : `${routeBase}${href}`}
-              className="border-b border-slate-100 py-3 text-sm font-medium text-slate-600 transition hover:text-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff] md:border-0 md:px-3 md:py-2"
+              className="border-b border-slate-100 py-3 text-sm font-medium text-slate-600 transition hover:text-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f5bff] lg:border-0 lg:px-3 lg:py-2"
               onClick={closeNavigation}
             >
               {label}
             </a>
           ))}
 
-          <div className="my-3 flex items-center gap-2 text-xs font-semibold text-slate-500 md:my-0 md:ml-3" aria-hidden="true">
+          <div className="my-3 flex items-center gap-2 text-xs font-semibold text-slate-500 lg:my-0 lg:ml-3" aria-hidden="true">
             <span className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200">
               <span className="block h-full origin-left rounded-full bg-[#2f5bff]" style={{ transform: `scaleX(${progress / 100})` }} />
             </span>
@@ -164,7 +168,7 @@ export default function PortfolioNav({ routeBase = "" }) {
           <a
             href="/portfolio/Mico_Ang_Senior_Software_Developer.pdf"
             download
-            className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff] md:ml-3 md:mt-0"
+            className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff] lg:ml-3 lg:mt-0"
           >
             Resume <ArrowDownToLine size={16} aria-hidden="true" />
           </a>
@@ -174,7 +178,7 @@ export default function PortfolioNav({ routeBase = "" }) {
       {servicesOpen ? (
         <div
           id="portfolio-services-menu"
-          className="absolute inset-x-0 top-full z-40 hidden bg-slate-50/95 px-6 pb-7 text-slate-950 md:block"
+          className="absolute inset-x-0 top-full z-40 hidden bg-slate-50/95 px-6 pb-7 text-slate-950 lg:block"
           onMouseEnter={() => setServicesOpen(true)}
         >
           <div className="relative mx-auto max-w-7xl border border-t-0 border-blue-200 bg-white px-7 pb-7 pt-8 shadow-[0_26px_65px_-36px_rgba(37,99,235,0.32)] lg:px-10 lg:pb-8 lg:pt-9">

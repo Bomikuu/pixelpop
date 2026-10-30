@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { useRecords } from "../hooks/useDashboardData";
+import useRecordFilters from "../hooks/useRecordFilters";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -258,38 +259,40 @@ export default function RecordList({
   headerActions,
   accountScoped = false,
   hideAnalytics = false,
-  initialTransactionKind = "",
 }) {
-  const [search, setSearch] = useState("");
-  const [query, setQuery] = useState("");
+  const filterScope = [resource, kind, compact ? "compact" : "", ...["coverage", "account", "contact"].filter((key) => fixedParams?.[key] != null).map((key) => `${key}-${fixedParams[key]}`)].filter(Boolean).join("-");
+  const [filters, setFilters] = useRecordFilters(filterScope);
+  const { q: query, category, start, end, page, kind: transactionKind, view: assetView } = filters;
+  const dated = ["transactions", "deadlines", "movements"].includes(resource);
+  const period = filters.period === "undated" && (resource !== "deadlines" || bills) ? "month" : filters.period;
+  const [search, setSearch] = useState(query);
   const [composing, setComposing] = useState(false);
-  const [category, setCategory] = useState("");
-  const [period, setPeriod] = useState("month");
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [page, setPage] = useState(1);
-  const [transactionKind, setTransactionKind] = useState(initialTransactionKind);
   const [acting, setActing] = useState(null);
   const [actionError, setActionError] = useState("");
-  const [assetView, setAssetView] = useState("cards");
+  useEffect(() => setSearch(query), [query]);
   useEffect(() => {
-    if (composing) return;
+    if (composing || search === query) return;
     const timer = setTimeout(() => {
-      setQuery(search);
-      setPage(1);
+      setFilters({ q: search, page: 1 });
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, composing]);
-  const dated = ["transactions", "deadlines", "movements"].includes(resource);
+  }, [search, query, composing, setFilters]);
   const recent = compact && resource === "transactions";
   const showsTransactionTypeFilter =
     resource === "transactions" && !kind && (recent || accountScoped || !compact);
   const displayedKind =
     kind || (resource === "transactions" && !compact && !accountScoped ? transactionKind : "");
-  const searchId = resource + (fixedParams?.coverage ? "-coverage-" + fixedParams.coverage : "") + "-search";
+  const searchId = filterScope + "-search";
+  const dateError = dated && period === "custom" && start && end && start > end ? "Choose an end date on or after the start date." : "";
+  const hasFilters = Boolean(search || category || (showsTransactionTypeFilter && transactionKind) || (dated && period !== "month") || page > 1);
+  function clearFilters() {
+    setSearch("");
+    setFilters({ q: "", category: "", period: "month", start: "", end: "", page: 1, kind: "" });
+  }
+  const pageSize = recent ? 10 : compact ? 100 : 20;
   const params = new URLSearchParams({
     page: String(page),
-    page_size: recent ? "10" : compact ? "100" : "20",
+    page_size: String(pageSize),
     ...((dated && period !== "undated") || kind === "fund" ? { chart_month: month } : {}),
     ...(dated && (!compact || recent) ? periodParams(period, month, start, end) : {}),
     ...fixedParams,
@@ -303,8 +306,10 @@ export default function RecordList({
     resource + "/?" + params.toString(),
     dashboard.request,
     dashboard.version,
+    { enabled: !dateError },
   );
   const rows = state.data?.results || [];
+  const displayedPage = state.data ? Math.min(page, Math.max(1, Math.ceil(state.data.count / pageSize))) : page;
   const fields =
     resource === "accounts"
       ? ["name", "kind", "balance"]
@@ -531,7 +536,7 @@ export default function RecordList({
         }
         action={
           resource === "assets" ? <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => setAssetView((view) => view === "cards" ? "table" : "cards")} aria-label={`Switch assets to ${assetView === "cards" ? "table" : "card"} view`}>
+            <Button type="button" variant="outline" onClick={() => setFilters({ view: assetView === "cards" ? "table" : "cards" })} aria-label={`Switch assets to ${assetView === "cards" ? "table" : "card"} view`}>
               {assetView === "cards" ? <Table2 aria-hidden="true" /> : <LayoutGrid aria-hidden="true" />}{assetView === "cards" ? "Table view" : "Card view"}
             </Button>
             {headerActions ?? (!compact && !hideAdd && <Button onClick={() => openForm(addEntity, addRecord)}><Plus aria-hidden="true" />Add asset</Button>)}
@@ -574,13 +579,13 @@ export default function RecordList({
                 <Input
                   id={searchId}
                   value={search}
+                  maxLength={160}
                   onCompositionStart={() => setComposing(true)}
                   onCompositionEnd={() => setComposing(false)}
                   onChange={(e) => {
                     setSearch(e.target.value);
                     if (!e.target.value) {
-                      setQuery("");
-                      setPage(1);
+                      setFilters({ q: "", page: 1 });
                     }
                   }}
                   className="pl-9 pr-10"
@@ -594,7 +599,7 @@ export default function RecordList({
                     aria-label="Clear record search"
                     onClick={() => {
                       setSearch("");
-                      setQuery("");
+                      setFilters({ q: "", page: 1 });
                       document.getElementById(searchId)?.focus();
                     }}
                   >
@@ -605,17 +610,16 @@ export default function RecordList({
             </div>
             {dated && (
               <div className="w-full sm:w-44">
-                <Label htmlFor={resource + "-period"} className={recent ? "sr-only" : "mb-2 block"}>
+                <Label htmlFor={filterScope + "-period"} className={recent ? "sr-only" : "mb-2 block"}>
                   Period
                 </Label>
                 <Select
                   value={period}
                   onValueChange={(v) => {
-                    setPeriod(v);
-                    setPage(1);
+                    setFilters({ period: v, page: 1 });
                   }}
                 >
-                  <SelectTrigger id={resource + "-period"} className="w-full">
+                  <SelectTrigger id={filterScope + "-period"} className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent
@@ -640,17 +644,16 @@ export default function RecordList({
             )}
             {["transactions", "deadlines"].includes(resource) && (
               <div className="w-full sm:w-48">
-                <Label htmlFor={resource + "-category"} className={recent ? "sr-only" : "mb-2 block"}>
+                <Label htmlFor={filterScope + "-category"} className={recent ? "sr-only" : "mb-2 block"}>
                   Category
                 </Label>
                 <Select
                   value={category || "all"}
                   onValueChange={(v) => {
-                    setCategory(v === "all" ? "" : v);
-                    setPage(1);
+                    setFilters({ category: v === "all" ? "" : v, page: 1 });
                   }}
                 >
-                  <SelectTrigger id={resource + "-category"} className="w-full">
+                  <SelectTrigger id={filterScope + "-category"} className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent
@@ -678,34 +681,40 @@ export default function RecordList({
             {dated && period === "custom" && (
               <>
                 <div>
-                  <Label htmlFor="record-start">From</Label>
+                  <Label htmlFor={filterScope + "-start"}>From</Label>
                   <Input
-                    id="record-start"
+                    id={filterScope + "-start"}
                     type="date"
                     value={start}
+                    max={end || undefined}
+                    aria-invalid={Boolean(dateError)}
+                    aria-describedby={dateError ? filterScope + "-date-error" : undefined}
                     onChange={(e) => {
-                      setStart(e.target.value);
-                      setPage(1);
+                      setFilters({ start: e.target.value, page: 1 });
                     }}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="record-end">Through</Label>
+                  <Label htmlFor={filterScope + "-end"}>Through</Label>
                   <Input
-                    id="record-end"
+                    id={filterScope + "-end"}
                     type="date"
                     value={end}
+                    min={start || undefined}
+                    aria-invalid={Boolean(dateError)}
+                    aria-describedby={dateError ? filterScope + "-date-error" : undefined}
                     onChange={(e) => {
-                      setEnd(e.target.value);
-                      setPage(1);
+                      setFilters({ end: e.target.value, page: 1 });
                     }}
                   />
                 </div>
               </>
             )}
+            {hasFilters && <Button type="button" variant="outline" onClick={clearFilters}><X className="size-4" aria-hidden="true" />Clear filters</Button>}
           </div>
         )}
-        {recent && state.data && !state.error && (
+        {dateError && <p id={filterScope + "-date-error"} role="alert" className="mb-4 text-sm text-red-800">{dateError}</p>}
+        {recent && state.data && (
           <>
             <div className="grid gap-3 border-b border-[var(--pd-border)] pb-5 lg:grid-cols-3">
               {[
@@ -727,7 +736,7 @@ export default function RecordList({
                   size="sm"
                   variant={transactionKind === value ? "secondary" : "ghost"}
                   aria-pressed={transactionKind === value}
-                  onClick={() => { setTransactionKind(value); setPage(1); }}
+                  onClick={() => setFilters({ kind: value, page: 1 })}
                 >
                   {value === "income" ? <ArrowDownLeft aria-hidden="true" /> : value === "expense" ? <ArrowUpRight aria-hidden="true" /> : <ArrowLeftRight aria-hidden="true" />}
                   {label}
@@ -736,7 +745,7 @@ export default function RecordList({
             </div>
           </>
         )}
-        {!recent && showsTransactionTypeFilter && state.data && !state.error && (
+        {!recent && showsTransactionTypeFilter && state.data && (
           <div className="my-4 flex flex-wrap gap-2" role="group" aria-label="Transaction type">
             {[["", "All"], ["income", "Income"], ["expense", "Expenses"]].map(([value, label]) => (
               <Button
@@ -744,7 +753,7 @@ export default function RecordList({
                 size="sm"
                 variant={transactionKind === value ? "secondary" : "ghost"}
                 aria-pressed={transactionKind === value}
-                onClick={() => { setTransactionKind(value); setPage(1); }}
+                onClick={() => setFilters({ kind: value, page: 1 })}
               >
                 {value === "income" ? <ArrowDownLeft aria-hidden="true" /> : value === "expense" ? <ArrowUpRight aria-hidden="true" /> : <ArrowLeftRight aria-hidden="true" />}
                 {label}
@@ -752,18 +761,20 @@ export default function RecordList({
             ))}
           </div>
         )}
+        {state.refreshing && state.data && <p role="status" className="mb-3 text-xs text-slate-600">Refreshing records…</p>}
         {(state.error || actionError) && (
           <ErrorState
-            message={state.error || actionError}
+            message={state.error && state.data ? `Could not refresh these records. Showing the last loaded results. ${state.error}` : state.error || actionError}
             retry={dashboard.refresh}
           />
         )}
-        {state.error ? null : !state.data ? (
+        {dateError || (state.error && !state.data) ? null : !state.data ? (
           <p role="status" className="py-8 text-sm text-slate-600">
             Loading records…
           </p>
         ) : !rows.length ? (
           <EmptyState
+            action={hasFilters ? <Button variant="outline" onClick={clearFilters}>Clear filters</Button> : !compact && !hideAdd && addEntity && resource !== "schedules" ? <Button onClick={() => openForm(addEntity, bills ? { kind: "bill" } : addRecord)}><Plus aria-hidden="true" />Add {words(addEntity).toLowerCase()}</Button> : undefined}
             title={query || category || (showsTransactionTypeFilter && transactionKind) || (dated && period !== "month") ? "No matching records" : "No records yet"}
             message={
               query || category || (showsTransactionTypeFilter && transactionKind) || (dated && period !== "month")
@@ -988,21 +999,21 @@ export default function RecordList({
             )}
             {(!compact || recent) && (
               <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4 text-sm text-slate-600">
-                <span>
-                  {state.data.count} records • Page {page}
+                <span role="status">
+                  {state.data.count} records • Page {displayedPage}
                 </span>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     disabled={!state.data.previous}
-                    onClick={() => setPage((p) => p - 1)}
+                    onClick={() => setFilters({ page: displayedPage - 1 }, { replace: false })}
                   >
                     Previous
                   </Button>
                   <Button
                     variant="outline"
                     disabled={!state.data.next}
-                    onClick={() => setPage((p) => p + 1)}
+                    onClick={() => setFilters({ page: displayedPage + 1 }, { replace: false })}
                   >
                     Next
                   </Button>
@@ -1011,7 +1022,7 @@ export default function RecordList({
             )}
           </>
         )}
-        {recent && state.data && !state.error && <div className="mt-5 space-y-2 border-t border-[var(--pd-border)] pt-5">
+        {recent && state.data && <div className="mt-5 space-y-2 border-t border-[var(--pd-border)] pt-5">
           <RecentTransactionsChart rows={state.data.charts?.monthly} />
           <p className="text-xs text-slate-600">Search, category and type apply to the chart. Period selection applies to the list and totals.</p>
         </div>}

@@ -10,6 +10,8 @@ import AttentionRail from "../components/AttentionRail";
 import { Button } from "../../personal-dashboard/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../personal-dashboard/ui/select";
 import { EmptyState, ErrorState, Panel } from "../../personal-dashboard/components/Panel";
+import useWorkspaceMobile from "../../workspace-mobile/useWorkspaceMobile";
+import MobileBusinessHome from "../../workspace-mobile/MobileBusinessHome";
 
 const statusClasses = { completed: "bg-emerald-50 text-emerald-800", blocked: "bg-rose-50 text-rose-800", in_progress: "bg-blue-50 text-blue-800", delegated: "bg-indigo-50 text-indigo-800", moved: "bg-slate-100 text-slate-700" };
 
@@ -25,6 +27,7 @@ function ActionPreview({ actions, navigate }) {
 }
 
 export function OverviewView({ overview, bootstrap, navigate, csrf, revision }) {
+  const mobile = useWorkspaceMobile();
   const [attentionData, setAttentionData] = useState({ actions: [], members: [], knowledge: [], health: [], loading: true, error: "" });
   const [attentionRetry, setAttentionRetry] = useState(0);
   useEffect(() => {
@@ -50,6 +53,7 @@ export function OverviewView({ overview, bootstrap, navigate, csrf, revision }) 
     ["Save evidence", "Keep concrete examples", "evidence", FolderCheck],
     ["Reflect", "Review patterns and lessons", "reflection", FileText],
   ];
+  if (mobile) return <MobileBusinessHome overview={overview} bootstrap={bootstrap} attention={attentionData} navigate={navigate} />;
   return <div className="space-y-5">
     <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Road to Team Leader</p><h2 className="mt-1 text-xl font-semibold text-slate-950">{bootstrap.plan.team_name}</h2><p className="mt-1 text-sm text-slate-600">Build repeatable team systems, develop people, create feedback loops, and improve team performance beyond individual task delivery.</p></div><span className="rounded-md border bg-white px-3 py-2 text-sm text-slate-700">{active ? `Week ${overview.currentWeek} of 12 · ${overview.phaseName}` : overview.period === "upcoming" ? `Starts ${bootstrap.plan.start_date}` : "12-week plan finished"}</span></div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><SummaryCard icon={CheckCircle2} label="Actions completed" value={`${overview.completed_actions} / ${overview.total_actions}`} hint="Unique actions across the plan" tone="green"/><SummaryCard icon={Layers3} label="Processes adopted" value={overview.adopted_processes} hint="Latest team-use observations" tone="blue"/><SummaryCard icon={FolderCheck} label="Evidence items" value={overview.evidence_items} hint="Recorded promotion examples" tone="amber"/><SummaryCard icon={Users} label="People holding ownership" value={overview.ownership_people} hint="Distinct active delegation owners" tone="blue"/></div>

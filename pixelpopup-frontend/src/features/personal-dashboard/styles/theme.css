@@ -1,11 +1,12 @@
 /* Dashboard-owned component theme; public styles are not imported here. */
 .personal-dashboard {
+  --workspace-mobile-nav-height: calc(64px + env(safe-area-inset-bottom, 0px));
   --pd-primary: #2f5bff;
   --pd-primary-hover: #2149dc;
-  --pd-ink: #0f172a;
-  --pd-muted: #475569;
-  --pd-border: #e2e8f0;
-  --pd-soft: #f1f5f9;
+  --pd-ink: var(--site-ink, #0f172a);
+  --pd-muted: var(--site-secondary, #475569);
+  --pd-border: var(--site-border, #e2e8f0);
+  --pd-soft: var(--site-soft, #f1f5f9);
   --chart-1: #2f5bff;
   --chart-2: #526b91;
   --chart-3: #0f766e;
@@ -18,6 +19,27 @@
   caret-color: var(--pd-primary);
   scrollbar-color: #94a3b8 #f1f5f9;
   scrollbar-width: thin;
+}
+.workspace-mobile-shell { padding-bottom: var(--workspace-mobile-nav-height); padding-top: env(safe-area-inset-top, 0px); }
+.workspace-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.workspace-bottom-nav button { border-radius: 0; padding: 0.25rem; }
+@media (min-width: 1024px) {
+  .personal-dashboard { --workspace-mobile-nav-height: 0px; }
+  .workspace-mobile-shell { padding-bottom: 0; }
+}
+@media (max-width: 1023px) {
+  .workspace-mobile-shell { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+  .workspace-navigation-drawer > [data-slot="dialog-header"] { padding-top: calc(1.25rem + env(safe-area-inset-top, 0px)); }
+  .workspace-navigation-drawer > [data-slot="dialog-close"] { top: calc(0.5rem + env(safe-area-inset-top, 0px)); }
+}
+@media (max-width: 639px) {
+  .workspace-phone-form > [data-slot="dialog-header"] { padding-top: calc(1rem + env(safe-area-inset-top, 0px)); padding-left: max(1rem, env(safe-area-inset-left, 0px)); }
+  .workspace-phone-form > [data-slot="dialog-close"] { top: calc(0.5rem + env(safe-area-inset-top, 0px)); }
+  .workspace-phone-form > form > :last-child { padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px)); }
+}
+@media print {
+  .workspace-bottom-nav { display: none !important; }
+  .workspace-mobile-shell { padding: 0; }
 }
 .personal-dashboard[data-slot="tooltip-content"] {
   color: white;
@@ -63,7 +85,7 @@
 }
 .personal-dashboard [data-slot="button"][data-variant="outline"],
 .personal-dashboard [data-slot="alert-dialog-cancel"] {
-  background-color: white;
+  background-color: var(--site-surface, white);
   border-color: var(--pd-border);
   color: var(--pd-ink);
 }
@@ -75,9 +97,9 @@
 .personal-dashboard [data-slot="button"][data-variant="outline"]:hover,
 .personal-dashboard [data-slot="button"][data-variant="secondary"]:hover,
 .personal-dashboard [data-slot="alert-dialog-cancel"]:hover {
-  background-color: #eff6ff;
-  border-color: #bfdbfe;
-  color: var(--pd-primary);
+  background-color: var(--site-accent-soft, #eff6ff);
+  border-color: var(--site-accent-border, #bfdbfe);
+  color: var(--site-link, #2f5bff);
 }
 .personal-dashboard [data-slot="button"][data-variant="destructive"] {
   background-color: #b91c1c;
@@ -87,23 +109,23 @@
   background-color: #991b1b;
 }
 .personal-dashboard [data-slot="button"][data-variant="link"] {
-  color: var(--pd-primary);
+  color: var(--site-link, #2f5bff);
 }
 .personal-dashboard .pd-choice {
   border-color: var(--pd-border);
-  background: white;
+  background: var(--site-surface, white);
 }
 .personal-dashboard .pd-choice:hover {
   border-color: #93c5fd;
-  background: #eff6ff;
+  background: var(--site-accent-soft, #eff6ff);
 }
 .personal-dashboard .pd-choice[data-selected="true"] {
   border-color: var(--pd-primary);
-  background: #eff6ff;
+  background: var(--site-accent-soft, #eff6ff);
 }
 .personal-dashboard [data-slot="select-trigger"] {
-  background: white;
-  border-color: #94a3b8;
+  background: var(--site-surface, white);
+  border-color: var(--site-field-border, #94a3b8);
   border-style: solid;
   padding: 0.5rem 0.75rem;
 }
@@ -134,11 +156,11 @@
   color: inherit;
 }
 .personal-dashboard a:hover {
-  color: var(--pd-primary);
+  color: var(--site-link, #2f5bff);
 }
 .personal-dashboard nav a[aria-current="page"] {
-  color: var(--pd-primary);
-  background: #eff6ff;
+  color: var(--site-link, #2f5bff);
+  background: var(--site-accent-soft, #eff6ff);
 }
 .personal-dashboard ::selection {
   background: #dbeafe;
@@ -165,6 +187,19 @@
 .personal-dashboard textarea {
   resize: none;
   min-height: 100px;
+}
+@media (max-width: 767px), (pointer: coarse) {
+  /* Keep calendar day cells sized by their seven-column grid. */
+  .personal-dashboard [data-slot="button"]:not([data-day]),
+  .personal-dashboard [data-slot="alert-dialog-action"],
+  .personal-dashboard [data-slot="alert-dialog-cancel"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .personal-dashboard [data-slot="input"]:not([type="hidden"]),
+  .personal-dashboard [data-slot="select-trigger"] {
+    min-height: 44px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .personal-dashboard *,

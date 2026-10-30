@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#2f5bff" />
+    <title>Reconnect | Mico Workspace</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); background: #f8fafc; color: #0f172a; font-family: system-ui, sans-serif; }
+      main { width: 100%; max-width: 440px; }
+      h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 16px; }
+      p { color: #475569; line-height: 1.6; margin: 0 0 24px; }
+      button { border: 0; border-radius: 8px; background: #2f5bff; color: white; padding: 12px 20px; min-height: 44px; font: inherit; font-weight: 600; cursor: pointer; }
+      button:hover { background: #2149dc; }
+      button:focus-visible { outline: 2px solid #2f5bff; outline-offset: 4px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Reconnect to your workspace</h1>
+      <p>This page could not reach the network. Your private records are available when you reconnect. This offline screen does not save entries or submit changes.</p>
+      <button type="button" id="retry">Try again</button>
+    </main>
+    <script>document.getElementById("retry").addEventListener("click", function () { window.location.reload(); });</script>
+  </body>
+</html>

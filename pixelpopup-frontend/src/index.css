@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(html[data-site-theme="dark"][data-site-surface], html[data-site-theme="dark"][data-site-surface] *));
 
 :root {
   /* Brand / vibe */

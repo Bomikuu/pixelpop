@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Receipt, ChevronRight } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
@@ -17,10 +17,20 @@ import { money, dateLabel } from "../lib/format";
 
 export default function SharedBillsView({ dashboard, month, notify }) {
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
   const [creating, setCreating] = useState(false),
     [period, setPeriod] = useState("month");
   const [archive, setArchive] = useState("active"),
     [page, setPage] = useState(1);
+  useEffect(() => {
+    if (params.get("compose") !== "shared-bill") return;
+    setCreating(true);
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete("compose");
+      return next;
+    }, { replace: true });
+  }, [params, setParams]);
   const state = useRecords(
     "shared-bills/?page=" +
       page +

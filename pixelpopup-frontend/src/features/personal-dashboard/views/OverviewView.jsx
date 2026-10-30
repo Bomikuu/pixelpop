@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ArrowUpRight,
   ArrowLeftRight,
@@ -14,6 +15,7 @@ import {
   Table2,
   Lightbulb,
   TrendingUp,
+  TriangleAlert,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { Badge } from "../ui/badge";
@@ -39,6 +41,8 @@ import { useRecords } from "../hooks/useDashboardData";
 import UrgencyBadge from "../components/UrgencyBadge";
 import UnsettledReminder from "../components/quick-entry/UnsettledReminder";
 import { dateLabel } from "../lib/format";
+import useWorkspaceMobile from "../../workspace-mobile/useWorkspaceMobile";
+import MobilePersonalHome from "../../workspace-mobile/MobilePersonalHome";
 
 function deadlineGroup(row) {
   const now = new Date(today() + "T12:00:00Z");
@@ -129,10 +133,11 @@ function monthComparison(current, previous, previousMonth, increaseIsGood) {
   }
   const difference = value - baseline;
   if (difference === 0)
-    return { text: "0% change vs last month", trend: "flat", tone: "neutral" };
+    return { text: "0% change vs last month", percentageLabel: "0%", trend: "flat", tone: "neutral" };
   const percentage = Math.abs((difference / baseline) * 100);
   const rounded = Number(percentage.toFixed(1));
   return {
+    percentageLabel: (rounded === 0 ? "<0.1" : String(rounded)) + "%",
     text:
       (rounded === 0 ? "<0.1" : String(rounded)) +
       "% " +
@@ -147,8 +152,22 @@ export default function OverviewView({
   dashboard,
   month,
   navigate,
+  reviewOverdue,
+  overdueLoading,
+  overdueError,
+  onReminders,
   ...actions
 }) {
+  const mobile = useWorkspaceMobile();
+  const [overviewParams, setOverviewParams] = useSearchParams();
+  const overviewTab = ["planning", "insights", "transactions"].includes(overviewParams.get("overview")) ? overviewParams.get("overview") : "summary";
+  const setOverviewTab = (value) => setOverviewParams((current) => {
+    const next = new URLSearchParams(current);
+    if (value === "summary") next.delete("overview");
+    else next.set("overview", value);
+    return next;
+  }, { replace: true });
+  const planningTab = useRef(null);
   const [settlingId, setSettlingId] = useState(null);
   const [taskToComplete, setTaskToComplete] = useState(null);
   const [deadlineView, setDeadlineView] = useState("cards");
@@ -158,6 +177,11 @@ export default function OverviewView({
     return () => window.clearInterval(timer);
   }, []);
   const o = dashboard.data.overview;
+  const dueToday = Number(o.today.tasks) + Number(o.today.bills);
+  function reviewToday() {
+    setOverviewTab("planning");
+    requestAnimationFrame(() => planningTab.current?.focus());
+  }
   async function settle(row) {
     const dependencyTab = dependencyTabs[row.system_key];
     if (dependencyTab) {
@@ -181,7 +205,7 @@ export default function OverviewView({
     }
   }
   const upcoming = useRecords(
-    "deadlines/?status=pending&page_size=8",
+    "deadlines/?status=pending&page_size=8&compact=1",
     dashboard.request,
     dashboard.version,
   );
@@ -292,18 +316,18 @@ export default function OverviewView({
   ];
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="summary" className="gap-5">
+      <Tabs value={overviewTab} onValueChange={setOverviewTab} className="workspace-home-tabs gap-5">
         <TabsList
           aria-label="Dashboard overview groups"
           className="w-full flex-wrap justify-start gap-1 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:w-fit"
         >
           <TabsTrigger value="summary" className="px-3 py-2">
             <LayoutDashboard aria-hidden="true" />
-            Summary
+            {mobile ? "Today" : "Summary"}
           </TabsTrigger>
-          <TabsTrigger value="planning" className="px-3 py-2">
+          <TabsTrigger ref={planningTab} value="planning" className="px-3 py-2">
             <CalendarClock aria-hidden="true" />
-            Planning
+            {mobile ? "Plan" : "Planning"}
           </TabsTrigger>
           <TabsTrigger value="insights" className="px-3 py-2">
             <ChartNoAxesCombined aria-hidden="true" />
@@ -311,12 +335,60 @@ export default function OverviewView({
           </TabsTrigger>
           <TabsTrigger value="transactions" className="px-3 py-2">
             <ArrowLeftRight aria-hidden="true" />
-            Recent transactions
+            {mobile ? "Activity" : "Recent transactions"}
           </TabsTrigger>
         </TabsList>
         <TabsContent value="summary" className="space-y-6">
+          {mobile ? <MobilePersonalHome
+            overview={o}
+            month={month}
+            user={dashboard.data.user}
+            accounts={dashboard.data.accounts}
+            comparisons={{
+              balance: monthComparison(o.position.available, o.previous_position?.available, o.previous_position?.as_of?.slice(0, 7), true),
+              income: monthComparison(o.month.income, o.previous_month?.income, o.previous_month?.month, true),
+              expenses: monthComparison(o.month.expenses, o.previous_month?.expenses, o.previous_month?.month, false),
+            }}
+            upcoming={upcoming}
+            onDeadline={settle}
+            navigate={navigate}
+            reviewToday={reviewToday}
+            reviewOverdue={reviewOverdue}
+            overdueLoading={overdueLoading}
+            overdueError={overdueError}
+            onReminders={onReminders}
+            financialFigures={<SummaryTiles items={tiles} primaryCount={4} tooltipWhenNoBaseline />}
+          /> : <>
+          <Panel title="Today" description={`Current priorities across all months · ${dateLabel(o.as_of || today())}`}>
+            <div className="divide-y divide-[var(--pd-border)]">
+              {Number(o.attention.overdue) > 0 && <div className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <TriangleAlert className="mt-0.5 size-5 shrink-0 text-red-700" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-red-800">{o.attention.overdue} overdue {Number(o.attention.overdue) === 1 ? "item" : "items"}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">Pending tasks and payments, earliest due first.</p>
+                  </div>
+                </div>
+                <Button type="button" variant="outline" size="sm" disabled={overdueLoading} onClick={reviewOverdue} aria-busy={overdueLoading}>
+                  {overdueLoading ? "Loading…" : "Review overdue"}<ChevronRight className="size-4" aria-hidden="true" />
+                </Button>
+              </div>}
+              {dueToday > 0 && <div className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <CalendarClock className="mt-0.5 size-5 shrink-0 text-[var(--pd-primary)]" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-950">{dueToday} {dueToday === 1 ? "item" : "items"} due today</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-600">{o.today.tasks} {Number(o.today.tasks) === 1 ? "task" : "tasks"} · {o.today.bills} {Number(o.today.bills) === 1 ? "bill" : "bills"}. Review deadlines, complete tasks, or record a payment.</p>
+                  </div>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={reviewToday}>Review today<ChevronRight className="size-4" aria-hidden="true" /></Button>
+              </div>}
+              {Number(o.attention.overdue) === 0 && dueToday === 0 && <p className="pb-4 text-sm leading-6 text-slate-600">No overdue items and no tasks or bills due today. Upcoming deadlines are listed below.</p>}
+              <UnsettledReminder summary={o.unsettled} user={dashboard.data.user} embedded />
+            </div>
+            {overdueError && <p role="alert" className="mt-3 text-sm text-red-800">{overdueError}</p>}
+          </Panel>
           <SummaryTiles items={tiles} primaryCount={4} tooltipWhenNoBaseline />
-          <UnsettledReminder summary={o.unsettled} user={dashboard.data.user} />
           <Panel
             title="Next deadlines"
             description="Outstanding items across all months, earliest first."
@@ -481,6 +553,7 @@ export default function OverviewView({
               </div>
             )}
           </Panel>
+          </>}
         </TabsContent>
         <TabsContent value="planning" className="space-y-6">
           <div className="space-y-6">

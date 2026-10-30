@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ArrowRight, Archive, BriefcaseBusiness, Plus, Search, Users } from "lucide-react";
 import { Button } from "../../personal-dashboard/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../personal-dashboard/ui/dialog";
@@ -33,6 +34,8 @@ function focusField(name) {
 }
 
 export default function ClientsView({ csrf, navigate }) {
+  const [params, setParams] = useSearchParams();
+  const compose = params.get("compose");
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [archived, setArchived] = useState(false);
@@ -41,6 +44,12 @@ export default function ClientsView({ csrf, navigate }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  useEffect(() => {
+    if (compose !== "client") return;
+    setDraft((current) => current || { ...blankClient });
+    setFieldErrors({}); setError("");
+    setParams((current) => { const next = new URLSearchParams(current); next.delete("compose"); return next; }, { replace: true });
+  }, [compose, setParams]);
   const updateDraft = (name, value) => {
     setDraft((current) => ({ ...current, [name]: value }));
     setFieldErrors((current) => ({ ...current, [name]: undefined }));

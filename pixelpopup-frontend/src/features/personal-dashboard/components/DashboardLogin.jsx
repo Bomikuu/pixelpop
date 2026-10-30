@@ -4,6 +4,7 @@ import { financeApi } from "../api";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import ThemeToggle from "../../../ui/theme/ThemeToggle";
 
 export default function DashboardLogin({ onSignedIn }) {
   const [username, setUsername] = useState("");
@@ -38,7 +39,7 @@ export default function DashboardLogin({ onSignedIn }) {
   return <>
     <div aria-hidden="true" className="pointer-events-none fixed inset-0" style={{ backgroundImage: "radial-gradient(circle, var(--pd-primary) 1px, transparent 1px)", backgroundSize: "24px 24px", opacity: 0.12 }} />
     <section className="relative w-full max-w-sm rounded-xl border border-[var(--pd-border)] bg-white p-6 text-left sm:p-8">
-    <span className="mb-4 grid size-11 place-items-center rounded-lg bg-blue-50 text-blue-700"><ShieldCheck aria-hidden="true" /></span>
+    <div className="mb-4 flex items-center justify-between gap-3"><span className="grid size-11 place-items-center rounded-lg bg-blue-50 text-blue-700"><ShieldCheck aria-hidden="true" /></span><ThemeToggle /></div>
     <h1 className="text-2xl font-semibold text-slate-950">Sign in to your workspace</h1>
     <p className="mt-2 text-sm leading-6 text-slate-600">Use the same username and password as your Django account.</p>
     <form noValidate onSubmit={submit} className="mt-6 space-y-4">

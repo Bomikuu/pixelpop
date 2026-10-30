@@ -3,7 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/portfolio/assets/mico-favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      (() => {
+        let saved;
+        try { saved = localStorage.getItem("pixelpop-color-theme"); } catch { /* Optional storage. */ }
+        const root = document.documentElement;
+        root.dataset.siteTheme = saved === "light" || saved === "dark" ? saved : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        const path = location.pathname;
+        if (path === "/" || /^\/portfolio(?:\/|$)/.test(path)) root.dataset.siteSurface = "portfolio";
+        else if (/^\/(?:dashboard|business|quick-entry|shared-bills|documents\/share)(?:\/|$)/.test(path)) root.dataset.siteSurface = "workspace";
+      })();
+    </script>
     <meta name="robots" content="noindex,follow" />
     <title>PixelPopup</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

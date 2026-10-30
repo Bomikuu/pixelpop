@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import * as icons from "lucide-react";
 import { allRecords, leadershipApi } from "../api";
 import { delegationMilestones, reflectionQuestions, resourceConfigs } from "../config";
@@ -123,6 +123,8 @@ function RecordDetails({ record, config, relations }) {
 }
 
 export default function Records({ resource, csrf, currentWeek, checklist = [], notify, refresh, filterWeek = null, compact = false, focusRecordId = null, focusCreateValues = null, onFocused }) {
+  const [params, setParams] = useSearchParams();
+  const compose = params.get("compose");
   const navigate = useNavigate();
   const config = resourceConfigs[resource];
   const actionSpec = actionSpecs[resource];
@@ -168,6 +170,15 @@ export default function Records({ resource, csrf, currentWeek, checklist = [], n
   const visible = displayed.slice((page - 1) * 20, page * 20);
   const weekProgress = resource === "actions" && filterWeek ? weeklyActionProgress(records, filterWeek) : null;
   const open = (record = null) => { setEditing(record); setDraft(initialDraft(config, record, currentWeek)); setFormError(""); };
+  useEffect(() => {
+    if (resource !== "actions" || compose !== "action" || loading || error) return;
+    if (!draft) {
+      setEditing(null);
+      setDraft(initialDraft(config, null, currentWeek));
+      setFormError("");
+    }
+    setParams((current) => { const next = new URLSearchParams(current); next.delete("compose"); return next; }, { replace: true });
+  }, [resource, compose, loading, error, config, currentWeek, draft, setParams]);
   useEffect(() => {
     if (!focusCreateValues || loading || error) return;
     setEditing(null);

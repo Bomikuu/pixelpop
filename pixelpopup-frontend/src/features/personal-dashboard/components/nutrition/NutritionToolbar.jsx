@@ -15,7 +15,7 @@ export default function NutritionToolbar({ entryRef, onTargets, onCalendar, onMe
     ["Targets & baseline", "Change calorie and macro targets, height or goal weight.", Settings2, onTargets],
   ];
   return <Dialog open={open} onOpenChange={(value) => { if (value) pendingAction.current = null; setOpen(value); }}>
-    <DialogTrigger asChild><Button ref={entryRef}><LayoutGrid className="size-4" />Actions</Button></DialogTrigger>
+    <DialogTrigger asChild><Button ref={entryRef} variant="outline"><LayoutGrid className="size-4" />Nutrition tools</Button></DialogTrigger>
     <DialogContent className="personal-dashboard flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:max-w-2xl" onCloseAutoFocus={(event) => {
       if (pendingAction.current) {
         event.preventDefault();
