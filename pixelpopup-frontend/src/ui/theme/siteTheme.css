@@ -49,6 +49,12 @@ html[data-site-surface] .site-theme-toggle:focus-visible {
   outline-offset: 3px;
 }
 
+html[data-site-surface] .site-theme-toggle.portfolio-theme-toggle {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 html[data-site-surface="workspace"] :where(header) .site-theme-toggle {
   width: 36px;
   height: 36px;

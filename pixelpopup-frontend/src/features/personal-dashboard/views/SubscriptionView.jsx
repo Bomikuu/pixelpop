@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronDown, Download, Info, Plus, Receipt, Settings2 } from
 import { Button } from "../ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { useRecords } from "../hooks/useDashboardData";
-import { EmptyState, ErrorState, Panel } from "../components/Panel";
+import { EmptyState, ErrorState, Panel, LoadingState } from "../components/Panel";
 import SummaryTiles from "../components/SummaryTiles";
 import SelectableField from "../components/SelectableField";
 import ServiceTable, { Pagination, StatusBadge } from "../components/subscriptions/ServiceTable";
@@ -33,7 +33,7 @@ import { dateLabel, money } from "../lib/format";
 function EventHistory({ service, dashboard }) {
   const [page, setPage] = useState(1);
   const result = useRecords(servicePath(service.id, `history/?page=${page}`), dashboard.request, dashboard.version);
-  return <Panel title="Service history" description="Read-only record of configuration, readings, actual bills and payments.">{result.loading ? <p role="status">Loading history…</p> : result.error ? <ErrorState message={result.error} retry={dashboard.refresh} /> : <><ServiceTable rows={result.data.results} columns={[{ key: "effective_date", label: "Effective date" }, { key: "kind", label: "Change", render: (r) => titleCase(r.kind) }, { key: "after", label: "Details", render: (r) => <details><summary className="cursor-pointer text-blue-700">Before / after</summary><pre className="mt-2 max-h-48 max-w-sm overflow-auto text-xs">{JSON.stringify({ before: r.before, after: r.after }, null, 2)}</pre></details> }]} /><Pagination page={page} setPage={setPage} data={result.data} /></>}</Panel>;
+  return <Panel title="Service history" description="Read-only record of configuration, readings, actual bills and payments.">{result.loading ? <LoadingState message="Loading history…" /> : result.error ? <ErrorState message={result.error} retry={dashboard.refresh} /> : <><ServiceTable rows={result.data.results} columns={[{ key: "effective_date", label: "Effective date" }, { key: "kind", label: "Change", render: (r) => titleCase(r.kind) }, { key: "after", label: "Details", render: (r) => <details><summary className="cursor-pointer text-blue-700">Before / after</summary><pre className="mt-2 max-h-48 max-w-sm overflow-auto text-xs">{JSON.stringify({ before: r.before, after: r.after }, null, 2)}</pre></details> }]} /><Pagination page={page} setPage={setPage} data={result.data} /></>}</Panel>;
 }
 
 export default function SubscriptionView({ subscriptionId, dashboard, month, notify }) {
@@ -53,7 +53,7 @@ export default function SubscriptionView({ subscriptionId, dashboard, month, not
     setDialog({ kind: cycle.bill_amount == null ? "confirm" : "payment", service, cycle });
   }, [cycle, service, params]);
   const close = () => { setDialog(null); if (params.has("action")) setParam("action", ""); };
-  if (records.loading) return <p role="status" className="py-8 text-center text-slate-600">Loading subscription…</p>;
+  if (records.loading) return <LoadingState message="Loading subscription…" />;
   if (records.error) return <ErrorState message={records.error} retry={dashboard.refresh} />;
   if (!service) return <EmptyState title="Service not found" />;
   const metered = meteredTypes.has(service.service_type);
@@ -74,7 +74,7 @@ export default function SubscriptionView({ subscriptionId, dashboard, month, not
     </Panel>
     <Tabs value={selectedTab} onValueChange={(v) => setParam("view", v)} className="gap-5"><TabsList aria-label="Service sections" className="h-auto w-full flex-wrap justify-start sm:w-fit">{[["overview", "Overview"], ...(metered ? [["readings", "Readings"]] : []), ["billing", "Billing & payments"], ...(!service.variable_amount ? [["prices", "Price history"]] : []), ...(service.service_type === "electricity" ? [["appliances", "Appliances"]] : []), ["settings", "Settings"], ["history", "History"]].map(([key, label]) => <TabsTrigger key={key} value={key} className="px-3 py-2">{label}</TabsTrigger>)}</TabsList>
       <TabsContent value="overview" className="space-y-5">
-        {cycleResult.loading ? <p role="status">Loading selected period…</p> : cycle && (metered ? <UtilityOverview cycle={cycle} service={service} dashboard={dashboard} /> : <SummaryTiles items={[{ label: "Bill amount", value: cycle.bill_amount == null ? "Confirm actual bill" : money(cycle.bill_amount), icon: "deadline" }, { label: "Paid for this bill", value: money(cycle.paid), icon: "expenses" }, { label: "Remaining", value: cycle.remaining == null ? "Unknown" : money(cycle.remaining), icon: "balance" }, { label: "Monthly fixed equivalent", value: service.monthly_equivalent == null ? "Variable bill" : money(service.monthly_equivalent), icon: "budget", hint: "Planning only, not another monthly charge." }]} />)}
+        {cycleResult.loading ? <LoadingState message="Loading selected period…" /> : cycle && (metered ? <UtilityOverview cycle={cycle} service={service} dashboard={dashboard} /> : <SummaryTiles items={[{ label: "Bill amount", value: cycle.bill_amount == null ? "Confirm actual bill" : money(cycle.bill_amount), icon: "deadline" }, { label: "Paid for this bill", value: money(cycle.paid), icon: "expenses" }, { label: "Remaining", value: cycle.remaining == null ? "Unknown" : money(cycle.remaining), icon: "balance" }, { label: "Monthly fixed equivalent", value: service.monthly_equivalent == null ? "Variable bill" : money(service.monthly_equivalent), icon: "budget", hint: "Planning only, not another monthly charge." }]} />)}
         {cycle && <Panel title="Selected billing period"><ServiceTable rows={[cycle]} columns={[{ key: "due_date", label: "Due date" }, { key: "status", label: "State", render: (r) => <StatusBadge status={r.status} /> }, { key: "actual_amount", label: "Confirmed actual", render: (r) => r.actual_amount == null ? "Not confirmed" : money(r.actual_amount) }, { key: "period_start", label: "Consumption start" }, { key: "period_end", label: "End (exclusive)" }]} /></Panel>}
         <SubscriptionAnalytics service={service} dashboard={dashboard} month={month} />
       </TabsContent>

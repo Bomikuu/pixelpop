@@ -22,7 +22,7 @@ import AccountLedger from "../components/AccountLedger";
 import AccountSummaryCharts from "../components/AccountSummaryCharts";
 import RecordList from "../components/RecordList";
 import SummaryTiles from "../components/SummaryTiles";
-import { EmptyState, ErrorState, Panel } from "../components/Panel";
+import { EmptyState, ErrorState, Panel, LoadingState } from "../components/Panel";
 import { dateLabel, money, today, words } from "../lib/format";
 import { coverageTypes, fundTypes, institutionFor } from "../lib/presets";
 import CashLoanList from "../cash-loans/CashLoanList";
@@ -107,7 +107,7 @@ export default function AccountDetailView({ accountId, dashboard, month, openFor
         </Link>
       </Button>
       {state.loading ? (
-        <p role="status" className="py-8 text-sm text-slate-600">Loading account…</p>
+        <LoadingState message="Loading account…" />
       ) : state.error ? (
         <ErrorState message={state.error} retry={dashboard.refresh} />
       ) : !account || !summary ? (

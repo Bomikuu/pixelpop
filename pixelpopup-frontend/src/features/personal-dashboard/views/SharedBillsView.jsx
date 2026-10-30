@@ -10,7 +10,7 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
-import { EmptyState, ErrorState } from "../components/Panel";
+import { EmptyState, ErrorState, LoadingState } from "../components/Panel";
 import ParticipantAvatars from "../components/shared-bills/ParticipantAvatars";
 import CreateBillDialog from "../components/shared-bills/CreateBillDialog";
 import { money, dateLabel } from "../lib/format";
@@ -96,9 +96,7 @@ export default function SharedBillsView({ dashboard, month, notify }) {
         </span>
       </div>
       {state.loading ? (
-        <p role="status" className="py-8 text-sm text-slate-600">
-          Loading shared bills…
-        </p>
+        <LoadingState message="Loading shared bills…" />
       ) : state.error ? (
         <ErrorState message={state.error} retry={dashboard.refresh} />
       ) : !state.data?.results.length ? (

@@ -27,9 +27,7 @@ import {
   FileClock,
   Lightbulb,
   BookOpenText,
-  Bell,
   LogOut,
-  LoaderCircle,
   RefreshCw,
   UserRound,
   Search,
@@ -61,7 +59,7 @@ import DashboardLogin from "./components/DashboardLogin";
 import UserProfileSettings from "./components/UserProfileSettings";
 import DashboardPageBoundary from "./components/DashboardPageBoundary";
 import DeferredDashboardDialog from "./components/DeferredDashboardDialog";
-import { EmptyState, ErrorState, Panel } from "./components/Panel";
+import { EmptyState, ErrorState, LoadingState, Panel } from "./components/Panel";
 import OverviewView from "./views/OverviewView";
 import SubscriptionAlertsDialog from "./components/subscriptions/SubscriptionAlertsDialog";
 import ReminderSettings from "./components/reminders/ReminderSettings";
@@ -559,10 +557,7 @@ export default function Dashboard() {
           ) : dashboard.status === "error" ? (
             <ErrorState message={dashboard.error} retry={dashboard.refresh} />
           ) : (
-            <div role="status" className="flex flex-col items-center gap-3 text-sm text-slate-600">
-              <LoaderCircle className="size-8 animate-spin text-[var(--pd-primary)] motion-reduce:animate-none" aria-hidden="true" />
-              <span>Loading your workspace…</span>
-            </div>
+            <LoadingState />
           )}
         </div>
       </main>
@@ -637,9 +632,7 @@ export default function Dashboard() {
           >
             <WorkspaceSwitcher workspace="personal" onSwitch={() => navigateRouter("/business/clients")} />
             <div className="hidden items-center gap-3 lg:flex">
-              <span className="grid size-9 place-items-center rounded-lg bg-[var(--pd-primary)] text-white">
-                <Wallet size={20} aria-hidden="true" />
-              </span>
+              <img src="/portfolio/assets/mico-logo.webp" width="36" height="36" alt="Mico Ang" className="size-9 shrink-0 object-contain" />
               <span
                 className={
                   "text-sm font-semibold " + (collapsed ? "lg:hidden" : "")
@@ -656,7 +649,7 @@ export default function Dashboard() {
                 requestAnimationFrame(focusPageHeading);
               }}>
                 <DialogHeader className="shrink-0 border-b px-5 py-5 pr-12 text-left">
-                  <DialogTitle className="flex items-center gap-3 text-sm"><Wallet size={19} aria-hidden="true" />Personal workspace</DialogTitle>
+                  <DialogTitle className="flex items-center gap-3 text-sm"><img src="/portfolio/assets/mico-logo.webp" width="32" height="32" alt="" className="size-8 object-contain" />Personal workspace</DialogTitle>
                   <DialogDescription className="sr-only">Choose a page in your personal dashboard.</DialogDescription>
                   <WorkspaceSwitcher workspace="personal" onSwitch={() => navigateRouter("/business/clients")} />
                 </DialogHeader>
@@ -783,26 +776,6 @@ export default function Dashboard() {
                 </Dialog>
               </div>
             </div>
-            {!tab && (
-              <div className="mt-3 flex flex-wrap justify-end gap-2">
-                <Button variant="outline" onClick={reminders.openChecklist}>
-                  <Bell aria-hidden="true" />
-                  Important tasks
-                  {reminders.checklist && <span className="text-xs text-slate-600">{reminders.checklist.items.filter((item) => !item.completed).length} left</span>}
-                </Button>
-                <Button
-                  ref={calendarTrigger}
-                  variant="outline"
-                  onClick={() => {
-                    calendarEditing.current = false;
-                    setCalendarOpen(true);
-                  }}
-                >
-                  <CalendarDays aria-hidden="true" />
-                  View calendar
-                </Button>
-              </div>
-            )}
             {!tab && reminders.error && <p role="alert" className="mt-2 text-right text-xs text-red-700">{reminders.error}</p>}
           </header>
           {!tab && reminders.error && <p role="alert" className="mb-3 text-sm text-red-700 lg:hidden">{reminders.error}</p>}
@@ -811,7 +784,7 @@ export default function Dashboard() {
             const row = pendingMobileSearch.current; pendingMobileSearch.current = null;
             if (row) queueMicrotask(() => searchSelect(row));
           }}><DialogHeader><DialogTitle>Search workspace</DialogTitle><DialogDescription>Find a saved record.</DialogDescription></DialogHeader><GlobalSearch request={dashboard.request} select={(row) => { pendingMobileSearch.current = row; setMobileSearchOpen(false); }} /></DialogContent></Dialog>
-          <div className={`mb-4 flex-wrap items-center justify-between gap-2 text-xs text-slate-600 ${dashboard.refreshError ? "flex" : "hidden lg:flex"}`} aria-live="polite" aria-atomic="true">
+          <div className={`mb-4 flex-wrap items-center justify-between gap-2 text-xs text-slate-600 ${dashboard.refreshError ? "flex" : !tab && !["planning", "insights", "transactions"].includes(params.get("overview")) ? "hidden" : "hidden lg:flex"}`} aria-live="polite" aria-atomic="true">
             {dashboard.refreshError ? <>
               <p role="alert" className="text-red-800">Could not refresh the workspace. {dashboard.monthPending ? "The selected month is unavailable." : "Your last loaded data is still shown."} {dashboard.refreshError}</p>
               <Button type="button" variant="outline" size="sm" onClick={dashboard.refresh}>Retry refresh</Button>
@@ -824,7 +797,7 @@ export default function Dashboard() {
           <DashboardPageBoundary key={location.pathname}>
           {dashboard.monthPending && !["settings", "nutrition", "brainstorm"].includes(tab) ? (
             <Panel title="Selected month">
-              {dashboard.refreshError ? <ErrorState message="This month's information could not load. Your saved records have not changed." retry={dashboard.refresh} /> : <p role="status" className="text-sm text-slate-600">Loading the selected month…</p>}
+              {dashboard.refreshError ? <ErrorState message="This month's information could not load. Your saved records have not changed." retry={dashboard.refresh} /> : <LoadingState message="Loading the selected month…" className="min-h-[50dvh]" />}
             </Panel>
           ) : !current ? (
             <EmptyState
@@ -834,7 +807,7 @@ export default function Dashboard() {
               }
             />
           ) : tab === "" ? (
-            <OverviewView {...shared} navigate={navigate} reviewOverdue={reviewOverdue} overdueLoading={overdueLoading} overdueError={overdueError} onReminders={reminders.openChecklist} />
+            <OverviewView {...shared} navigate={navigate} reviewOverdue={reviewOverdue} overdueLoading={overdueLoading} overdueError={overdueError} onReminders={reminders.openChecklist} onCalendar={(event) => { calendarTrigger.current = event.currentTarget; calendarEditing.current = false; setCalendarOpen(true); }} />
           ) : ["spending", "reports"].includes(tab) ? (
             <InsightsView dashboard={dashboard} reports={tab === "reports"} />
           ) : tab === "calendar" ? (
@@ -1166,14 +1139,14 @@ export default function Dashboard() {
           onClose={() => setQuickEntryOpen(false)}
           restoreFocus={(event) => {
             event.preventDefault();
-            (quickAddTrigger.current?.isConnected ? quickAddTrigger.current : pageHeadingRef.current)?.focus();
+            (launchingControl.current?.isConnected ? launchingControl.current : pageHeadingRef.current)?.focus();
           }}
           dialogProps={{
             open: quickEntryOpen,
             onOpenChange: setQuickEntryOpen,
             dashboard,
             notify,
-            restoreFocus: () => (quickAddTrigger.current?.isConnected ? quickAddTrigger.current : pageHeadingRef.current)?.focus(),
+            restoreFocus: () => (launchingControl.current?.isConnected ? launchingControl.current : pageHeadingRef.current)?.focus(),
           }}
         />}
         {dialog && (

@@ -25,7 +25,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "../ui/alert-dialog";
-import { ErrorState, Panel } from "../components/Panel";
+import { ErrorState, Panel, LoadingState } from "../components/Panel";
 import BillBreakdown from "../components/shared-bills/BillBreakdown";
 import BillPaymentDialog from "../components/shared-bills/BillPaymentDialog";
 import BillSharing from "../components/shared-bills/BillSharing";
@@ -151,9 +151,7 @@ export default function SharedBillView({ billId, dashboard, month, notify }) {
         </Link>
       </Button>
       {state.loading ? (
-        <p role="status" className="py-8 text-sm text-slate-600">
-          Loading breakdown…
-        </p>
+        <LoadingState message="Loading breakdown…" />
       ) : state.error ? (
         <ErrorState message={state.error} retry={dashboard.refresh} />
       ) : (

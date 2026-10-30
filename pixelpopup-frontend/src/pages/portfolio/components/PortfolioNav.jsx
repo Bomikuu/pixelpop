@@ -90,8 +90,7 @@ export default function PortfolioNav({ routeBase = "" }) {
           </span>
         </a>
 
-        <div className="ml-auto flex items-center gap-2 lg:order-last lg:ml-4">
-          <ThemeToggle />
+        <div className="ml-auto flex items-center gap-2 lg:hidden">
           <button
             type="button"
             className="grid size-10 place-items-center rounded-lg border border-slate-300 text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff] lg:hidden"
@@ -106,7 +105,7 @@ export default function PortfolioNav({ routeBase = "" }) {
           </button>
         </div>
 
-        <div className={`${menuOpen ? "flex" : "hidden"} absolute inset-x-0 top-full flex-col border-b border-slate-200 bg-white px-5 py-5 shadow-xl lg:static lg:flex lg:flex-row lg:items-center lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none`}>
+        <div className={`${menuOpen ? "flex" : "hidden"} absolute inset-x-0 top-full flex-col border-b border-slate-200 bg-white px-5 py-5 shadow-xl lg:static lg:ml-auto lg:flex lg:flex-row lg:items-center lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none`}>
           <div className="hidden lg:block">
             <button
               type="button"
@@ -165,13 +164,16 @@ export default function PortfolioNav({ routeBase = "" }) {
             <span className="w-9 tabular-nums">{progress}%</span>
           </div>
 
-          <a
-            href="/portfolio/Mico_Ang_Senior_Software_Developer.pdf"
-            download
-            className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff] lg:ml-3 lg:mt-0"
-          >
-            Resume <ArrowDownToLine size={16} aria-hidden="true" />
-          </a>
+          <div className="mt-2 flex items-center gap-2 lg:ml-3 lg:mt-0">
+            <ThemeToggle className="portfolio-theme-toggle" />
+            <a
+              href="/portfolio/Mico_Ang_Senior_Software_Developer.pdf"
+              download
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2f5bff] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#2f5bff]"
+            >
+              Resume <ArrowDownToLine size={16} aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
 

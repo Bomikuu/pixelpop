@@ -4,7 +4,7 @@ import { CalendarDays, FolderPen, Info, LayoutGrid, Table2 } from "lucide-react"
 import { useRecords } from "../hooks/useDashboardData";
 import { today } from "../lib/format";
 import { Button } from "../ui/button";
-import { EmptyState, ErrorState } from "../components/Panel";
+import { EmptyState, ErrorState, LoadingState } from "../components/Panel";
 import FormModalShell from "../components/forms/FormModalShell";
 import EodActionMenu from "../components/eod/EodActionMenu";
 import EodCard from "../components/eod/EodCard";
@@ -170,10 +170,10 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
     {selectedGroup && selectedGroup.name.toLowerCase() !== "personal" && <div><Button type="button" size="sm" variant="outline" onClick={() => open("group", selectedGroup)}><FolderPen size={15} aria-hidden="true" />Rename group</Button></div>}
     {pageError && <ErrorState message={pageError} retry={() => setPageError("")} />}
     {groupsState.error && <ErrorState message={groupsState.error} retry={dashboard.refresh} />}
-    {groupsState.loading && <p className="py-10 text-center text-sm text-slate-600">Loading EOD groups…</p>}
+    {groupsState.loading && <LoadingState message="Loading EOD groups…" />}
     {!groupsState.loading && !groupsState.error && !groups.length && <div className="border border-[var(--pd-border)] bg-white"><EmptyState icon={CalendarDays} title="No EOD groups yet" message="Add a group to begin recording your days." action={<Button onClick={() => open("group")}>Add group</Button>} /></div>}
     {groupId && entriesState.error && <ErrorState message={entriesState.error} retry={dashboard.refresh} />}
-    {groupId && entriesState.loading && <p className="py-10 text-center text-sm text-slate-600">Loading saved days…</p>}
+    {groupId && entriesState.loading && <LoadingState message="Loading saved days…" />}
     {groupId && !entriesState.loading && !entriesState.error && <div className={`grid min-w-0 gap-5 ${selectedDate ? viewMode === "table" ? "xl:grid-cols-[minmax(0,1.7fr)_minmax(18rem,1fr)]" : "lg:grid-cols-[minmax(0,1.7fr)_minmax(18rem,1fr)]" : ""}`}>
       <div className="min-w-0">
         {viewMode === "table" ? <EodTable dates={dates} entriesByDate={entriesByDate} selectedDate={selectedDate} onSelect={selectDate} /> : <div className="flex flex-wrap gap-3">{dates.map((date, index) => <EodCard key={date} date={date} entry={entriesByDate.get(date)} selected={selectedDate === date} wide={index % 5 === 0 || index % 5 === 4} onSelect={() => selectDate(date)} />)}</div>}

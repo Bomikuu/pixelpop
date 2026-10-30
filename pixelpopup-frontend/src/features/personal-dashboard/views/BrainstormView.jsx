@@ -6,7 +6,7 @@ import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { EmptyState, ErrorState } from "../components/Panel";
+import { EmptyState, ErrorState, LoadingState } from "../components/Panel";
 import FormModalShell from "../components/forms/FormModalShell";
 import BrainstormFilterSelect from "../components/brainstorm/BrainstormFilterSelect";
 import BrainstormActionMenu from "../components/brainstorm/BrainstormActionMenu";
@@ -183,7 +183,7 @@ export default function BrainstormView({ dashboard, notify }) {
       {!selected && <BrainstormActionMenu activeBoard={false} onAction={open} />}
     </div>
     {boardsState.error && <ErrorState message={boardsState.error} retry={dashboard.refresh} />}
-    {boardsState.loading && <p className="py-12 text-center text-sm text-slate-600">Loading your boards…</p>}
+    {boardsState.loading && <LoadingState message="Loading your boards…" />}
     {!boardsState.loading && !boardsState.error && !boards.length && <div className="border border-[var(--pd-border)] bg-white"><EmptyState icon={Lightbulb} title="Your idea wall starts here" message="Use Add to create a board or import your saved brainstorm." /></div>}
     {!!boards.length && <>
       <nav className="flex flex-wrap items-center gap-2" aria-label="Brainstorm boards">
@@ -211,7 +211,7 @@ export default function BrainstormView({ dashboard, notify }) {
         {!selected?.is_active && <div className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">This board is inactive. Reactivate it to add or change ideas.</div>}
         {!dialog && error && <ErrorState message={error} retry={() => { setError(""); dashboard.refresh(); }} />}
         {selected && ideasState.error && <ErrorState message={ideasState.error} retry={dashboard.refresh} />}
-        {selected && ideasState.loading && <p className="py-12 text-center text-sm text-slate-600">Loading ideas…</p>}
+        {selected && ideasState.loading && <LoadingState message="Loading ideas…" />}
         {!ideasState.loading && !ideasState.error && <div className="mt-5 min-h-32">
           {!ideas.length && (activeFilters || !groups.length) && <div className="bg-white/95"><EmptyState icon={Lightbulb} title={activeFilters ? "No ideas match these filters" : "No ideas on this board yet"} message={activeFilters ? "Change the filters or search to see more ideas." : "Use Add to create an idea, or import a brainstorm you already have."} /></div>}
           {grouped.filter((item) => !activeFilters || item.ideas.length).map((item) => <section key={item.id} className={`mb-8 border border-transparent p-2 transition-colors last:mb-0 ${dropTarget?.groupId === item.id && !dropTarget.ideaId ? "border-blue-400 bg-blue-50/70" : ""}`}

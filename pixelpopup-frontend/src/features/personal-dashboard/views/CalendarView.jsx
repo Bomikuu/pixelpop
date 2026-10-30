@@ -4,7 +4,7 @@ import { Calendar } from "../ui/calendar";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
 import SummaryTiles from "../components/SummaryTiles";
-import { Panel, EmptyState, ErrorState } from "../components/Panel";
+import { Panel, EmptyState, ErrorState, LoadingState } from "../components/Panel";
 import UrgencyBadge from "../components/UrgencyBadge";
 import { ComparisonChart } from "../components/Charts";
 import { dateLabel, money, today } from "../lib/format";
@@ -111,7 +111,7 @@ export default function CalendarView({ dashboard, month, setMonth, openForm, set
           }
         >
           {state.loading ? (
-            <p role="status">Loading scheduled items…</p>
+            <LoadingState message="Loading scheduled items…" />
           ) : !selected.length ? (
             <EmptyState
               title="Nothing scheduled"

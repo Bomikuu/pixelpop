@@ -48,7 +48,7 @@ import {
 import SummaryTiles from "./SummaryTiles";
 import MoneyFlowAmount from "./MoneyFlowAmount";
 import UrgencyBadge from "./UrgencyBadge";
-import { EmptyState, ErrorState, Panel } from "./Panel";
+import { EmptyState, ErrorState, Panel, LoadingState } from "./Panel";
 import { dateLabel, money, today, words } from "../lib/format";
 
 const entityMap = {
@@ -769,9 +769,7 @@ export default function RecordList({
           />
         )}
         {dateError || (state.error && !state.data) ? null : !state.data ? (
-          <p role="status" className="py-8 text-sm text-slate-600">
-            Loading records…
-          </p>
+          <LoadingState message="Loading records…" />
         ) : !rows.length ? (
           <EmptyState
             action={hasFilters ? <Button variant="outline" onClick={clearFilters}>Clear filters</Button> : !compact && !hideAdd && addEntity && resource !== "schedules" ? <Button onClick={() => openForm(addEntity, bills ? { kind: "bill" } : addRecord)}><Plus aria-hidden="true" />Add {words(addEntity).toLowerCase()}</Button> : undefined}

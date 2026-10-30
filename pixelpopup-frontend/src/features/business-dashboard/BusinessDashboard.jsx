@@ -14,7 +14,7 @@ import { STANDARD_DASHBOARD_TOASTS_ENABLED } from "../../ui/mascot/dashboardComp
 import { Button } from "../personal-dashboard/ui/button";
 import { Input } from "../personal-dashboard/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../personal-dashboard/ui/dialog";
-import { ErrorState } from "../personal-dashboard/components/Panel";
+import { ErrorState, LoadingState } from "../personal-dashboard/components/Panel";
 import "../personal-dashboard/styles/theme.css";
 import WorkspaceBottomNav from "../workspace-mobile/WorkspaceBottomNav";
 import WorkspaceSwitcher from "../workspace-mobile/WorkspaceSwitcher";
@@ -147,14 +147,14 @@ export default function BusinessDashboard() {
     <div className="mt-4 border-t pt-3"><Button asChild variant="ghost" className={`w-full justify-start px-3 font-normal text-slate-600 ${mobile ? "min-h-11" : collapsed ? "lg:justify-center lg:px-0" : ""}`}><a href="/dashboard" onClick={(event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); go("/dashboard"); } }} title="Personal dashboard"><ArrowLeft size={17}/><span className={!mobile && collapsed ? "lg:hidden" : ""}>Personal dashboard</span></a></Button></div>
     {(mobile || !collapsed) && <WorkspacePwaControls pwa={pwa} />}
   </nav>;
-  if (loading && !bootstrap) return <main className="personal-dashboard grid min-h-screen place-items-center bg-slate-50" aria-busy="true"><p className="text-sm text-slate-600">Loading your private business dashboard…</p></main>;
+  if (loading && !bootstrap) return <main className="personal-dashboard grid min-h-screen place-items-center bg-slate-50" aria-busy="true"><LoadingState message="Loading your private business dashboard…" /></main>;
   if (error && !bootstrap) return <main className="personal-dashboard grid min-h-screen place-items-center bg-slate-50 p-6"><div className="w-full max-w-md"><ErrorState message={errorStatus === 403 || errorStatus === 401 ? "Sign in to your Django account to access this private dashboard." : error} retry={load}/>{(errorStatus === 403 || errorStatus === 401) && <a href="/admin/login/?next=/business" className="mt-4 inline-block text-sm text-blue-700 underline">Open Django sign-in</a>}</div></main>;
   if (!bootstrap?.plan && !isClientRoute && !isApplicationsRoute) return <main className="personal-dashboard min-h-screen bg-slate-50"><SetupDialog open csrf={bootstrap?.csrfToken || ""} onCreated={load}/></main>;
   return <div className={`personal-dashboard ${isResumeEditor ? "" : "workspace-mobile-shell"} min-h-screen bg-[#f8fafc]`}><div className={`grid w-full ${collapsed ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[264px_minmax(0,1fr)]"}`}>
     <aside className="hidden border-b bg-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r">
       <div className={`flex h-16 shrink-0 items-center justify-between gap-2 px-4 ${collapsed ? "lg:h-auto lg:flex-col lg:px-2 lg:py-3" : ""}`}>
         <WorkspaceSwitcher workspace="business" onSwitch={() => go("/dashboard")} />
-        <a href={bootstrap.plan ? "/business" : "/business/clients"} onClick={(event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); go(bootstrap.plan ? "" : "clients"); } }} className="hidden min-w-0 items-center gap-2.5 text-sm font-semibold text-slate-950 lg:flex"><span className="grid size-9 shrink-0 place-items-center rounded-md bg-blue-600 text-white"><BriefcaseBusiness size={18}/></span><span className={collapsed ? "truncate lg:hidden" : "truncate"}>Business workspace</span></a>
+        <a href={bootstrap.plan ? "/business" : "/business/clients"} onClick={(event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); go(bootstrap.plan ? "" : "clients"); } }} className="hidden min-w-0 items-center gap-2.5 text-sm font-semibold text-slate-950 lg:flex"><img src="/portfolio/assets/mico-logo.webp" width="36" height="36" alt="Mico Ang" className="size-9 shrink-0 object-contain" /><span className={collapsed ? "truncate lg:hidden" : "truncate"}>Business workspace</span></a>
         <Button variant="ghost" size="icon-sm" className="hidden lg:inline-flex" onClick={toggleCollapsed} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeftOpen/> : <PanelLeftClose/>}</Button>
       </div>
       <div className="hidden min-h-0 flex-1 overflow-y-auto overscroll-contain lg:block">{renderNavigation()}</div>
@@ -166,7 +166,7 @@ export default function BusinessDashboard() {
           mobileRouteFocus.current = false;
           requestAnimationFrame(() => { if (focusPage) (Array.from(mainRef.current?.querySelectorAll("h1") || []).find((heading) => heading.getClientRects().length) || mainRef.current)?.focus(); else moreButton.current?.focus(); });
         }}>
-          <DialogHeader className="shrink-0 border-b px-5 py-5 pr-14 text-left"><DialogTitle className="text-sm">Business workspace</DialogTitle><DialogDescription className="sr-only">Choose a business page or switch workspace.</DialogDescription><WorkspaceSwitcher workspace="business" onSwitch={() => go("/dashboard")} /></DialogHeader>
+          <DialogHeader className="shrink-0 border-b px-5 py-5 pr-14 text-left"><DialogTitle className="flex items-center gap-3 text-sm"><img src="/portfolio/assets/mico-logo.webp" width="32" height="32" alt="" className="size-8 object-contain" />Business workspace</DialogTitle><DialogDescription className="sr-only">Choose a business page or switch workspace.</DialogDescription><WorkspaceSwitcher workspace="business" onSwitch={() => go("/dashboard")} /></DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-2">{renderNavigation(true)}</div>
           <footer className="shrink-0 border-t px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"><p className="text-sm font-semibold text-slate-950">{bootstrap.user.name}</p><p className="mt-1 text-xs text-slate-600">Private business workspace</p></footer>
         </DialogContent>

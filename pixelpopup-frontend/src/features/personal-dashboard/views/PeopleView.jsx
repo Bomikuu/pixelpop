@@ -23,7 +23,7 @@ import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import { ComparisonChart } from "../components/Charts";
 import RecordList from "../components/RecordList";
 import RecordIdentity from "../components/RecordIdentity";
-import { EmptyState, ErrorState, Panel } from "../components/Panel";
+import { EmptyState, ErrorState, Panel, LoadingState } from "../components/Panel";
 import { money, monthLabel } from "../lib/format";
 import SharedBillsView from "./SharedBillsView";
 import PeopleActions from "../components/PeopleActions";
@@ -104,9 +104,7 @@ export default function PeopleView(props) {
             }
           >
             {state.loading ? (
-              <p role="status" className="py-8 text-sm text-slate-600">
-                Loading people…
-              </p>
+              <LoadingState message="Loading people…" />
             ) : state.error ? (
               <ErrorState message={state.error} retry={dashboard.refresh} />
             ) : !state.data?.results.length ? (

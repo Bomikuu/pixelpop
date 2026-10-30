@@ -17,7 +17,7 @@ import PeopleSummary from "../components/PeopleSummary";
 import RecordIdentity from "../components/RecordIdentity";
 import RecordList from "../components/RecordList";
 import { ComparisonChart } from "../components/Charts";
-import { EmptyState, ErrorState } from "../components/Panel";
+import { EmptyState, ErrorState, LoadingState } from "../components/Panel";
 import PeopleActions from "../components/PeopleActions";
 
 export default function PersonHistoryView({ personKey, ...props }) {
@@ -50,9 +50,7 @@ export default function PersonHistoryView({ personKey, ...props }) {
         </Link>
       </Button>
       {state.loading ? (
-        <p role="status" className="py-8 text-sm text-slate-600">
-          Loading person history…
-        </p>
+        <LoadingState message="Loading person history…" />
       ) : state.error ? (
         <ErrorState message={state.error} retry={dashboard.refresh} />
       ) : !person ? (

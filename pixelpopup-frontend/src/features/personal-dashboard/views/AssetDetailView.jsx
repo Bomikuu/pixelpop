@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, CalendarClock, CircleCheck, House, Pencil, Plus, Receipt, TriangleAlert } from "lucide-react";
 import { useRecords } from "../hooks/useDashboardData";
 import { Button } from "../ui/button";
-import { EmptyState, ErrorState, Panel } from "../components/Panel";
+import { EmptyState, ErrorState, Panel, LoadingState } from "../components/Panel";
 import SummaryTiles from "../components/SummaryTiles";
 import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import AssetFinancingDialog from "../components/AssetFinancingDialog";
@@ -34,7 +34,7 @@ export default function AssetDetailView({ assetId, dashboard, month, openForm, n
         <Link to={"/dashboard/assets?month=" + month}><ArrowLeft aria-hidden="true" /> Back to assets</Link>
       </Button>
       {state.loading ? (
-        <p role="status" className="py-8 text-sm text-slate-600">Loading asset…</p>
+        <LoadingState message="Loading asset…" />
       ) : state.error ? (
         <ErrorState message={state.error} retry={dashboard.refresh} />
       ) : !asset ? (

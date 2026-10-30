@@ -1,6 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { Inbox } from "lucide-react";
+import { Inbox, LoaderCircle } from "lucide-react";
+
+export function LoadingState({ message = "Loading your workspace…", className = "" }) {
+  return <div role="status" aria-live="polite" aria-busy="true" className={`flex min-h-48 w-full flex-col items-center justify-center gap-3 px-4 py-10 text-center text-sm text-[var(--pd-muted)] ${className}`}>
+    <LoaderCircle className="size-8 text-[var(--pd-primary)] motion-safe:animate-spin" aria-hidden="true" />
+    <span>{message}</span>
+  </div>;
+}
 
 export function Panel({ title, description, action, children, contentClassName }) {
   return (

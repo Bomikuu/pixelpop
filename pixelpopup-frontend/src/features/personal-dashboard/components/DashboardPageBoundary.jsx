@@ -1,5 +1,5 @@
 import { Component, Suspense } from "react";
-import { ErrorState, Panel } from "./Panel";
+import { ErrorState, LoadingState } from "./Panel";
 
 export default class DashboardPageBoundary extends Component {
   state = { failed: false };
@@ -12,7 +12,7 @@ export default class DashboardPageBoundary extends Component {
     if (this.state.failed) {
       return <ErrorState message="This page could not load. Reload the workspace to try again." retry={() => window.location.reload()} />;
     }
-    return <Suspense fallback={<Panel title="Loading page"><p role="status" className="text-sm text-slate-600">Opening your workspace page…</p></Panel>}>
+    return <Suspense fallback={<LoadingState message="Opening your workspace page…" className="min-h-[50dvh]" />}>
       {this.props.children}
     </Suspense>;
   }
