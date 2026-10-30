@@ -3,6 +3,7 @@ import { ArrowDownLeft, ArrowUp, ArrowDown, ArrowUpRight, Bell, CalendarClock, C
 import { Button } from "../ui/button";
 import MonthPicker from "./MonthPicker";
 import { SummaryTilePattern } from "./SummaryTiles";
+import AnimatedNumber from "./AnimatedNumber";
 import UnsettledReminder from "./quick-entry/UnsettledReminder";
 import { useRecords } from "../hooks/useDashboardData";
 import { dateLabel, money, monthLabel, today, words } from "../lib/format";
@@ -26,7 +27,7 @@ function FinancialTile({ item, navigate }) {
   return <button type="button" className="desktop-finance-card group" onClick={() => navigate(target)} aria-label={`${label}: ${money(value)}. ${comparison?.text || hint}`}>
     <SummaryTilePattern tone={comparisonTone} />
     <span className="desktop-finance-icon" data-tone={tone}><Icon size={23} aria-hidden="true" /></span>
-    <span className="desktop-finance-value"><span>{label}</span><strong>{money(value)}</strong></span>
+    <span className="desktop-finance-value"><span>{label}</span><strong><AnimatedNumber value={value} format={money} /></strong></span>
     <span className="desktop-finance-context">
       {comparison?.percentageLabel ? <><span className="desktop-finance-change" data-tone={comparisonTone}><ChangeIcon size={14} aria-hidden="true" />{comparison.percentageLabel}</span><span>vs. last month</span></> : <span className="desktop-finance-caption">{comparison?.noBaseline ? "No prior baseline" : hint}</span>}
     </span>

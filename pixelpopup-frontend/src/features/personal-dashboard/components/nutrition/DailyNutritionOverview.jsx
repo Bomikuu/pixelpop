@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, ArrowLeftRight, Calculator, CheckCircle2, ChevronDown, ChevronRight, Droplets, Dumbbell, Flame, Footprints, Info, Target, UtensilsCrossed, Wheat } from "lucide-react";
 import { Panel } from "../Panel";
+import AnimatedNumber from "../AnimatedNumber";
 import { Button } from "../../ui/button";
 import { SummaryTilePattern } from "../SummaryTiles";
 import { deriveDailyOverview, nutritionNumber as number } from "../../nutrition/dashboardModel";
@@ -22,7 +23,7 @@ function DailySummaryTile({ label, value, target, remaining, percentage, fill, u
     <div className="relative z-10">
       <span className={`mb-2 grid size-9 place-items-center rounded-full ${over ? "bg-red-50 text-red-700" : "bg-blue-50 text-[var(--pd-primary)]"}`}><Icon className="size-4.5" aria-hidden="true" /></span>
       <p className="text-xs font-medium text-slate-600">{label}</p>
-      <p className={`mt-0.5 break-words text-xl tabular-nums ${over ? "text-red-700" : "font-semibold text-slate-950"}`}>{number(value, 2)} <span className="text-xs font-normal text-slate-600">{unit}</span></p>
+      <p className={`mt-0.5 break-words text-xl tabular-nums ${over ? "text-red-700" : "font-semibold text-slate-950"}`}><AnimatedNumber value={value} format={number} digits={2} /> <span className="text-xs font-normal text-slate-600">{unit}</span></p>
       <p className="mt-1 text-xs tabular-nums text-slate-600">of {number(target, 2)} {unit} daily target</p>
       <div className="mt-3"><NutritionProgress value={fill} tone={over ? "red" : tone} label={`${label}: ${number(value, 2)} of ${number(target, 2)} ${unit}`} /></div>
       <p className={`mt-2 text-xs tabular-nums ${over ? "text-red-700" : "text-slate-600"}`}>{remaining == null ? "No food logged" : `${number(Math.abs(remaining), 2)} ${unit} ${over ? "over target" : "remaining"}`}</p>
@@ -48,7 +49,7 @@ function MobileNutritionSummary({ data, basis, status, tone, onTargets, onBasisC
         <CalorieBasis compact basis={basis} onChange={onBasisChange} />
       </div>
       <div className="nutrition-mobile-calories">
-        <p className="nutrition-mobile-total"><strong>{number(data.calories, 1)}</strong><span>/ {number(data.target, 1)} kcal</span></p>
+        <p className="nutrition-mobile-total"><strong><AnimatedNumber value={data.calories} format={number} digits={1} /></strong><span>/ {number(data.target, 1)} kcal</span></p>
         <p className="nutrition-mobile-remaining" data-over={data.status === "over" || undefined}>{remaining}</p>
         <div className="nutrition-mobile-progress">
           <NutritionProgress value={data.fill} tone={tone} known={data.percentage != null} label={basis === "net" ? "Net calories against daily target" : "Food calories against daily target"} valueText={data.calories == null ? "No food logged; intake unknown" : `${number(data.calories, 1)} of ${number(data.target, 1)} kcal; ${status}`} />
@@ -58,7 +59,7 @@ function MobileNutritionSummary({ data, basis, status, tone, onTargets, onBasisC
       <dl className="nutrition-mobile-macros">
         {data.macros.map((macro) => <div key={macro.key} data-macro={macro.key} data-over={macro.remaining != null && macro.remaining < 0 || undefined}>
           <dt><span aria-hidden="true" />{macro.key === "protein" ? "Protein" : macro.key === "carbs" ? "Carbs" : "Fat"}</dt>
-          <dd><strong>{number(macro.value, 1)}g</strong><span> / {number(macro.target, 1)}g</span></dd>
+          <dd><strong><AnimatedNumber value={macro.value} format={number} digits={1} />g</strong><span> / {number(macro.target, 1)}g</span></dd>
           {macro.value == null ? <dd className="nutrition-mobile-macro-note">No food logged</dd> : macro.remaining < 0 ? <dd className="nutrition-mobile-macro-note">{number(-macro.remaining, 1)}g over</dd> : null}
         </div>)}
       </dl>

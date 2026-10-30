@@ -2,6 +2,7 @@ import { CalendarCheck2, Droplets, Dumbbell, Flame, Footprints, Info, Minus, Tre
 import { SummaryTilePattern } from "../SummaryTiles";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
 import { nutritionNumber as number } from "../../nutrition/dashboardModel";
+import AnimatedNumber from "../AnimatedNumber";
 import NutritionCharts from "./NutritionCharts";
 export default function NutritionPeriodSummary({ data, profile }) {
   const current = data.current;
@@ -16,7 +17,7 @@ export default function NutritionPeriodSummary({ data, profile }) {
     return <div key={key} className={`group relative isolate min-w-0 overflow-hidden rounded-lg border bg-white ${over ? "border-red-200" : "border-[var(--pd-border)]"} ${compact ? "p-3" : "p-4"}`}>
       <SummaryTilePattern tone={over ? "negative" : "neutral"} />
       <dt className="relative z-10 flex items-center justify-between gap-2 text-xs text-slate-600"><span>{label}</span><span className="flex items-center gap-1">{change?.percentage == null && change?.absolute == null && <Tooltip><TooltipTrigger asChild><button type="button" aria-label={`About the ${label.toLowerCase()} comparison`} className="grid size-6 place-items-center rounded-sm focus-visible:outline-2"><Info className="size-3.5" /></button></TooltipTrigger><TooltipContent variant="light" className="personal-dashboard max-w-56">No comparable previous-period records. Missing food isn’t zero intake.</TooltipContent></Tooltip>}<Icon className="size-4 shrink-0" aria-hidden="true" /></span></dt>
-      <dd className={`relative z-10 mt-2 tabular-nums ${compact ? "text-lg" : "text-2xl"} ${over ? "text-red-700" : "text-slate-950"}`}>{number(value, 2)} <span className="text-xs text-slate-500">{unit}</span></dd>
+      <dd className={`relative z-10 mt-2 tabular-nums ${compact ? "text-lg" : "text-2xl"} ${over ? "text-red-700" : "text-slate-950"}`}><AnimatedNumber value={value} format={number} digits={key === "logged_days" ? 0 : 2} /> <span className="text-xs text-slate-500">{unit}</span></dd>
       {change?.absolute != null && <dd className="relative z-10 mt-2 flex items-center gap-1 text-xs text-slate-600"><Direction className="size-3.5" aria-hidden="true" />{Number(change.absolute) > 0 ? "+" : ""}{change.percentage != null ? `${number(change.percentage, 1)}%` : `${number(change.absolute, 2)} ${unit.startsWith("of ") ? "days" : unit}`} vs previous period</dd>}
       {over && <dd className="relative z-10 mt-1 text-xs text-red-700">Above current food target</dd>}
     </div>;

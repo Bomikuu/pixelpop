@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowDownLeft, ArrowUp, ArrowUpRight, Bell, CalendarDays, ChevronRight, CircleCheck, CreditCard, Landmark, TriangleAlert, Users, Wallet } from "lucide-react";
 import { money, dateLabel, monthLabel } from "../personal-dashboard/lib/format";
+import AnimatedNumber from "../personal-dashboard/components/AnimatedNumber";
 import UnsettledReminder from "../personal-dashboard/components/quick-entry/UnsettledReminder";
 
 function FlowChange({ comparison }) {
@@ -22,7 +23,7 @@ export default function MobilePersonalHome({ overview: o, month, user, accounts 
       <div className="workspace-today-banner">
         <img src="/workspace-assets/smokey-today-transparent-v2.webp" width="296" height="320" alt="" aria-hidden="true" decoding="async" className="workspace-today-artwork" />
         <h2 id="mobile-balance-title" className="workspace-today-balance-label"><span className="workspace-today-icon"><Wallet size={20} aria-hidden="true" /></span>Current cash &amp; bank balance</h2>
-        <p className="workspace-today-balance">{money(o.position.available)}</p>
+        <p className="workspace-today-balance"><AnimatedNumber value={o.position.available} format={money} /></p>
         <div className="workspace-today-balance-comparison">
           {o.previous_position?.available != null ? <><FlowChange comparison={comparisons.balance} /><span>vs. last month ({money(o.previous_position.available)})</span><span className="sr-only">Recorded balance as of {dateLabel(o.previous_position.as_of)}.{comparisons.balance?.noBaseline ? " Percentage change is unavailable for a zero baseline." : ""}</span></> : <span>Last month's balance unavailable</span>}
         </div>
@@ -33,7 +34,7 @@ export default function MobilePersonalHome({ overview: o, month, user, accounts 
       <dl className="workspace-today-cashflow" aria-label={`Income and expenses for ${monthLabel(month)}`}>
         {[{ key: "income", label: "Income", Icon: ArrowDownLeft }, { key: "expenses", label: "Expenses", Icon: ArrowUpRight }].map(({ key, label, Icon }) => <div key={key} className="workspace-today-flow" data-flow={key}>
           <dt><span className="workspace-today-icon"><Icon size={19} aria-hidden="true" /></span>{label}</dt>
-          <dd><span className="workspace-today-flow-value">{money(o.month[key])}</span><FlowChange comparison={comparisons[key]} /></dd>
+          <dd><span className="workspace-today-flow-value"><AnimatedNumber value={o.month[key]} format={money} /></span><FlowChange comparison={comparisons[key]} /></dd>
           {o.previous_month?.month && o.previous_month[key] != null && <dd className="workspace-today-previous">vs. {monthLabel(o.previous_month.month)}: {money(o.previous_month[key])}{comparisons[key]?.noBaseline && <span className="block">No percentage baseline</span>}</dd>}
         </div>)}
       </dl>
@@ -57,8 +58,8 @@ export default function MobilePersonalHome({ overview: o, month, user, accounts 
     </section>
 
     <div className="workspace-today-positions">
-      <button type="button" className="workspace-today-position" onClick={() => navigate("accounts")}><span className="workspace-today-icon"><CreditCard size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Credit-card debt</span><strong>{money(o.position.debt)}</strong></span><ChevronRight size={16} aria-hidden="true" /></button>
-      <button type="button" className="workspace-today-position" onClick={() => navigate("loans")}><span className="workspace-today-icon"><Users size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Owed to you</span><strong>{money(o.position.receivables)}</strong></span><ChevronRight size={16} aria-hidden="true" /></button>
+      <button type="button" className="workspace-today-position" onClick={() => navigate("accounts")}><span className="workspace-today-icon"><CreditCard size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Credit-card debt</span><strong><AnimatedNumber value={o.position.debt} format={money} /></strong></span><ChevronRight size={16} aria-hidden="true" /></button>
+      <button type="button" className="workspace-today-position" onClick={() => navigate("loans")}><span className="workspace-today-icon"><Users size={21} aria-hidden="true" /></span><span><span className="workspace-today-position-label">Owed to you</span><strong><AnimatedNumber value={o.position.receivables} format={money} /></strong></span><ChevronRight size={16} aria-hidden="true" /></button>
     </div>
 
     <section aria-labelledby="mobile-next-deadlines">

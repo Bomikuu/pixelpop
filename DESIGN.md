@@ -303,18 +303,18 @@ Final check → Resolve issues offers Auto-answer all through the existing quote
 ### Dashboard Mobile and Installed App
 
 Below 1024px, use dedicated mobile headers and home compositions instead of
-stacking desktop controls. The header has a page title, a short workspace or
-welcome line, theme control, and refresh; personal search opens from an icon.
+stacking desktop controls. The header has a page title, theme control, and
+refresh; personal search opens from an icon.
 The compact masthead uses the existing MA cube artwork and Mico Workspace name,
-with Personal or Business shown beneath the wordmark. Keep Instrument Sans for
+with the current page title directly beneath the wordmark at 13px. Omit the
+redundant Personal/Business context and workspace subtitle. Keep Instrument Sans for
 tasks and data; Saira Condensed is reserved for the wordmark and Quick actions
 title. The business home summary uses the existing delivery navy with pale blue
 supporting text. Personal Today follows the supplied light balance-card reference,
 using theme-aware surfaces so it also works in dark mode.
-Keep the page title at 18px with a short welcome/workspace line. Place the reporting
-month beside it when space allows, wrapping only on narrow screens. Nutrition day
-controls use one full-width row with all four controls retained and a readable
-16px date input. Keep vertical padding at 8px to limit the sticky header's height.
+Keep the date controls in a compact trailing row below the masthead with equal
+44px control heights. Preserve the nutrition day picker and previous/next controls.
+Keep vertical padding at 8px to limit the sticky header's height.
 Workspace switching belongs in the More drawer through a labeled, two-choice
 Personal / Business segmented toggle. Preserve guarded navigation and the selected
 workspace when a draft prevents leaving; retain keyboard arrow-key navigation.
@@ -383,6 +383,12 @@ and the full-screen resume editor skip that transition. More slides from the
 left, and press states acknowledge taps. No scrolling reveals or continuous
 decorative loops. Respect reduced motion, cancel interrupted page animations,
 keep content visible by default, and preserve existing focus restoration.
+
+Dashboard financial and nutrition summary values count from zero to the recorded
+value over 800ms when first visible or when the value changes. Reserve the final
+number's width, update only its text node, and expose the final value to assistive
+technology. Reduced motion shows the final value immediately; unknown values
+retain their placeholder instead of counting from a fabricated zero.
 
 On phones, shared record forms fill the visual viewport with fixed header/actions and one scrolling field region. Respect keyboard resizing, safe areas, validation focus and discard confirmation. Dashboard Smokey sits above the 80px bottom navigation; while a phone dialog or keyboard owns the screen, defer its bubble without dismissing queued notifications. Existing inline errors remain in the form. Public companion positioning stays unchanged.
 
