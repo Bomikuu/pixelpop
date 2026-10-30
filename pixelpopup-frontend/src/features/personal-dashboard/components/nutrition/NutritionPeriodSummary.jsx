@@ -21,5 +21,5 @@ export default function NutritionPeriodSummary({ data, profile }) {
       {over && <dd className="relative z-10 mt-1 text-xs text-red-700">Above current food target</dd>}
     </div>;
   }
-  return <div className="space-y-4"><dl className="grid grid-cols-2 gap-3 xl:grid-cols-4">{main.map((item) => tile(item, false))}</dl><dl className="grid grid-cols-2 gap-3 xl:grid-cols-5">{secondary.map((item) => tile(item, true))}</dl><p className="text-xs text-slate-600">{current.meal_count} meals across {current.logged_days} food-logged days; previous period: {data.previous.logged_days} food-logged days. Net averages subtract burn only on dates with meals.</p><NutritionCharts kind="calories" days={data.days} weights={data.weights} profile={profile} /></div>;
+  return <div className="space-y-4"><dl className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-4">{main.map((item) => tile(item, false))}</dl><dl className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-5">{secondary.map((item) => tile(item, true))}</dl><p className="text-xs text-slate-600">{current.meal_count} meals across {current.logged_days} food-logged days; previous period: {data.previous.logged_days} food-logged days. Net averages subtract burn only on dates with meals.</p><NutritionCharts kind="calories" days={data.days} weights={data.weights} profile={profile} /></div>;
 }

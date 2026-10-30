@@ -40,8 +40,10 @@
   .personal-dashboard .workspace-mobile-date-controls input[type="date"] { height: 44px; min-height: 44px; max-height: 44px; }
   .personal-dashboard .workspace-mobile-date-controls > div > button[data-size="icon"] { width: 44px; min-width: 44px; }
   .personal-dashboard .workspace-mobile-date-controls button[aria-haspopup="dialog"] { flex: 1; min-width: 0; gap: 6px; padding-inline: 8px; font-size: 0.75rem; }
-  .workspace-mobile-date-controls:has(input[type="date"]) { flex-basis: 100%; }
+  .workspace-mobile-subheader:has([data-compact="true"]) { flex-wrap: nowrap; gap: 8px; }
+  .workspace-mobile-date-controls:has([data-compact="true"]) { flex: 1 1 196px; }
   .workspace-mobile-date-controls > [aria-label="Selected nutrition day"] { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px 44px; }
+  .workspace-mobile-date-controls > [data-compact="true"] { grid-template-columns: 44px minmax(0, 1fr) 44px; }
   .workspace-mobile-date-controls > [aria-label="Selected nutrition day"] > .relative { width: auto; min-width: 0; }
   .workspace-mobile-date-controls > [aria-label="Selected nutrition day"] > .relative > svg { display: none; }
   .personal-dashboard .workspace-mobile-date-controls input[type="date"] { min-width: 0; padding-inline: 8px; font-size: 1rem; }

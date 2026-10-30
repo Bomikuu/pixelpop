@@ -681,7 +681,7 @@ export default function Dashboard() {
             subtitle={tab ? "Personal workspace" : `Welcome back, ${dashboard.data.user.name}!`}
             actions={<><Button ref={mobileSearchTrigger} type="button" variant="outline" size="icon" aria-label="Search workspace" onClick={() => setMobileSearchOpen(true)}><Search size={19} aria-hidden="true" /></Button><Button type="button" variant="outline" size="icon" aria-label="Refresh workspace" aria-busy={dashboard.refreshing} disabled={dashboard.refreshing} onClick={dashboard.refresh}><RefreshCw size={18} className={dashboard.refreshing ? "motion-safe:animate-spin" : ""} aria-hidden="true" /></Button></>}
           >
-            {tab === "nutrition" ? <NutritionDateControls id="mobile-nutrition-date" date={nutritionDate} onChange={setNutritionDate} /> : !["settings", "brainstorm"].includes(tab) ? <NutritionDateControls id="mobile-workspace-month" date={selectedMonth} onChange={setMonth} mode="month" label="Reporting month" /> : null}
+            {tab === "nutrition" ? <NutritionDateControls compact id="mobile-nutrition-date" date={nutritionDate} onChange={setNutritionDate} /> : !["settings", "brainstorm"].includes(tab) ? <NutritionDateControls id="mobile-workspace-month" date={selectedMonth} onChange={setMonth} mode="month" label="Reporting month" /> : null}
           </WorkspaceMobileHeader>
           <header className="mb-4 hidden border-b pb-4 lg:block">
             <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">

@@ -1,0 +1,7 @@
+Tool: built-in imagegen
+Reference: pixelpopup-frontend/public/workspace-assets/smokey-today-transparent-v2.webp
+Output: pixelpopup-frontend/public/workspace-assets/smokey-nutrition-v1.webp
+Delivery: alpha-preserving WebP, 299 x 384 pixels, 24,360 bytes.
+
+Final generation prompt:
+Use case: identity-preserve. Asset type: transparent mascot illustration for a small mobile nutrition dashboard card. Input image 1 is the existing Smokey character identity and drawing style reference. Create a sibling food-themed variation, not a UI screenshot. Keep this same cream Siamese kitten, dark brown ears/muzzle/paws/tail, pink inner ears, enormous glossy blue eyes, cute tilted head, black outlined hand-drawn cartoon shading and proportions. Show the kitten holding a small bowl of colorful food with rice, a broccoli floret and a carrot piece, looking happily at the viewer. Keep the original cheerful blue expression marks. Compact upright seated composition, all ears and bowl visible, clean silhouette that remains legible at 120px. The cat and food only on a genuinely transparent alpha background. No scenery, no backdrop, no blue waves or dots, no ground plane, no cast shadow, no text, no labels, no UI. Preserve the reference character identity; change just its front-paw pose to hold the bowl.

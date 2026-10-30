@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, Calculator, CheckCircle2, ChevronDown, Droplets, Dumbbell, Flame, Footprints, Info, Target, UtensilsCrossed, Wheat } from "lucide-react";
+import { AlertTriangle, ArrowLeftRight, Calculator, CheckCircle2, ChevronDown, ChevronRight, Droplets, Dumbbell, Flame, Footprints, Info, Target, UtensilsCrossed, Wheat } from "lucide-react";
 import { Panel } from "../Panel";
 import { Button } from "../../ui/button";
 import { SummaryTilePattern } from "../SummaryTiles";
 import { deriveDailyOverview, nutritionNumber as number } from "../../nutrition/dashboardModel";
 import useWorkspaceMobile from "../../../workspace-mobile/useWorkspaceMobile";
+import "./mobileNutritionSummary.css";
 
-export function NutritionProgress({ value, label, tone = "blue", className = "h-2" }) {
+export function NutritionProgress({ value, label, tone = "blue", className = "h-2", known = true, valueText }) {
   const [fill, setFill] = useState(0);
   useEffect(() => { const frame = requestAnimationFrame(() => setFill(value)); return () => cancelAnimationFrame(frame); }, [value]);
   const colors = { blue: "bg-blue-600", red: "bg-red-600", amber: "bg-amber-500", green: "bg-emerald-600" };
-  return <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(value)} className={`overflow-hidden rounded-full bg-slate-100 ${className}`}><div className={`h-full rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none ${colors[tone]}`} style={{ width: `${fill}%` }} /></div>;
+  return <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={known ? Math.round(value) : undefined} aria-valuetext={valueText} className={`overflow-hidden rounded-full bg-slate-100 ${className}`}><div className={`h-full rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none ${colors[tone]}`} style={{ width: `${fill}%` }} /></div>;
 }
 
 function DailySummaryTile({ label, value, target, remaining, percentage, fill, unit, icon: Icon, tone = "blue", status }) {
@@ -30,20 +31,42 @@ function DailySummaryTile({ label, value, target, remaining, percentage, fill, u
   </div>;
 }
 
-function MobileNutritionSummary({ data, basis, status, tone }) {
-  const colors = { blue: "var(--pd-primary)", red: "#dc2626", green: "#059669", amber: "#d97706" };
-  return <>
-    <div className="workspace-calorie-ring" role="progressbar" aria-label={basis === "net" ? "Net calories against daily target" : "Food calories against daily target"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={data.percentage == null ? undefined : Math.round(data.fill)} aria-valuetext={data.calories == null ? "No food logged" : `${number(data.calories, 2)} of ${number(data.target, 2)} kcal; ${status}`} style={{ "--nutrition-ring-progress": `${data.fill}%`, "--nutrition-ring-color": colors[tone] }}>
-      <div><p className="text-sm text-slate-500">{basis === "net" ? "Net calories" : "Food calories"}</p><p className="workspace-mobile-value">{number(data.calories, 2)}</p><p className="mt-2 text-sm text-slate-600">of {number(data.target, 2)} kcal</p><p className={`mt-3 text-xs ${data.status === "over" ? "text-red-700" : "text-slate-500"}`}>{status}</p></div>
-    </div>
-    <div className="workspace-mobile-metrics">
-      {data.macros.map((macro) => <div key={macro.key} className="workspace-mobile-metric"><p className="text-sm text-slate-600">{macro.key === "protein" ? "Protein" : macro.key === "carbs" ? "Carbs" : "Fat"}</p><p className="mt-3 text-xl font-semibold tabular-nums">{number(macro.value, 2)}<span className="ml-1 text-xs font-normal text-slate-500">g</span></p><div className="mt-4"><NutritionProgress value={macro.fill} label={`${macro.key}: ${number(macro.value, 2)} of ${number(macro.target, 2)} g`} tone={macro.remaining != null && macro.remaining < 0 ? "red" : "blue"} /></div><p className="mt-3 text-xs text-slate-500">{macro.value == null ? "No food logged" : macro.remaining < 0 ? `${number(-macro.remaining, 2)} g over target` : `${number(macro.remaining, 2)} g remaining`} · of {number(macro.target, 2)} g</p></div>)}
-      <div className="workspace-mobile-metric"><p className="text-sm text-slate-600">Active burn</p><p className="mt-3 text-xl font-semibold tabular-nums">{number(data.burn, 2)}<span className="ml-1 text-xs font-normal text-slate-500">kcal</span></p><p className="mt-4 text-xs leading-5 text-slate-500">From the activity you logged. Excludes resting energy expenditure.</p></div>
-    </div>
-  </>;
+function CalorieBasis({ basis, onChange, compact = false }) {
+  if (compact) return <Button type="button" size="sm" variant="outline" className="nutrition-basis-button" onClick={() => onChange(basis === "food" ? "net" : "food")} aria-label={`Showing ${basis} calories. Switch to ${basis === "food" ? "net" : "food"} calories.`}>{basis === "food" ? "Food" : "Net"}<ArrowLeftRight className="size-3.5" aria-hidden="true" /></Button>;
+  return <div role="group" aria-label="Calorie basis" className="nutrition-basis-switch flex gap-1 rounded-md border border-[var(--pd-border)] p-1">{["food", "net"].map((value) => <Button key={value} size="sm" variant={basis === value ? "default" : "ghost"} aria-pressed={basis === value} onClick={() => onChange(value)}>{value === "food" ? "Food" : "Net"}</Button>)}</div>;
 }
 
-export default function DailyNutritionOverview({ summary, profile, basis, onBasisChange, actions }) {
+function MobileNutritionSummary({ data, basis, status, tone, onTargets, onBasisChange }) {
+  const remaining = data.calories == null ? "No food logged" : data.target == null ? "Set your daily target" : data.remaining === 0 ? "Target reached" : `${number(Math.abs(data.remaining), 1)} kcal ${data.remaining < 0 ? "over target" : "remaining"}`;
+  return <div className="nutrition-mobile-summary">
+    <section className="nutrition-mobile-banner" aria-label="Daily calorie and macro progress">
+      <span className="nutrition-mobile-artwork" aria-hidden="true"><img src="/workspace-assets/smokey-nutrition-v1.webp" width="299" height="384" alt="" decoding="async" /></span>
+      <div className="nutrition-mobile-card-controls">
+        <button type="button" className="nutrition-mobile-heading" onClick={onTargets} aria-label="View calorie and macro targets">
+          <span className="nutrition-mobile-flame"><Flame size={21} aria-hidden="true" /></span><span>{basis === "net" ? "Net calories" : "Calories"}</span><ChevronRight size={17} aria-hidden="true" />
+        </button>
+        <CalorieBasis compact basis={basis} onChange={onBasisChange} />
+      </div>
+      <div className="nutrition-mobile-calories">
+        <p className="nutrition-mobile-total"><strong>{number(data.calories, 1)}</strong><span>/ {number(data.target, 1)} kcal</span></p>
+        <p className="nutrition-mobile-remaining" data-over={data.status === "over" || undefined}>{remaining}</p>
+        <div className="nutrition-mobile-progress">
+          <NutritionProgress value={data.fill} tone={tone} known={data.percentage != null} label={basis === "net" ? "Net calories against daily target" : "Food calories against daily target"} valueText={data.calories == null ? "No food logged; intake unknown" : `${number(data.calories, 1)} of ${number(data.target, 1)} kcal; ${status}`} />
+          {data.percentage != null && <span aria-hidden="true">{number(data.percentage, 0)}%</span>}
+        </div>
+      </div>
+      <dl className="nutrition-mobile-macros">
+        {data.macros.map((macro) => <div key={macro.key} data-macro={macro.key} data-over={macro.remaining != null && macro.remaining < 0 || undefined}>
+          <dt><span aria-hidden="true" />{macro.key === "protein" ? "Protein" : macro.key === "carbs" ? "Carbs" : "Fat"}</dt>
+          <dd><strong>{number(macro.value, 1)}g</strong><span> / {number(macro.target, 1)}g</span></dd>
+          {macro.value == null ? <dd className="nutrition-mobile-macro-note">No food logged</dd> : macro.remaining < 0 ? <dd className="nutrition-mobile-macro-note">{number(-macro.remaining, 1)}g over</dd> : null}
+        </div>)}
+      </dl>
+    </section>
+  </div>;
+}
+
+export default function DailyNutritionOverview({ summary, profile, basis, onBasisChange, actions, onTargets }) {
   const mobile = useWorkspaceMobile();
   const data = deriveDailyOverview({ summary, profile, basis });
   const statuses = { unlogged: "No food logged", below: "Below target", approaching: "Approaching target", reached: "Target reached", over: "Over target" };
@@ -52,8 +75,8 @@ export default function DailyNutritionOverview({ summary, profile, basis, onBasi
   const previous = summary?.days?.at(-2);
   const surplus = previous?.totals && data.target ? Number(previous.net_calories ?? previous.totals.calories) - data.target : 0;
   const selectedDate = summary?.date ? new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "long", month: "long", day: "2-digit", year: "numeric" }).format(new Date(`${summary.date}T12:00:00+08:00`)) : null;
-  return <div className="workspace-nutrition-panel"><Panel title="Daily overview" description={selectedDate && <time dateTime={summary.date}>{selectedDate}</time>} action={<div className="flex flex-wrap items-center justify-end gap-2"><div role="group" aria-label="Calorie basis" className="flex gap-1 rounded-md border border-[var(--pd-border)] p-1">{["food", "net"].map((value) => <Button key={value} size="sm" variant={basis === value ? "default" : "ghost"} aria-pressed={basis === value} onClick={() => onBasisChange(value)}>{value === "food" ? "Food" : "Net"}</Button>)}</div>{actions}</div>}>
-    {mobile ? <MobileNutritionSummary data={data} basis={basis} status={statuses[data.status]} tone={tone} /> : <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+  return <div className="workspace-nutrition-panel"><Panel title="Daily overview" description={selectedDate && <time dateTime={summary.date}>{selectedDate}</time>} action={mobile ? actions : <div className="flex flex-wrap items-center justify-end gap-2"><CalorieBasis basis={basis} onChange={onBasisChange} />{actions}</div>}>
+    {mobile ? <MobileNutritionSummary data={data} basis={basis} status={statuses[data.status]} tone={tone} onTargets={onTargets} onBasisChange={onBasisChange} /> : <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       <DailySummaryTile label={basis === "net" ? "Calories · net" : "Calories"} value={data.calories} target={data.target} remaining={data.remaining} percentage={data.percentage} fill={data.fill} unit="kcal" icon={Flame} tone={tone} status={statuses[data.status]} />
       {data.macros.map((macro) => <DailySummaryTile key={macro.key} label={macro.key === "protein" ? "Protein" : macro.key === "carbs" ? "Carbs" : "Fat"} value={macro.value} target={macro.target} remaining={macro.remaining} percentage={macro.value != null && macro.target ? macro.value / macro.target * 100 : null} fill={macro.fill} unit="g" icon={icons[macro.key]} status={macro.value == null ? "No food logged" : undefined} />)}
     </div>}

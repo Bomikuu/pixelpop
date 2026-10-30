@@ -1,0 +1,73 @@
+@media (max-width: 1023px) {
+  .nutrition-mobile-summary {
+    --nutrition-texture: #e8f0ff;
+    --nutrition-dots: #c9dcff;
+    --nutrition-over: #be123c;
+    --nutrition-progress-track: #dbe5ff;
+    container-type: inline-size;
+  }
+
+  .nutrition-mobile-banner {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 16px;
+    border: 1px solid var(--pd-border);
+    border-radius: 20px;
+    background: var(--site-surface);
+  }
+
+  .nutrition-mobile-banner::before,
+  .nutrition-mobile-banner::after { position: absolute; z-index: -1; content: ""; pointer-events: none; }
+  .nutrition-mobile-banner::before { inset: 12px 0 0 42%; background: radial-gradient(circle, var(--nutrition-dots) 1.5px, transparent 2px) 0 0 / 12px 12px; mask-image: linear-gradient(145deg, #000, transparent 85%); }
+  .nutrition-mobile-banner::after { inset: 0 -12% 0 35%; background: radial-gradient(ellipse at 65% -10%, var(--nutrition-texture) 30%, transparent 30.5%), radial-gradient(ellipse at 100% 115%, var(--nutrition-texture) 45%, transparent 45.5%); }
+  .nutrition-mobile-artwork { position: absolute; z-index: 0; top: 64px; right: 2px; width: 34%; max-width: 172px; aspect-ratio: 299 / 290; max-height: 160px; overflow: hidden; pointer-events: none; }
+  .nutrition-mobile-artwork > img { display: block; width: 100%; height: auto; }
+  .nutrition-mobile-card-controls { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .personal-dashboard .nutrition-mobile-card-controls .nutrition-basis-button { flex-shrink: 0; min-width: 64px; height: 32px; min-height: 32px; padding-inline: 8px; background: var(--site-surface); font-size: 12px; }
+  .nutrition-mobile-calories { position: relative; z-index: 1; width: 66%; min-height: 110px; }
+  .nutrition-mobile-heading { display: flex; min-width: 0; min-height: 40px; align-items: center; gap: 6px; color: var(--pd-ink); font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+  .nutrition-mobile-heading > svg { flex-shrink: 0; margin-left: auto; color: var(--site-muted); }
+  .personal-dashboard .nutrition-mobile-heading:hover { border-color: transparent; box-shadow: none; background: transparent; color: var(--site-link); }
+  .nutrition-mobile-heading:focus-visible { outline: 2px solid var(--site-link); outline-offset: 3px; border-radius: 4px; }
+  .nutrition-mobile-flame { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border-radius: 12px; background: var(--site-accent-soft); color: var(--site-link); }
+  .nutrition-mobile-total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 6px; margin: 12px 0 0; font-variant-numeric: tabular-nums; }
+  .nutrition-mobile-total strong { color: var(--pd-ink); font-size: clamp(28px, 8.5cqi, 38px); font-weight: 650; line-height: 1.15; letter-spacing: -0.035em; overflow-wrap: anywhere; }
+  .nutrition-mobile-total > span { color: var(--site-secondary); font-size: 13px; line-height: 1.4; }
+  .nutrition-mobile-remaining { margin: 10px 0 0; color: var(--site-secondary); font-size: 12px; line-height: 1.5; }
+  .nutrition-mobile-remaining[data-over] { color: var(--nutrition-over); }
+  .nutrition-mobile-progress { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+  .nutrition-mobile-progress > [role="progressbar"] { height: 14px; flex: 1; background: var(--nutrition-progress-track); }
+  .nutrition-mobile-progress > [role="progressbar"] > .bg-blue-600 { background: var(--site-link); }
+  .nutrition-mobile-progress > span { color: var(--pd-ink); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .nutrition-mobile-macros { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--pd-border); background: var(--site-surface); }
+  .nutrition-mobile-macros > div { min-width: 0; }
+  .nutrition-mobile-macros > div + div { padding-left: 10px; border-left: 1px solid var(--pd-border); }
+  .nutrition-mobile-macros dt { display: flex; align-items: center; gap: 6px; color: var(--pd-ink); font-size: 13px; font-weight: 600; }
+  .nutrition-mobile-macros dt > span { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #059669; box-shadow: 0 0 0 4px color-mix(in srgb, #059669 12%, transparent); }
+  .nutrition-mobile-macros [data-macro="carbs"] dt > span { background: var(--site-link); box-shadow: 0 0 0 4px color-mix(in srgb, var(--site-link) 12%, transparent); }
+  .nutrition-mobile-macros [data-macro="fat"] dt > span { background: #ea580c; box-shadow: 0 0 0 4px color-mix(in srgb, #ea580c 12%, transparent); }
+  .nutrition-mobile-macros dd { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 4px; margin: 8px 0 0; color: var(--pd-ink); font-size: 13px; line-height: 1.4; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .nutrition-mobile-macros dd strong { font-size: 16px; font-weight: 700; }
+  .nutrition-mobile-macros dd > span { color: var(--site-secondary); font-weight: 500; }
+  .nutrition-mobile-macros dd.nutrition-mobile-macro-note { margin-top: 4px; color: var(--site-secondary); font-size: 10px; }
+  .nutrition-mobile-macros [data-over] :is(dd, dd.nutrition-mobile-macro-note) { color: var(--nutrition-over); }
+
+  @container (min-width: 540px) {
+    .nutrition-mobile-banner { padding: 24px; }
+    .nutrition-mobile-calories { width: 67%; min-height: 110px; }
+    .nutrition-mobile-artwork { top: auto; right: 8px; bottom: 0; width: 32%; max-width: 220px; max-height: calc(100% - 20px); }
+    .nutrition-mobile-macros { width: 70%; margin-top: 20px; }
+    .nutrition-mobile-heading { font-size: 18px; }
+    .nutrition-mobile-total > span { font-size: 17px; }
+    .nutrition-mobile-remaining { font-size: 14px; }
+    .nutrition-mobile-macros :is(dt, dd) { font-size: 14px; }
+  }
+
+  html[data-site-theme="dark"] .nutrition-mobile-summary {
+    --nutrition-texture: #222222;
+    --nutrition-dots: #383838;
+    --nutrition-over: #fda4af;
+    --nutrition-progress-track: #383838;
+  }
+}

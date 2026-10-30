@@ -1,0 +1,6 @@
+Tool: built-in imagegen
+Output: pixelpopup-frontend/public/workspace-assets/meal-item-placeholder-v1.webp
+Delivery: alpha-preserving WebP, 192 x 192 pixels.
+
+Final generation prompt:
+Use case: illustration-story. Asset type: generic food-item placeholder thumbnail in a nutrition log. Create an original compact isometric illustration of a single cream bowl holding a simple mixed meal: a few clean white rice shapes, a green leafy vegetable and orange vegetable pieces. Friendly geometric vector-like style, crisp restrained navy outlines, flat color planes, pale cobalt blue bowl rim, cream and soft blue palette with small green/orange food accents. Strong simple silhouette readable at 48 pixels, centered square composition with all of the bowl visible. Genuinely transparent alpha background outside the bowl. This is a generic illustrated placeholder, not a photo of a particular logged dish. No table, placemat, cutlery, no characters, no cat, no text, logo or watermark, no glow, no background blobs, no cast shadow.
