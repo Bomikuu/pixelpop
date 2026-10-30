@@ -11,7 +11,8 @@ from .common import ZERO, cash, fingerprint, number, record_event, revision, wor
 def cycle_payment_state(cycle):
     if not isinstance(cycle, models.SubscriptionCycle):
         cycle = models.SubscriptionCycle.objects.select_related("deadline", "subscription__schedule").get(pk=cycle)
-    paid = cycle.allocations.aggregate(value=Sum("transaction__amount"))["value"] or ZERO
+    cache = getattr(cycle, "_prefetched_objects_cache", {})
+    paid = sum((row.transaction.amount for row in cache["allocations"]), ZERO) if "allocations" in cache else cycle.allocations.aggregate(value=Sum("transaction__amount"))["value"] or ZERO
     bill = cycle.actual_amount
     if bill is None and not cycle.subscription.schedule.variable_amount:
         bill = cycle.deadline.amount

@@ -27,7 +27,11 @@ def materialize(until=None):
     until = max(until or today(), today() + timedelta(days=90))
     if until > today() + timedelta(days=366 * 5):
         raise ValidationError({"month": "Choose a month within the next five years."})
-    for schedule in RecurringSchedule.objects.select_for_update().filter(active=True):
+    schedules = list(RecurringSchedule.objects.select_for_update().filter(active=True).prefetch_related("subscription__prices", "category", "account"))
+    existing_deadlines = {(row.schedule_id, row.due_date): row for row in Deadline.objects.filter(schedule__in=schedules, due_date__lte=until).select_related("subscription_cycle", "expense__subscription_allocation")}
+    income_schedules = [row for row in schedules if row.kind == "income"]
+    existing_income = set(Transaction.objects.filter(schedule__in=income_schedules, scheduled_date__lte=until).values_list("schedule_id", "scheduled_date")) if income_schedules else set()
+    for schedule in schedules:
         service = getattr(schedule, "subscription", None)
         if service and service.expires_on and service.expires_on < today():
             from .subscriptions.lifecycle import change_lifecycle
@@ -36,13 +40,13 @@ def materialize(until=None):
                 request_id=uuid.uuid5(uuid.NAMESPACE_URL, f"subscription:{service.pk}:expiry:{service.expires_on}"))
             continue
         if service and not schedule.variable_amount:
-            current_price = service.prices.filter(effective_date__lte=today()).order_by("-effective_date").first()
+            current_price = max((price for price in service.prices.all() if price.effective_date <= today()), key=lambda price: price.effective_date, default=None)
             if current_price and schedule.amount != current_price.amount:
                 schedule.amount = current_price.amount
                 schedule.save(update_fields=["amount", "updated_at"])
         if schedule.system_key:
             due = today()
-            if due >= schedule.anchor_date:
+            if due >= schedule.anchor_date and (schedule.pk, due) not in existing_deadlines:
                 Deadline.objects.get_or_create(
                     schedule=schedule, due_date=due,
                     defaults={"created_by": schedule.created_by, "title": schedule.title, "kind": "task", "important": schedule.important, "notes": schedule.notes},
@@ -56,14 +60,18 @@ def materialize(until=None):
                 break
             defaults = dict(created_by=schedule.created_by, category=schedule.category, notes=schedule.notes)
             if schedule.kind == "income":
-                if schedule.account_id and schedule.amount:
+                if schedule.account_id and schedule.amount and (schedule.pk, due) not in existing_income:
                     Transaction.objects.get_or_create(schedule=schedule, scheduled_date=due, defaults={**defaults, "date": due, "name": schedule.title, "kind": "income", "receipt_state": "expected", "account": schedule.account, "amount": schedule.amount})
             else:
-                item, created = Deadline.objects.get_or_create(schedule=schedule, due_date=due, defaults={**defaults, "title": schedule.title, "kind": schedule.kind, "important": schedule.important, "amount": None if schedule.variable_amount else schedule.amount, "due_time": schedule.due_time, "reminder_days": schedule.reminder_days, "settlement_kind": schedule.settlement_kind, "credit_card": schedule.account if schedule.settlement_kind == "credit_card_payment" else None})
+                item = existing_deadlines.get((schedule.pk, due))
+                created = False
+                if item is None:
+                    item, created = Deadline.objects.get_or_create(schedule=schedule, due_date=due, defaults={**defaults, "title": schedule.title, "kind": schedule.kind, "important": schedule.important, "amount": None if schedule.variable_amount else schedule.amount, "due_time": schedule.due_time, "reminder_days": schedule.reminder_days, "settlement_kind": schedule.settlement_kind, "credit_card": schedule.account if schedule.settlement_kind == "credit_card_payment" else None})
+                item.schedule = schedule
                 from .subscriptions.cycles import ensure_cycle
                 cycle = ensure_cycle(item)
                 if created and cycle and not schedule.variable_amount:
-                    price = cycle.subscription.prices.filter(effective_date__lte=due).order_by("-effective_date").first()
+                    price = max((price for price in service.prices.all() if price.effective_date <= due), key=lambda price: price.effective_date, default=None) if service else cycle.subscription.prices.filter(effective_date__lte=due).order_by("-effective_date").first()
                     if price and item.amount != price.amount:
                         item.amount = price.amount
                         item.save(update_fields=["amount", "updated_at"])

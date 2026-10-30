@@ -14,16 +14,19 @@ def ensure_cycle(deadline):
     subscription = ensure_subscription(deadline.schedule)
     if not subscription:
         return None
-    expense = models.Transaction.objects.filter(deadline=deadline).first()
+    expense = getattr(deadline, "expense", None)
     known_actual = (deadline.amount if deadline.amount is not None else expense.amount) if expense else deadline.amount if deadline.schedule.variable_amount else None
-    cycle, created = models.SubscriptionCycle.objects.get_or_create(deadline=deadline, defaults={
-        "subscription": subscription, "actual_amount": known_actual,
-        "amount_source": "actual" if known_actual is not None else "fixed" if not deadline.schedule.variable_amount else "unconfirmed",
-        "confirmed_at": expense.created_at if expense else deadline.updated_at if known_actual is not None else None,
-        "created_by": deadline.created_by})
-    if expense:
+    cycle = getattr(deadline, "subscription_cycle", None)
+    created = False
+    if cycle is None:
+        cycle, created = models.SubscriptionCycle.objects.get_or_create(deadline=deadline, defaults={
+            "subscription": subscription, "actual_amount": known_actual,
+            "amount_source": "actual" if known_actual is not None else "fixed" if not deadline.schedule.variable_amount else "unconfirmed",
+            "confirmed_at": expense.created_at if expense else deadline.updated_at if known_actual is not None else None,
+            "created_by_id": deadline.created_by_id})
+    if expense and getattr(expense, "subscription_allocation", None) is None:
         models.SubscriptionPaymentAllocation.objects.get_or_create(transaction=expense, defaults={
-            "cycle": cycle, "request_id": expense.request_id, "created_by": expense.created_by})
+            "cycle": cycle, "request_id": expense.request_id, "created_by_id": expense.created_by_id})
     if created and subscription.inactive_from and subscription.status != "active" and deadline.due_date >= subscription.inactive_from and known_actual is None and not expense:
         cycle.excluded_at, cycle.exclusion_reason = timezone.now(), subscription.status
         cycle.save(update_fields=["excluded_at", "exclusion_reason"])

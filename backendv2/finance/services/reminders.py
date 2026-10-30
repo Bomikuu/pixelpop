@@ -31,26 +31,31 @@ def manila_today():
 @transaction.atomic
 def ensure_daily_reminders(user):
     schedules = []
+    existing = {row.system_key: row for row in RecurringSchedule.objects.filter(created_by=user, system_key__in=ACTION_URLS)}
     for key, title, _ in DAILY_TASKS:
-        schedule, _ = RecurringSchedule.objects.get_or_create(
-            created_by=user,
-            system_key=key,
-            defaults={
-                "title": title,
-                "kind": "task",
-                "important": True,
-                "anchor_date": manila_today(),
-                "frequency": "days",
-                "interval": 1,
-            },
-        )
+        schedule = existing.get(key)
+        if schedule is None:
+            schedule, _ = RecurringSchedule.objects.get_or_create(
+                created_by=user,
+                system_key=key,
+                defaults={
+                    "title": title,
+                    "kind": "task",
+                    "important": True,
+                    "anchor_date": manila_today(),
+                    "frequency": "days",
+                    "interval": 1,
+                },
+            )
         schedules.append(schedule)
     return schedules
 
 
-def _ensure_occurrence(schedule, day):
+def _ensure_occurrence(schedule, day, existing=None):
     if not schedule.active or day < schedule.anchor_date:
         return None
+    if existing is not None and schedule.pk in existing:
+        return existing[schedule.pk]
     item, _ = Deadline.objects.get_or_create(
         schedule=schedule,
         due_date=day,
@@ -62,18 +67,20 @@ def _ensure_occurrence(schedule, day):
             "notes": schedule.notes,
         },
     )
+    if existing is not None:
+        existing[schedule.pk] = item
     return item
 
 
-def sync_automatic_tasks(user, day: date):
-    schedules = {item.system_key: item for item in ensure_daily_reminders(user)}
+def sync_automatic_tasks(user, day: date, *, schedules=None, occurrences=None):
+    schedules = {item.system_key: item for item in (schedules if schedules is not None else ensure_daily_reminders(user))}
     completed = {
         "eod": EndOfDayEntry.objects.filter(date=day).exists(),
         "calories": Meal.objects.filter(user=user, date=day).exists(),
         "expenses": Transaction.objects.filter(created_by=user, date=day, kind="expense").exists(),
     }
     for key in AUTO_KEYS:
-        item = _ensure_occurrence(schedules[key], day)
+        item = _ensure_occurrence(schedules[key], day, occurrences)
         if item is None:
             continue
         should_be = "completed" if completed[key] else "pending"
@@ -86,9 +93,10 @@ def sync_automatic_tasks(user, day: date):
 
 def checklist_for(user, day: date):
     schedules = ensure_daily_reminders(user)
+    occurrences = {row.schedule_id: row for row in Deadline.objects.filter(schedule__in=schedules, due_date=day)}
     for schedule in schedules:
-        _ensure_occurrence(schedule, day)
-    sync_automatic_tasks(user, day)
+        _ensure_occurrence(schedule, day, occurrences)
+    sync_automatic_tasks(user, day, schedules=schedules, occurrences=occurrences)
 
     meal_count = Meal.objects.filter(user=user, date=day).count()
     calories = MealItem.objects.filter(meal__user=user, meal__date=day).aggregate(value=Sum("calories"))["value"] or Decimal("0")

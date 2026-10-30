@@ -1,11 +1,11 @@
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from finance.models import Account, Asset, AssetFinancing, AssetFinancingPayment, BalanceAdjustment, LoanReceivable, MoneyMovement, Transaction
+from finance.models import Account, Asset, AssetFinancing, AssetFinancingPayment, BalanceAdjustment, CashLoanPosting, LoanReceivable, MoneyMovement, Transaction
 
 
 ZERO = Decimal("0.00")
@@ -33,6 +33,57 @@ def account_balance(account, as_of=None):
     if account.kind == "credit_card":
         return result + spending - incoming + loan_effect
     return result + total(transactions.filter(kind="income", receipt_state="received")) - spending + incoming - outgoing - financing_cash + loan_effect
+
+
+def cash_balance_as_of(as_of):
+    """Sum the cash ledger without repeating each query for every account."""
+    accounts = Account.objects.filter(kind__in=Account.CASH_KINDS)
+    transactions = Transaction.objects.filter(account__in=accounts, date__lte=as_of)
+    return (
+        total(BalanceAdjustment.objects.filter(account__in=accounts, date__lte=as_of))
+        + total(transactions.filter(kind="income", receipt_state="received"))
+        - total(transactions.filter(kind="expense", asset_financing_payment__isnull=True, cash_loan_posting__isnull=True))
+        + total(MoneyMovement.objects.filter(destination__in=accounts, date__lte=as_of))
+        - total(MoneyMovement.objects.filter(source__in=accounts, date__lte=as_of))
+        - total(AssetFinancingPayment.objects.filter(account__in=accounts, historical=False, date__lte=as_of), "cash_amount")
+        + total(CashLoanPosting.objects.filter(account__in=accounts, date__lte=as_of), "effect")
+    )
+
+
+def account_balances(accounts, as_of=None):
+    """Read all requested account ledgers in six grouped queries."""
+    accounts = list(accounts)
+    ids = [account.pk for account in accounts]
+    if not ids:
+        return {}
+    day = as_of or today()
+
+    def grouped(queryset, key, field="amount"):
+        return {row[key]: row["value"] or ZERO for row in queryset.order_by().values(key).annotate(value=Sum(field))}
+
+    adjustments = grouped(BalanceAdjustment.objects.filter(account_id__in=ids, date__lte=day), "account_id")
+    transactions = {
+        row["account_id"]: row
+        for row in Transaction.objects.filter(account_id__in=ids, date__lte=day).order_by().values("account_id").annotate(
+            income=Sum("amount", filter=Q(kind="income", receipt_state="received")),
+            spending=Sum("amount", filter=Q(kind="expense", asset_financing_payment__isnull=True, cash_loan_posting__isnull=True)),
+        )
+    }
+    incoming = grouped(MoneyMovement.objects.filter(destination_id__in=ids, date__lte=day), "destination_id")
+    outgoing = grouped(MoneyMovement.objects.filter(source_id__in=ids, date__lte=day), "source_id")
+    financing = grouped(AssetFinancingPayment.objects.filter(account_id__in=ids, historical=False, date__lte=day), "account_id", "cash_amount")
+    loans = grouped(CashLoanPosting.objects.filter(account_id__in=ids, date__lte=day), "account_id", "effect")
+    balances = {}
+    for account in accounts:
+        pk = account.pk
+        row = transactions.get(pk, {})
+        balance = adjustments.get(pk, ZERO) + loans.get(pk, ZERO)
+        spending = row.get("spending") or ZERO
+        if account.kind == "credit_card":
+            balances[pk] = balance + spending - incoming.get(pk, ZERO)
+        else:
+            balances[pk] = balance + (row.get("income") or ZERO) - spending + incoming.get(pk, ZERO) - outgoing.get(pk, ZERO) - financing.get(pk, ZERO)
+    return balances
 
 
 def ensure_account_capacity(account, date, field="account"):
@@ -72,9 +123,10 @@ def validate_fund_history(account, since):
 def financial_position():
     # Archived accounts still own balances; archiving never erases money/history.
     accounts = list(Account.objects.all().order_by("id"))
-    available = sum((account_balance(a) for a in accounts if a.kind in Account.CASH_KINDS), ZERO)
-    funds = sum((account_balance(a) for a in accounts if a.kind == "fund" and a.fund_type not in Account.COVERAGE_TYPES), ZERO)
-    debt = sum((account_balance(a) for a in accounts if a.kind == "credit_card"), ZERO)
+    balances = account_balances(accounts)
+    available = sum((balances[a.pk] for a in accounts if a.kind in Account.CASH_KINDS), ZERO)
+    funds = sum((balances[a.pk] for a in accounts if a.kind == "fund" and a.fund_type not in Account.COVERAGE_TYPES), ZERO)
+    debt = sum((balances[a.pk] for a in accounts if a.kind == "credit_card"), ZERO)
     assets = total(Asset.objects.filter(active=True), "value")
     receivables = sum((outstanding(a) for a in LoanReceivable.objects.all()), ZERO)
     financing = list(AssetFinancing.objects.all())

@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from finance import models
-from finance.services.balances import today, total, outstanding, account_balance, ensure_account_capacity, validate_fund_history
+from finance.services.balances import today, total, outstanding, account_balance, account_balances, ensure_account_capacity, validate_fund_history
 from finance.services.queries import filtered, month_range, by_person, by_contact
 from finance.services.recurrence import materialize
 from finance.services.settlements import action_date, move_money, settle_deadline
@@ -132,7 +132,7 @@ class FinanceViewSet(AuditCrudMixin, PrivateMixin, viewsets.ModelViewSet):
         page = self.paginate_queryset(qs)
         response = self.get_paginated_response(self.get_serializer(page, many=True).data)
         response.data["summary"] = json_money(summary)
-        response.data["charts"] = json_money(record_charts(qs, self.queryset, request.query_params, self.date_field, self.search_fields))
+        response.data["charts"] = json_money(record_charts(qs, self.queryset, request.query_params, self.date_field, self.search_fields, balances=getattr(self, "_account_balances", None)))
         return response
 
     def perform_create(self, serializer):
@@ -188,6 +188,11 @@ class AccountViewSet(FinanceViewSet):
     queryset = models.Account.objects.all()
     serializer_class = AccountSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["account_balances"] = getattr(self, "_account_balances", {})
+        return context
+
     def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("kind"):
@@ -202,13 +207,14 @@ class AccountViewSet(FinanceViewSet):
 
     def summary(self, qs):
         rows = list(qs)
+        self._account_balances = balances = account_balances(rows)
         limited = [r for r in rows if r.kind == "credit_card" and r.credit_limit]
         limit = sum((r.credit_limit for r in limited), Decimal(0))
-        debt = sum((account_balance(r) for r in limited), Decimal(0))
+        debt = sum((balances[r.pk] for r in limited), Decimal(0))
         start, end = month_range(self.request.query_params.get("chart_month") or self.request.query_params.get("month"))
         fund_ids = [r.pk for r in rows if r.kind == "fund" and r.fund_type not in models.Account.COVERAGE_TYPES]
         movements = models.MoneyMovement.objects.filter(date__range=(start, end))
-        return {"count": len(rows), "available": sum((account_balance(r) for r in rows if r.kind in models.Account.CASH_KINDS), Decimal(0)), "funds": sum((account_balance(r) for r in rows if r.pk in fund_ids), Decimal(0)), "contributions": total(movements.filter(kind="fund_contribution", destination_id__in=fund_ids)), "withdrawals": total(movements.filter(kind="fund_withdrawal", source_id__in=fund_ids)), "debt": sum((account_balance(r) for r in rows if r.kind == "credit_card"), Decimal(0)), "utilization": debt / limit * 100 if limit else None}
+        return {"count": len(rows), "available": sum((balances[r.pk] for r in rows if r.kind in models.Account.CASH_KINDS), Decimal(0)), "funds": sum((balances[r.pk] for r in rows if r.pk in fund_ids), Decimal(0)), "contributions": total(movements.filter(kind="fund_contribution", destination_id__in=fund_ids)), "withdrawals": total(movements.filter(kind="fund_withdrawal", source_id__in=fund_ids)), "debt": sum((balances[r.pk] for r in rows if r.kind == "credit_card"), Decimal(0)), "utilization": debt / limit * 100 if limit else None}
 
     @action(detail=True, methods=["get"], url_path="detail", url_name="detail")
     def account_detail(self, request, pk=None):
@@ -431,10 +437,17 @@ class TransactionViewSet(FinanceViewSet):
 
 
 class DeadlineViewSet(FinanceViewSet):
-    queryset = models.Deadline.objects.select_related("category", "loan", "credit_card", "asset_financing", "schedule")
+    queryset = models.Deadline.objects.select_related("category", "loan", "credit_card", "asset_financing", "schedule", "subscription_cycle__subscription__schedule", "cash_loan_installment__statement").prefetch_related("subscription_cycle__allocations__transaction", "cash_loan_installment__allocations__movement", "cash_loan_installment__adjustments")
     serializer_class = DeadlineSerializer
     date_field = "due_date"
     search_fields = ("title", "notes", "category__name")
+
+    def list(self, request, *args, **kwargs):
+        if request.query_params.get("compact") != "1":
+            return super().list(request, *args, **kwargs)
+        # Dashboard previews only consume the paginated records.
+        page = self.paginate_queryset(self.get_queryset())
+        return self.get_paginated_response(self.get_serializer(page, many=True).data)
 
     def get_queryset(self):
         if self.request.query_params.get("undated") == "1":

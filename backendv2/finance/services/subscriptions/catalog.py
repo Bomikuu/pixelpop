@@ -10,8 +10,11 @@ from .eligibility import eligible_schedules
 
 
 def ensure_subscription(schedule):
-    if not eligible_schedules().filter(pk=schedule.pk).exists():
+    if schedule.kind not in ("bill", "subscription", "payment") or schedule.settlement_kind != "expense" or schedule.system_key is not None:
         return None
+    existing = getattr(schedule, "subscription", None)
+    if existing is not None:
+        return existing
     obj, created = models.Subscription.objects.get_or_create(schedule=schedule, defaults={
         "service_type": "variable" if schedule.variable_amount else "fixed",
         "status": "active" if schedule.active else "paused", "created_by": schedule.created_by})

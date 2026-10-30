@@ -20,7 +20,7 @@ def _group(qs, key, amount="amount"):
     return _bounded([{"label": row[key] or "Uncategorized", "amount": row["amount"] or ZERO} for row in qs.order_by().values(key).annotate(amount=Sum(amount))])
 
 
-def record_charts(qs, base, params, date_field=None, search_fields=()):
+def record_charts(qs, base, params, date_field=None, search_fields=(), *, balances=None):
     model = qs.model
     if model in (Transaction, Deadline):
         start, _ = month_range(params.get("chart_month") or params.get("month"))
@@ -90,6 +90,8 @@ def record_charts(qs, base, params, date_field=None, search_fields=()):
             row["label"] = labels.get(row["label"], row["label"])
         return {"breakdown": rows, "breakdown_title": "Current asset value by type", "monetary": True}
     if model == Account:
+        def balance(account):
+            return balances[account.pk] if balances is not None and account.pk in balances else account_balance(account)
         if params.get("kind") == "fund":
             start, _ = month_range(params.get("chart_month") or params.get("month"))
             rows = []
@@ -101,9 +103,9 @@ def record_charts(qs, base, params, date_field=None, search_fields=()):
                 first, last = month_range(f"{year}-{index + 1:02d}")
                 entries = MoneyMovement.objects.filter(date__range=(first, last))
                 rows.append({"month": str(first)[:7], "label": first.strftime("%b %Y"), "contributions": entries.filter(kind="fund_contribution", destination_id__in=ids).aggregate(value=Sum("amount"))["value"] or ZERO, "withdrawals": entries.filter(kind="fund_withdrawal", source_id__in=ids).aggregate(value=Sum("amount"))["value"] or ZERO})
-            return {"monthly": rows, "fields": ["contributions", "withdrawals"], "monetary": True, "breakdown": _bounded([{"label": row.name, "amount": account_balance(row)} for row in qs]), "breakdown_title": "Current recorded fund values"}
-        rows = [{"label": row.name, "amount": account_balance(row)} for row in qs.filter(active=True).exclude(kind="credit_card")]
-        cards = [{"label": row.name, "amount": account_balance(row)} for row in qs.filter(active=True, kind="credit_card")]
+            return {"monthly": rows, "fields": ["contributions", "withdrawals"], "monetary": True, "breakdown": _bounded([{"label": row.name, "amount": balance(row)} for row in qs]), "breakdown_title": "Current recorded fund values"}
+        rows = [{"label": row.name, "amount": balance(row)} for row in qs.filter(active=True).exclude(kind="credit_card")]
+        cards = [{"label": row.name, "amount": balance(row)} for row in qs.filter(active=True, kind="credit_card")]
         return {"breakdown": _bounded(rows), "breakdown_title": "Current account balances", "cards": _bounded(cards), "monetary": True}
     if model == LoanReceivable:
         people = {}

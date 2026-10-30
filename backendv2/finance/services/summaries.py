@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from finance.models import Account, AssetFinancing, AssetFinancingPayment, CashLoanPosting, Category, Deadline, LoanReceivable, Transaction, WorkspaceSettings, RecurringSchedule
 from .asset_financing import installment_paid, materialize_installments
-from .balances import ZERO, financial_position, outstanding, today, total
+from .balances import ZERO, cash_balance_as_of, financial_position, outstanding, today, total
 from .queries import month_range
 from .recurrence import materialize
 from .quick_entry import unsettled_summary
@@ -46,10 +46,17 @@ def transaction_summary(qs, start=None, end=None, account_id=None, params=None):
     return {"income": income, "expected": expected, "total_income": income + expected, "expenses": expenses, "cost_rebates": rebates, "net": income - expenses, "count": qs.count(), "today_spent": total(qs.filter(kind="expense", date=today())) - today_rebate, "largest_category": (largest["category__name"] or "Other") if largest else None, "next_receipt": str(next_receipt) if next_receipt else None}
 
 
-def deadline_summary(qs):
+def _deadline_rows(qs):
     from .subscriptions.eligibility import visible_obligations
     qs = visible_obligations(qs)
-    rows = list(qs.select_related("loan"))
+    return list(qs.select_related("loan", "subscription_cycle__subscription__schedule", "cash_loan_installment__statement").prefetch_related("subscription_cycle__allocations__transaction", "cash_loan_installment__allocations__movement", "cash_loan_installment__adjustments"))
+
+
+def deadline_summary(qs):
+    return _summarize_deadlines(_deadline_rows(qs))
+
+
+def _summarize_deadlines(rows):
     bills = [r for r in rows if r.kind in ("bill", "subscription", "payment") and r.settlement_kind != "loan_collection"]
     priced = [r for r in bills if r.amount is not None and not (r.cash_loan_id and hasattr(r, "cash_loan_installment") and r.cash_loan_installment.statement_id and r.cash_loan_installment.statement.status == "pending")]
     def unpaid_amount(item):
@@ -84,6 +91,8 @@ def overview(month=None):
     for financing in AssetFinancing.objects.select_related("asset"):
         materialize_installments(financing)
     now = today()
+    # The current position is independent of the reporting-month selector.
+    previous_balance_date = now.replace(day=1) - timedelta(days=1)
     settings, _ = WorkspaceSettings.objects.get_or_create(pk=1)
     expenses = Transaction.objects.filter(kind="expense", date__range=(start, end))
     income = Transaction.objects.filter(kind="income", date__range=(start, end))
@@ -101,9 +110,16 @@ def overview(month=None):
     previous_income = total(Transaction.objects.filter(kind="income", date__range=(previous_start, previous_end)))
     earned = total(income.filter(receipt_state="received"))
     expected = total(income.filter(receipt_state="expected"))
-    deadlines = visible_obligations(Deadline.objects.filter(due_date__range=(start, end)))
-    ordinary_bills = deadlines.filter(status="pending", kind__in=["bill", "subscription", "payment"]).exclude(settlement_kind="loan_collection")
-    ordinary_remaining = deadline_summary(ordinary_bills.exclude(cash_loan__isnull=False))["unpaid"]
+    deadline_periods = []
+    for offset in range(-2, 4):
+        index = start.year * 12 + start.month - 1 + offset
+        year, m = divmod(index, 12)
+        if 2000 <= year <= now.year + 5:
+            deadline_periods.append(month_range(str(year) + "-" + str(m + 1).zfill(2)))
+    reporting_deadlines = _deadline_rows(Deadline.objects.filter(due_date__range=(deadline_periods[0][0], deadline_periods[-1][1])))
+    deadlines = [row for row in reporting_deadlines if start <= row.due_date <= end]
+    ordinary_bills = [row for row in deadlines if row.status == "pending" and row.kind in ("bill", "subscription", "payment") and row.settlement_kind != "loan_collection" and not row.cash_loan_id]
+    ordinary_remaining = _summarize_deadlines(ordinary_bills)["unpaid"]
     remaining = settings.monthly_budget - spent if settings.monthly_budget is not None else None
     days_left = (end - now).days + 1 if start <= now <= end else None
     categories = list(expenses.values("category__name", "category_id").annotate(amount=Sum("amount"), count=Count("id")).order_by("-amount"))
@@ -140,24 +156,42 @@ def overview(month=None):
         value["amount"] += row["amount"]
         value["count"] += row["count"]
     history = []
+    first_history_year, first_history_month = divmod(start.year * 12 + start.month - 12, 12)
+    history_start = start.replace(year=max(2000, first_history_year), month=first_history_month + 1 if first_history_year >= 2000 else 1)
+    history_rows = list(Transaction.objects.filter(date__range=(history_start, end)).order_by().values("date", "kind", "receipt_state", "category__name").annotate(amount=Sum("amount"), count=Count("id")))
+    history_rebates = list(CashLoanPosting.objects.filter(kind="rebate", date__range=(history_start, end)).order_by().values("date").annotate(interest_total=Sum("interest"), fees_total=Sum("fees")))
     for offset in range(11, -1, -1):
         index = start.year * 12 + start.month - 1 - offset
         year, m = divmod(index, 12)
         if year < 2000:
             continue
         first, last = month_range(str(year) + "-" + str(m + 1).zfill(2))
-        monthly = Transaction.objects.filter(date__range=(first, last))
-        summary = transaction_summary(monthly, first, last)
-        history.append({"month": first.strftime("%Y-%m"), "label": first.strftime("%b %Y"), **summary, "count": monthly.filter(kind="expense").count(), "income": summary["income"] + summary["expected"], "remaining": summary["income"] + summary["expected"] - summary["expenses"]})
+        rows = [row for row in history_rows if first <= row["date"] <= last]
+        received = sum((row["amount"] for row in rows if row["kind"] == "income" and row["receipt_state"] == "received"), ZERO)
+        expected_income = sum((row["amount"] for row in rows if row["kind"] == "income" and row["receipt_state"] == "expected"), ZERO)
+        rebate = -sum((row["interest_total"] + row["fees_total"] for row in history_rebates if first <= row["date"] <= last), ZERO)
+        expense_rows = [row for row in rows if row["kind"] == "expense"]
+        expense_total = sum((row["amount"] for row in expense_rows), ZERO) - rebate
+        category_totals = {}
+        for row in expense_rows:
+            name = row["category__name"]
+            category_totals[name] = category_totals.get(name, ZERO) + row["amount"]
+        largest = max(category_totals, key=category_totals.get) if category_totals else None
+        next_receipt = min((row["date"] for row in rows if row["kind"] == "income" and row["receipt_state"] == "expected"), default=None)
+        history.append({
+            "month": first.strftime("%Y-%m"), "label": first.strftime("%b %Y"),
+            "income": received + expected_income, "expected": expected_income, "total_income": received + expected_income,
+            "expenses": expense_total, "cost_rebates": rebate, "net": received - expense_total,
+            "count": sum(row["count"] for row in expense_rows),
+            "today_spent": sum((row["amount"] for row in expense_rows if row["date"] == now), ZERO),
+            "largest_category": (largest or "Other") if category_totals else None,
+            "next_receipt": str(next_receipt) if next_receipt else None,
+            "remaining": received + expected_income - expense_total,
+        })
     pending_all = list(visible_obligations(Deadline.objects.filter(status="pending", due_date__isnull=False)).order_by("due_date", "due_time", "id"))
     monthly_deadlines = []
-    for offset in range(-2, 4):
-        index = start.year * 12 + start.month - 1 + offset
-        year, m = divmod(index, 12)
-        if year < 2000 or year > now.year + 5:
-            continue
-        first, last = month_range(str(year) + "-" + str(m + 1).zfill(2))
-        monthly_deadlines.append({"month": first.strftime("%Y-%m"), "label": first.strftime("%b %Y"), **deadline_summary(Deadline.objects.filter(due_date__range=(first, last)))})
+    for first, last in deadline_periods:
+        monthly_deadlines.append({"month": first.strftime("%Y-%m"), "label": first.strftime("%b %Y"), **_summarize_deadlines([row for row in reporting_deadlines if first <= row.due_date <= last])})
     loans = list(LoanReceivable.objects.all())
     average = spent / max(1, min((now - start).days + 1, (end - start).days + 1)) if now >= start else ZERO
     insights = []
@@ -170,19 +204,23 @@ def overview(month=None):
     return {
         "as_of": str(now), "selected_month": start.strftime("%Y-%m"),
         "position": financial_position(),
+        "previous_position": {
+            "as_of": str(previous_balance_date),
+            "available": cash_balance_as_of(previous_balance_date),
+        },
         "unsettled": unsettled_summary(),
         "cash_loans": cash_loans,
         "month": {"income": earned + expected, "received": earned, "expected": expected, "expenses": spent, "financing_cash": financing_cash, "cash_outflow": spent - financing_costs - cash_loan_costs + financing_cash + cash_loans["repayments"], "remaining": earned + expected - (spent - financing_costs - cash_loan_costs + financing_cash + cash_loans["repayments"]) - ordinary_remaining - cash_loans["scheduled"]},
         "previous_month": {"month": previous_start.strftime("%Y-%m"), "income": previous_income, "expenses": previous_spent, "cash_outflow": previous_spent - previous_financing_costs - previous_cash_loan_costs + previous_financing_cash + previous_cash_loans["repayments"]},
         "today": {"spent": total(Transaction.objects.filter(kind="expense", date=now)) - borrowing_rebates(now, now), "tasks": sum(r.due_date == now and r.kind in ("task", "reminder") for r in pending_all), "bills": sum(r.due_date == now and r.kind in ("bill", "subscription", "payment") and r.settlement_kind != "loan_collection" for r in pending_all), "next": pending_all[0].title if pending_all else None},
         "attention": {"overdue": sum(urgency(r) == "overdue" for r in pending_all)},
-        "bills": deadline_summary(deadlines),
+        "bills": _summarize_deadlines(deadlines),
         "budget": {"limit": settings.monthly_budget, "used": spent, "remaining": remaining, "daily": max(remaining, ZERO) / days_left if remaining is not None and days_left else None, "percentage": spent / settings.monthly_budget * 100 if settings.monthly_budget else None},
         "charts": {"daily": daily, "weekly": list(weekly.values()), "monthly": history, "categories": categories, "bills": monthly_deadlines},
         "insights": insights,
         "average_daily": average,
         "projected_expenses": average * ((end - start).days + 1),
-        "subscriptions": {"count": deadlines.filter(kind="subscription").count(), "amount": total(deadlines.filter(kind="subscription"))},
+        "subscriptions": {"count": sum(row.kind == "subscription" for row in deadlines), "amount": sum((row.amount or ZERO for row in deadlines if row.kind == "subscription"), ZERO)},
         "loans": {"outstanding": sum((outstanding(r) for r in loans), ZERO), "lent": sum((r.principal for r in loans), ZERO), "repaid": sum((r.principal - outstanding(r) for r in loans), ZERO), "people": len({r.person.casefold() for r in loans}), "overdue": sum((outstanding(r) for r in loans if r.due_date and r.due_date < now), ZERO)},
         "configuration": {"accounts": Account.objects.count(), "category_budgets": Category.objects.filter(monthly_budget__isnull=False).count(), "schedules": RecurringSchedule.objects.filter(active=True).count()},
     }

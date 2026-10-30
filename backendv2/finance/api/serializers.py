@@ -134,16 +134,27 @@ class AccountSerializer(StrictSerializer):
         fields = ("id", "name", "kind", "institution", "last_four", "card_expiry", "card_network", "fund_type", "credit_limit", "active", "balance", "available_credit", "additional_reservation", "opening_balance", "opening_date")
 
     def get_available_credit(self, obj):
-        from finance.services.cash_loans.ledger import available_credit
-        value = available_credit(obj)
+        value = obj.credit_limit - self._balance(obj) - self._reservation(obj) if obj.kind == "credit_card" and obj.credit_limit is not None else None
         return str(value.quantize(Decimal("0.01"))) if value is not None else None
 
     def get_additional_reservation(self, obj):
-        from finance.services.cash_loans.ledger import additional_credit_reservation
-        return str(additional_credit_reservation(obj.pk)) if obj.kind == "credit_card" else "0.00"
+        return str(self._reservation(obj)) if obj.kind == "credit_card" else "0.00"
 
     def get_balance(self, obj):
-        return str(account_balance(obj).quantize(Decimal("0.01")))
+        return str(self._balance(obj).quantize(Decimal("0.01")))
+
+    def _balance(self, obj):
+        cache = self.__dict__.setdefault("_balance_cache", self.context.get("account_balances", {}).copy())
+        if obj.pk not in cache:
+            cache[obj.pk] = account_balance(obj)
+        return cache[obj.pk]
+
+    def _reservation(self, obj):
+        from finance.services.cash_loans.ledger import additional_credit_reservation
+        cache = self.__dict__.setdefault("_reservation_cache", {})
+        if obj.pk not in cache:
+            cache[obj.pk] = additional_credit_reservation(obj.pk)
+        return cache[obj.pk]
 
     def validate(self, attrs):
         if attrs.get("opening_date", today()) > today():

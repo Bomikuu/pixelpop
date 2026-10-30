@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from django.db.models import Prefetch, Q
+from django.db.models import Prefetch, Q, Sum
 from django.utils import timezone
 
 from finance.models import CashLoan, CashLoanAllocation, CashLoanInstallment, Deadline, MoneyMovement
@@ -101,6 +101,7 @@ def loan_financial_summary(as_of=None, start=None, end=None):
         if date.fromisoformat(loan.terms["loan_date"]) > day:
             continue
         items, _ = installments_as_of(loan, day)
+        items = items.select_related("statement").prefetch_related(Prefetch("allocations", queryset=CashLoanAllocation.objects.select_related("movement")), "adjustments")
         for item in items:
             remaining = remaining_components(item, day)
             result["principal"] += remaining["principal"]
@@ -111,7 +112,9 @@ def loan_financial_summary(as_of=None, start=None, end=None):
         result["remaining_payments"] += fee_remaining(loan, day)
         if start and end:
             allocations = paid_allocations(loan.allocations, day).filter(movement__date__range=(start, end))
-            result["repayments"] += sum((total(allocations, key) for key in ("principal", "interest", "fees")), ZERO)
+            paid = allocations.aggregate(principal_total=Sum("principal"), interest_total=Sum("interest"), fees_total=Sum("fees"))
+            result["repayments"] += sum((value or ZERO for value in paid.values()), ZERO)
             postings = loan.postings.filter(date__range=(start, min(end, day)))
-            result["borrowing_costs"] += total(postings, "interest") + total(postings, "fees")
+            costs = postings.aggregate(interest_total=Sum("interest"), fees_total=Sum("fees"))
+            result["borrowing_costs"] += sum((value or ZERO for value in costs.values()), ZERO)
     return result
