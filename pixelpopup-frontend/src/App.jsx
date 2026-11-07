@@ -45,11 +45,23 @@ const ArticleDetailPage = lazy(
 const HowTosIndexPage = lazy(
   () => import("./pages/portfolio/how-tos/HowTosIndexPage"),
 );
+const ClaudeCodeToolkitPage = lazy(
+  () => import("./pages/portfolio/how-tos/claude-code-toolkit/ClaudeCodeToolkitPage"),
+);
+const DesignStylesGuidePage = lazy(
+  () => import("./pages/portfolio/how-tos/design-styles/DesignStylesGuidePage"),
+);
 const BackendSetupGuidePage = lazy(
   () => import("./pages/portfolio/how-tos/BackendSetupGuidePage"),
 );
 const ClientWorkflowGuidePage = lazy(
   () => import("./pages/portfolio/how-tos/ClientWorkflowGuidePage"),
+);
+const FullStackAiGuidePage = lazy(
+  () => import("./pages/portfolio/how-tos/full-stack-ai/FullStackAiGuidePage"),
+);
+const AwsInfrastructureGuidePage = lazy(
+  () => import("./pages/portfolio/how-tos/aws-infrastructure/AwsInfrastructureGuidePage"),
 );
 const InterviewReviewPage = lazy(
   () => import("./pages/portfolio/interview/InterviewReviewPage"),
@@ -188,8 +200,12 @@ export default function App() {
               element={<ArticleDetailPage />}
             />
             <Route path="/portfolio/how-tos" element={<HowTosIndexPage />} />
+            <Route path="/portfolio/how-tos/claude-code-toolkit" element={<ClaudeCodeToolkitPage />} />
+            <Route path="/portfolio/how-tos/design-styles" element={<DesignStylesGuidePage />} />
             <Route path="/portfolio/how-tos/backend-setup" element={<BackendSetupGuidePage />} />
             <Route path="/portfolio/how-tos/client-workflow" element={<ClientWorkflowGuidePage />} />
+            <Route path="/portfolio/how-tos/full-stack-ai" element={<FullStackAiGuidePage />} />
+            <Route path="/portfolio/how-tos/aws-infrastructure" element={<AwsInfrastructureGuidePage />} />
             <Route
               path="/portfolio/interview-review"
               element={<InterviewReviewPage />}

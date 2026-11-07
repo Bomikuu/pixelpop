@@ -1,0 +1,86 @@
+{
+  "createdOn": "2026-11-03",
+  "assets": [
+    {
+      "id": "compute",
+      "file": "compute-v1.webp",
+      "width": 1200,
+      "height": 800,
+      "bytes": 111362,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-compute-v1.prompt.txt"
+    },
+    {
+      "id": "database",
+      "file": "database-v1.webp",
+      "width": 1200,
+      "height": 800,
+      "bytes": 144998,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-database-v1.prompt.txt"
+    },
+    {
+      "id": "networking",
+      "file": "networking-v1.webp",
+      "width": 1200,
+      "height": 800,
+      "bytes": 100954,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-networking-v1.prompt.txt"
+    },
+    {
+      "id": "storage",
+      "file": "storage-v1.webp",
+      "width": 1200,
+      "height": 800,
+      "bytes": 125070,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-storage-v1.prompt.txt"
+    },
+    {
+      "id": "monitoring",
+      "file": "monitoring-v1.webp",
+      "width": 1200,
+      "height": 800,
+      "bytes": 116228,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-monitoring-v1.prompt.txt"
+    },
+    {
+      "id": "security",
+      "file": "security-v1.webp",
+      "width": 1200,
+      "height": 800,
+      "bytes": 98952,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-security-v1.prompt.txt"
+    },
+    {
+      "id": "messaging",
+      "file": "messaging-v1.webp",
+      "width": 1200,
+      "height": 800,
+      "bytes": 134744,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-messaging-v1.prompt.txt"
+    },
+    {
+      "id": "situation-page",
+      "file": "situation-page-v1.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 238080,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-situation-page-v1.prompt.txt"
+    },
+    {
+      "id": "situation-order",
+      "file": "situation-order-v1.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 183152,
+      "mode": "built-in Imagegen",
+      "prompt": "output/imagegen/aws-infrastructure-situation-order-v1.prompt.txt"
+    }
+  ]
+}

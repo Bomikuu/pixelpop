@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import useWorkspaceMobile from "../../workspace-mobile/useWorkspaceMobile";
+import MobileDisclosure from "../../workspace-mobile/MobileDisclosure";
+import MobileRecordCards from "./MobileRecordCards";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -260,6 +263,7 @@ export default function RecordList({
   accountScoped = false,
   hideAnalytics = false,
 }) {
+  const mobile = useWorkspaceMobile();
   const filterScope = [resource, kind, compact ? "compact" : "", ...["coverage", "account", "contact"].filter((key) => fixedParams?.[key] != null).map((key) => `${key}-${fixedParams[key]}`)].filter(Boolean).join("-");
   const [filters, setFilters] = useRecordFilters(filterScope);
   const { q: query, category, start, end, page, kind: transactionKind, view: assetView } = filters;
@@ -505,6 +509,169 @@ export default function RecordList({
     if (field === "kind" || field === "frequency") return words(row[field]);
     return row[field] || "—";
   }
+  function recordActions(row, hidePrimaryAction = false) {
+    return (
+      <div className="flex flex-wrap justify-end gap-1">
+        {resource === "assets" && (
+          <Button asChild size="sm" variant="outline">
+            <Link to={"/dashboard/assets/" + row.id + "?month=" + month}>
+              <ArrowUpRight aria-hidden="true" /> View
+            </Link>
+          </Button>
+        )}
+        {resource === "deadlines" && row.financing_asset_id && (
+          <Button asChild size="sm" variant="outline">
+            <Link to={"/dashboard/assets/" + row.financing_asset_id + "?month=" + month}>
+              <ArrowUpRight aria-hidden="true" /> Asset
+            </Link>
+          </Button>
+        )}
+        {row.shared_bill_id && (
+          <Button asChild size="sm" variant="outline">
+            <Link
+              to={
+                "/dashboard/people/shared/" +
+                row.shared_bill_id +
+                "?month=" +
+                month
+              }
+            >
+              <Receipt aria-hidden="true" />
+              Shared bill
+            </Link>
+          </Button>
+        )}
+        {resource === "deadlines" &&
+          row.status === "pending" && (
+            <>
+              {row.amount == null &&
+                [
+                  "bill",
+                  "subscription",
+                  "payment",
+                ].includes(row.kind) &&
+                row.settlement_kind === "expense" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      openForm("deadline", row)
+                    }
+                  >
+                    Enter amount
+                  </Button>
+                )}
+              {!hidePrimaryAction && <Button
+                size="icon"
+                variant="ghost"
+                aria-label={
+                  (["task", "reminder"].includes(row.kind)
+                    ? "Complete "
+                    : row.financing_asset_id
+                      ? "Open asset to record payment for "
+                      : row.settlement_kind === "loan_collection"
+                        ? "Record collection for "
+                        : "Pay bill ") + row.title
+                }
+                disabled={acting === row.id}
+                onClick={() => complete(row)}
+              >
+                <Check />
+              </Button>}
+            </>
+          )}
+        {resource === "loans" &&
+          !hidePrimaryAction &&
+          !row.shared_bill_id &&
+          Number(row.outstanding) > 0 && (
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={
+                "Record repayment from " + row.person
+              }
+              onClick={() =>
+                openForm("movement", {
+                  kind: "loan_repayment",
+                  loan: row.id,
+                  destination: row.account,
+                  amount: row.outstanding,
+                })
+              }
+            >
+              <ArrowLeftRight />
+            </Button>
+          )}
+        {["accounts", "loans"].includes(resource) && (
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={
+              "History for " + (row.name || row.person)
+            }
+            onClick={() => showHistory(resource, row)}
+          >
+            <History />
+          </Button>
+        )}
+        {resource === "accounts" && (
+          <Button
+            size="icon"
+            variant="ghost"
+            aria-label={"Correct " + row.name + " balance"}
+            onClick={() => openForm("adjustment", row)}
+          >
+            <ArrowLeftRight />
+          </Button>
+        )}
+        {entity(row) &&
+          !row.shared_bill_id &&
+          !row.asset_financing &&
+          row.status !== "paid" &&
+          row.status !== "completed" &&
+          !row.deadline &&
+          !(resource === "deadlines" && row.loan) && (
+            <Button
+              size="icon"
+              variant={recent ? "outline" : "ghost"}
+              aria-label={
+                "Edit " +
+                (row.name || row.title || row.person)
+              }
+              onClick={() => openForm(entity(row), row)}
+            >
+              <Pencil />
+            </Button>
+          )}
+        {entity(row) &&
+          !row.shared_bill_id &&
+          !row.asset_financing &&
+          !row.deadline &&
+          !row.schedule &&
+          row.status !== "paid" &&
+          row.status !== "completed" &&
+          row.active !== false &&
+          !(resource === "deadlines" && row.loan) && (
+            <Button
+              size="icon"
+              variant={recent ? "outline" : "ghost"}
+              aria-label={
+                "Delete or archive " +
+                (row.name || row.title || row.person)
+              }
+              onClick={() => confirmDelete(resource, row)}
+            >
+              <Trash2 />
+            </Button>
+          )}
+      </div>
+    );
+  }
+  function mobilePrimaryAction(row) {
+    if (resource === "deadlines" && row.status === "pending") return <Button size="sm" variant="outline" disabled={acting === row.id} aria-busy={acting === row.id} onClick={() => complete(row)}><Check aria-hidden="true" />{["task", "reminder"].includes(row.kind) ? "Complete task" : row.settlement_kind === "loan_collection" ? "Record collection" : "Record payment"}</Button>;
+    if (resource === "loans" && !row.shared_bill_id && Number(row.outstanding) > 0) return <Button size="sm" variant="outline" onClick={() => openForm("movement", { kind: "loan_repayment", loan: row.id, destination: row.account, amount: row.outstanding })}><ArrowLeftRight aria-hidden="true" />Record repayment</Button>;
+    return null;
+  }
   const addEntity =
     addEntityOverride ||
     (resource === "transactions" ? displayedKind || "expense" : entityMap[resource]);
@@ -565,6 +732,7 @@ export default function RecordList({
         }
       >
         {(!compact || recent) && (
+          <MobileDisclosure title="Search & filters" defaultOpen={hasFilters} count={[search, category, transactionKind, dated && period !== "month"].filter(Boolean).length}>
           <div className={recent ? "mb-5 flex flex-wrap items-end justify-end gap-3" : "mb-4 flex flex-wrap items-end gap-3"}>
             <div className={recent ? "w-full min-w-44 sm:w-64" : "min-w-40 flex-1"}>
               <Label htmlFor={searchId} className={recent ? "sr-only" : "mb-2 block"}>
@@ -712,11 +880,12 @@ export default function RecordList({
             )}
             {hasFilters && <Button type="button" variant="outline" onClick={clearFilters}><X className="size-4" aria-hidden="true" />Clear filters</Button>}
           </div>
+          </MobileDisclosure>
         )}
         {dateError && <p id={filterScope + "-date-error"} role="alert" className="mb-4 text-sm text-red-800">{dateError}</p>}
         {recent && state.data && (
           <>
-            <div className="grid gap-3 border-b border-[var(--pd-border)] pb-5 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 border-b border-[var(--pd-border)] pb-5 lg:grid-cols-3">
               {[
                 { label: "Transactions", value: state.data.summary?.count ?? 0, icon: ListChecks, tone: "bg-blue-50 text-blue-700", surface: "bg-blue-50/30" },
                 { label: "Money in", value: <MoneyFlowAmount amount={state.data.summary?.income ?? 0} direction="in" />, icon: ArrowDownLeft, tone: "bg-emerald-50 text-emerald-700", surface: "bg-emerald-50/30" },
@@ -798,6 +967,9 @@ export default function RecordList({
               />
             ) : resource === "assets" && assetView === "cards" ? (
               <AssetCards rows={rows} month={month} dashboard={dashboard} notify={notify} openForm={openForm} confirmDelete={confirmDelete} />
+            ) : mobile ? (
+              <MobileRecordCards rows={rows} resource={resource} fields={fields} renderField={display} renderActions={(row) => recordActions(row, true)}
+                renderPrimary={mobilePrimaryAction} />
             ) : (
               <div className="overflow-x-auto">
                 <Table className={recent ? "min-w-[760px]" : undefined}>
@@ -835,159 +1007,7 @@ export default function RecordList({
                           </TableCell>
                         ))}
                         <TableCell>
-                          <div className="flex justify-end gap-1">
-                            {resource === "assets" && (
-                              <Button asChild size="sm" variant="outline">
-                                <Link to={"/dashboard/assets/" + row.id + "?month=" + month}>
-                                  <ArrowUpRight aria-hidden="true" /> View
-                                </Link>
-                              </Button>
-                            )}
-                            {resource === "deadlines" && row.financing_asset_id && (
-                              <Button asChild size="sm" variant="outline">
-                                <Link to={"/dashboard/assets/" + row.financing_asset_id + "?month=" + month}>
-                                  <ArrowUpRight aria-hidden="true" /> Asset
-                                </Link>
-                              </Button>
-                            )}
-                            {row.shared_bill_id && (
-                              <Button asChild size="sm" variant="outline">
-                                <Link
-                                  to={
-                                    "/dashboard/people/shared/" +
-                                    row.shared_bill_id +
-                                    "?month=" +
-                                    month
-                                  }
-                                >
-                                  <Receipt aria-hidden="true" />
-                                  Shared bill
-                                </Link>
-                              </Button>
-                            )}
-                            {resource === "deadlines" &&
-                              row.status === "pending" && (
-                                <>
-                                  {row.amount == null &&
-                                    [
-                                      "bill",
-                                      "subscription",
-                                      "payment",
-                                    ].includes(row.kind) &&
-                                    row.settlement_kind === "expense" && (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() =>
-                                          openForm("deadline", row)
-                                        }
-                                      >
-                                        Enter amount
-                                      </Button>
-                                    )}
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label={
-                                      (["task", "reminder"].includes(row.kind)
-                                        ? "Complete "
-                                        : row.financing_asset_id
-                                          ? "Open asset to record payment for "
-                                          : row.settlement_kind === "loan_collection"
-                                            ? "Record collection for "
-                                            : "Pay bill ") + row.title
-                                    }
-                                    disabled={acting === row.id}
-                                    onClick={() => complete(row)}
-                                  >
-                                    <Check />
-                                  </Button>
-                                </>
-                              )}
-                            {resource === "loans" &&
-                              !row.shared_bill_id &&
-                              Number(row.outstanding) > 0 && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  aria-label={
-                                    "Record repayment from " + row.person
-                                  }
-                                  onClick={() =>
-                                    openForm("movement", {
-                                      kind: "loan_repayment",
-                                      loan: row.id,
-                                      destination: row.account,
-                                      amount: row.outstanding,
-                                    })
-                                  }
-                                >
-                                  <ArrowLeftRight />
-                                </Button>
-                              )}
-                            {["accounts", "loans"].includes(resource) && (
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                aria-label={
-                                  "History for " + (row.name || row.person)
-                                }
-                                onClick={() => showHistory(resource, row)}
-                              >
-                                <History />
-                              </Button>
-                            )}
-                            {resource === "accounts" && (
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                aria-label={"Correct " + row.name + " balance"}
-                                onClick={() => openForm("adjustment", row)}
-                              >
-                                <ArrowLeftRight />
-                              </Button>
-                            )}
-                            {entity(row) &&
-                              !row.shared_bill_id &&
-                              !row.asset_financing &&
-                              row.status !== "paid" &&
-                              row.status !== "completed" &&
-                              !row.deadline &&
-                              !(resource === "deadlines" && row.loan) && (
-                                <Button
-                                  size="icon"
-                                  variant={recent ? "outline" : "ghost"}
-                                  aria-label={
-                                    "Edit " +
-                                    (row.name || row.title || row.person)
-                                  }
-                                  onClick={() => openForm(entity(row), row)}
-                                >
-                                  <Pencil />
-                                </Button>
-                              )}
-                            {entity(row) &&
-                              !row.shared_bill_id &&
-                              !row.asset_financing &&
-                              !row.deadline &&
-                              !row.schedule &&
-                              row.status !== "paid" &&
-                              row.status !== "completed" &&
-                              row.active !== false &&
-                              !(resource === "deadlines" && row.loan) && (
-                                <Button
-                                  size="icon"
-                                  variant={recent ? "outline" : "ghost"}
-                                  aria-label={
-                                    "Delete or archive " +
-                                    (row.name || row.title || row.person)
-                                  }
-                                  onClick={() => confirmDelete(resource, row)}
-                                >
-                                  <Trash2 />
-                                </Button>
-                              )}
-                          </div>
+                          {recordActions(row)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -996,7 +1016,7 @@ export default function RecordList({
               </div>
             )}
             {(!compact || recent) && (
-              <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4 text-sm text-slate-600">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm text-slate-600">
                 <span role="status">
                   {state.data.count} records • Page {displayedPage}
                 </span>
@@ -1020,12 +1040,13 @@ export default function RecordList({
             )}
           </>
         )}
-        {recent && state.data && <div className="mt-5 space-y-2 border-t border-[var(--pd-border)] pt-5">
+        {recent && state.data && <MobileDisclosure title="Income & expense history"><div className="mt-5 space-y-2 border-t border-[var(--pd-border)] pt-5">
           <RecentTransactionsChart rows={state.data.charts?.monthly} />
           <p className="text-xs text-slate-600">Search, category and type apply to the chart. Period selection applies to the list and totals.</p>
-        </div>}
+        </div></MobileDisclosure>}
       </Panel>
       {!compact && !accountScoped && !hideAnalytics && fixedParams?.coverage !== "1" && state.data?.charts && (
+        <MobileDisclosure title="Charts & comparisons">
         <RecordCharts
           charts={state.data.charts}
           month={month}
@@ -1037,6 +1058,7 @@ export default function RecordList({
           }
           assetComposition={resource === "assets"}
         />
+        </MobileDisclosure>
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+import MobileDisclosure from "../../workspace-mobile/MobileDisclosure";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
@@ -188,14 +189,14 @@ export default function EventsView({ dashboard, month }) {
 
       {records.loading ? (
         <div role="status" aria-label="Loading events" className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((n) => <div key={n} className="h-20 animate-pulse rounded-lg border bg-white motion-reduce:animate-none" />)}</div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((n) => <div key={n} className="h-20 animate-pulse rounded-lg border bg-white motion-reduce:animate-none" />)}</div>
           <div className="h-64 animate-pulse rounded-lg border bg-white motion-reduce:animate-none" />
         </div>
       ) : records.error ? (
         <ErrorState message={records.error} retry={dashboard.refresh} />
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Event summary">
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Event summary">
             {[
               ["All changes", data.summary.total, FileClock, "text-slate-800 bg-slate-100"],
               ["Added", data.summary.added, Plus, "text-emerald-700 bg-emerald-50"],
@@ -239,10 +240,10 @@ export default function EventsView({ dashboard, month }) {
             )}
           </Panel>
           {data.summary.total > 0 && (
-            <div className="grid gap-5 xl:grid-cols-2">
+            <MobileDisclosure title="Activity charts"><div className="grid gap-5 xl:grid-cols-2">
               <ActionChart rows={data.charts.timeline} />
               <AreaChart rows={data.charts.areas} />
-            </div>
+            </div></MobileDisclosure>
           )}
         </>
       )}

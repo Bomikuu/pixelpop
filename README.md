@@ -1,5 +1,7 @@
 # PixelPopup
 
+<p align="center"><img src="pixelpopup-frontend/public/workspace-icons/icon-512.png" alt="PixelPopup workspace icon" width="160" /></p>
+
 PixelPopup is a React and Django workspace for interactive web experiences,
 portfolio content, reusable frontend experiments, and admin-managed client
 pages.
@@ -111,3 +113,23 @@ at `/api/docs/`.
 Copy the included `.env.example` files before local development. The frontend
 example documents the API base URL, contact email integration, and Turnstile
 configuration. Never commit populated `.env` files or production credentials.
+
+## Personal and business workspace
+
+Alongside the public portfolio, this repository contains authenticated personal and business dashboards. Personal modules cover records, bills, subscriptions, funds, people, events, insights and daily notes. Business modules include client workflows, member details and job applications. Mobile workspace components provide compact record cards and disclosure controls for smaller screens; the progressive web app includes its own manifest, icons and offline presentation.
+
+The portfolio learning library includes full-stack AI, AWS infrastructure, design-style examples and interview reference material. These are educational content and interactive guides, not automatically provisioned cloud services.
+
+## Repository guide
+
+- `pixelpopup-frontend/src`: React application, portfolio pages, workspace features and shared UI.
+- `pixelpopup-frontend/public`: published illustrations, workspace icons and portfolio assets.
+- `backendv2`: Django APIs, migrations and domain services, including finance and job applications.
+- `docs`: design decisions, implementation plans and audit notes.
+- `PRODUCT.md`, `DESIGN.md` and `UX-CONTRACT.md`: product scope and interaction guidance.
+
+## Local data and publication
+
+Use your own local database and environment configuration. Do not publish local database changes, uploaded private records, credentials, dependency installations or analysis caches. The existing tracked `backendv2/db.sqlite3` is a local-data risk: preserve your working copy and review it separately rather than adding it to routine source updates. Initialize new development data using Django migrations and an account you create locally.
+
+README commands describe available development workflows; they are not a claim that builds, tests, integrations or deployment have been verified for every commit.

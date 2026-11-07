@@ -25,7 +25,7 @@ Domain and permissions source: `docs/superpowers/specs/2026-09-27-personal-finan
 
 ## Dataset navigation
 
-Route and summary month persist in the URL. Searches, filters and pagination are intentionally transient: they may contain sensitive financial terms and must not enter browser history or shareable URLs. Search is IME-aware, debounced 300ms, cancellable and clearable. Lists use 20 rows, API maximum 100; summaries cover the whole filtered queryset. Empty, no-result, loading and retryable errors remain explicit. Tables wrap meaningful text and scroll inside their panel on narrow screens; no page-wide horizontal scrolling.
+Route and summary month persist in the URL. Searches, filters and pagination are intentionally transient: they may contain sensitive financial terms and must not enter browser history or shareable URLs. Search is IME-aware, debounced 300ms, cancellable and clearable. Lists use 20 rows, API maximum 100; summaries cover the whole filtered queryset. Empty, no-result, loading and retryable errors remain explicit. On phones, record tables use compact cards with key values visible and details/actions expandable; subscription tables use the same disclosure hierarchy. Desktop tables retain meaningful wrapping and contained scrolling. There is no page-wide horizontal scrolling.
 
 ## Flow ledger
 

@@ -1,3 +1,4 @@
+import MobileDisclosure from "../../workspace-mobile/MobileDisclosure";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft, ChevronRight, Lightbulb, Pencil, Search, X,
@@ -186,7 +187,7 @@ export default function BrainstormView({ dashboard, notify }) {
     {boardsState.loading && <LoadingState message="Loading your boards…" />}
     {!boardsState.loading && !boardsState.error && !boards.length && <div className="border border-[var(--pd-border)] bg-white"><EmptyState icon={Lightbulb} title="Your idea wall starts here" message="Use Add to create a board or import your saved brainstorm." /></div>}
     {!!boards.length && <>
-      <nav className="flex flex-wrap items-center gap-2" aria-label="Brainstorm boards">
+      <nav className="workspace-module-tabs flex flex-wrap items-center gap-2" aria-label="Brainstorm boards">
         {boards.map((board) => <button key={board.id} type="button" aria-current={boardId === String(board.id) ? "page" : undefined} onClick={() => { setBoardId(String(board.id)); setGroup("all"); setPage(1); }} className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-600 ${boardId === String(board.id) ? "border-blue-600 text-blue-700" : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-950"}`}>{board.name}<span className="ml-1 text-xs text-slate-500">{board.idea_count ?? 0}</span>{!board.is_active && <span className="ml-2 text-xs text-slate-500">Inactive</span>}</button>)}
       </nav>
       {selected && <BrainstormBoardShell boardName={selected.name}
@@ -195,14 +196,14 @@ export default function BrainstormView({ dashboard, notify }) {
           <p className="max-w-2xl text-sm text-slate-600">{selected.description || "A space for ideas worth exploring."}</p>
           <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => open("board", selected)}><Pencil size={15} /> Edit board</Button><Button size="sm" variant="outline" onClick={() => open("deactivate", selected)}>{selected.is_active ? "Deactivate" : "Reactivate"}</Button></div>
         </div>
-        {selected.is_active && <div className="mt-4 flex flex-wrap items-end gap-2 border border-[var(--pd-border)] bg-white/95 p-3">
-          <div className="relative min-w-48 flex-1"><Label htmlFor="brainstorm-search" className="sr-only">Search ideas</Label><Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-500" /><Input id="brainstorm-search" className="pl-9 pr-9" placeholder="Search ideas" value={search} onCompositionStart={() => setComposing(true)} onCompositionEnd={() => setComposing(false)} onChange={(event) => setSearch(event.target.value)} />{search && <button type="button" className="absolute right-2 top-2 p-0.5 text-slate-600 hover:text-slate-950" aria-label="Clear search" onClick={() => setSearch("")}><X size={15} /></button>}</div>
+        {selected.is_active && <MobileDisclosure title="Search, filters & sorting" defaultOpen={activeFilters}><div className="mt-4 flex flex-wrap items-end gap-2 border border-[var(--pd-border)] bg-white/95 p-3">
+          <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-0"><Label htmlFor="brainstorm-search" className="sr-only">Search ideas</Label><Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-500" /><Input id="brainstorm-search" className="pl-9 pr-9" placeholder="Search ideas" value={search} onCompositionStart={() => setComposing(true)} onCompositionEnd={() => setComposing(false)} onChange={(event) => setSearch(event.target.value)} />{search && <button type="button" className="absolute right-0 top-0 grid size-11 place-items-center text-slate-600 hover:text-slate-950" aria-label="Clear search" onClick={() => setSearch("")}><X size={15} /></button>}</div>
           <BrainstormFilterSelect id="brainstorm-urgency" labelText="Filter by urgency" className="w-32" value={urgency} onChange={(value) => { setUrgency(value); setPage(1); }} items={[["all", "All urgency"], ...urgencies.map((value) => [value, label(value)])]} />
           <BrainstormFilterSelect id="brainstorm-status" labelText="Filter by status" className="w-36" value={status} onChange={(value) => { setStatus(value); setPage(1); }} items={[["all", "All status"], ...statuses.map((value) => [value, label(value)])]} />
           <BrainstormFilterSelect id="brainstorm-group" labelText="Filter by group" className="w-36" value={group} onChange={(value) => { setGroup(value); setPage(1); }} items={[["all", "All groups"], ...groups.map((item) => [String(item.id), item.name])]} />
           <BrainstormFilterSelect id="brainstorm-sort" labelText="Sort ideas" className="w-32" value={sort} onChange={(value) => { setSort(value); setPage(1); }} items={[["manual", "Manual"], ["newest", "Newest"], ["urgency", "Urgency"]]} />
           <label className="flex h-9 items-center gap-2 px-2 text-xs text-slate-700"><input type="checkbox" checked={unconverted} onChange={(event) => { setUnconverted(event.target.checked); setPage(1); }} className="accent-blue-600" /> Not yet tasked</label>
-        </div>}
+        </div></MobileDisclosure>}
         {selected.is_active && !canArrange && (activeFilters || sort !== "manual") && <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600">
           <span>To arrange cards, use Manual sort with no filters.</span>
           <button type="button" onClick={clearArrangeFilters} className="font-medium text-blue-700 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-blue-600">Arrange ideas</button>

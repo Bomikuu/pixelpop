@@ -1,3 +1,5 @@
+import MobileDisclosure from "../../workspace-mobile/MobileDisclosure";
+import ServiceTable from "../components/subscriptions/ServiceTable";
 import SummaryTiles from "../components/SummaryTiles";
 import MoneyFlowAmount from "../components/MoneyFlowAmount";
 import { ComparisonChart, SpendingChart } from "../components/Charts";
@@ -50,40 +52,12 @@ export default function InsightsView({
             title="Monthly totals"
             description="Income includes expected amounts; the difference is not your spendable bank balance."
           >
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr>
-                    {[
-                      "Month",
-                      "Income",
-                      "Expenses",
-                      "Income less expenses",
-                    ].map((label) => (
-                      <th key={label} className="p-3">
-                        {label}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {o.charts.monthly.map((r) => (
-                    <tr key={r.month} className="border-t">
-                      <th className="p-3 font-medium">
-                        <RecordIdentity
-                          resource="chart"
-                          row={{}}
-                          label={r.label}
-                        />
-                      </th>
-                      <td className="p-3 tabular-nums">{money(r.income)}</td>
-                      <td className="p-3 tabular-nums"><MoneyFlowAmount amount={r.expenses} direction="out" /></td>
-                      <td className="p-3 tabular-nums">{money(r.remaining)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ServiceTable rows={o.charts.monthly} rowKey="month" columns={[
+              { key: "month", label: "Month", render: (row) => row.label },
+              { key: "income", label: "Income", render: (row) => money(row.income) },
+              { key: "expenses", label: "Expenses", render: (row) => <MoneyFlowAmount amount={row.expenses} direction="out" /> },
+              { key: "remaining", label: "Income less expenses", render: (row) => money(row.remaining) },
+            ]} />
           </Panel>
           <RecordList
             resource="movements"
@@ -94,7 +68,7 @@ export default function InsightsView({
           />
         </>
       ) : null}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <MobileDisclosure title="Category breakdown & month summary"><div className="grid gap-6 lg:grid-cols-2">
         <Panel
           title="Category breakdown"
           description="Ranked by spending in the selected month."
@@ -157,7 +131,8 @@ export default function InsightsView({
             income or purchase-date expenses.
           </p>
         </Panel>
-      </div>
+      </div></MobileDisclosure>
+      <MobileDisclosure title={reports ? "Income versus expenses" : "Spending trend"} defaultOpen={!reports}>
       {reports ? (
         <ComparisonChart
           title="Income versus expenses"
@@ -169,7 +144,8 @@ export default function InsightsView({
       ) : (
         <SpendingChart charts={o.charts} />
       )}
-      <div className="grid gap-6 lg:grid-cols-2">
+      </MobileDisclosure>
+      <MobileDisclosure title="Category & bill comparisons"><div className="grid gap-6 lg:grid-cols-2">
         <ComparisonChart
           title="Spending by category"
           description="Actual expense amounts in the selected month."
@@ -187,8 +163,7 @@ export default function InsightsView({
           comparisonMonth={o.selected_month}
           fields={["paid", "unpaid"]}
         />
-      </div>
+      </div></MobileDisclosure>
     </div>
   );
 }
-import RecordIdentity from "../components/RecordIdentity";

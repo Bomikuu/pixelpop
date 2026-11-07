@@ -3,7 +3,7 @@ import PortfolioFooter from "../components/PortfolioFooter";
 import PortfolioNav from "../components/PortfolioNav";
 import "../portfolioModern.css";
 
-export default function ApplicationPageShell({ title, description, canonicalPath, image, type = "website", children }) {
+export default function ApplicationPageShell({ title, description, canonicalPath, image, type = "website", showFooter = true, children }) {
   useLayoutEffect(() => {
     document.body.classList.add("portfolio-motion-ready");
     return () => document.body.classList.remove("portfolio-motion-ready");
@@ -70,7 +70,7 @@ export default function ApplicationPageShell({ title, description, canonicalPath
       <main id="main-content" tabIndex="-1">
         {children}
       </main>
-      <PortfolioFooter routeBase="/portfolio" />
+      {showFooter && <PortfolioFooter routeBase="/portfolio" />}
     </div>
   );
 }

@@ -1,0 +1,122 @@
+{
+  "createdOn": "2026-11-03",
+  "reference": "output/imagegen/references/pixel-game-style.png",
+  "export": "WebP quality 88; nearest-neighbor half-size charts and hero; original-size sprite sheets; alpha preserved",
+  "assets": [
+    {
+      "id": "hero",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/cloud-village-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 111094,
+      "alphaRange": [
+        0,
+        254
+      ],
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#hero",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-ca746588-75d0-4bb9-abb3-7ed2ef9c7f5a.png",
+      "initialPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-948ce495-f507-4357-b503-3dc303a59227.png",
+      "editPrompt": "docs/image-generation/pixel-game-illustrations.md#hero-cutout-refinement"
+    },
+    {
+      "id": "compute",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/compute-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 68540,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#compute",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-e4b842c1-e4b7-4a46-ac7b-861d43f6896d.png"
+    },
+    {
+      "id": "database",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/database-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 77124,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#database",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-8b1d809e-f146-4048-8398-9ac979ff10df.png"
+    },
+    {
+      "id": "networking",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/networking-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 70008,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#networking",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-e580b7e7-345e-44db-ae14-81747d35ace3.png"
+    },
+    {
+      "id": "storage",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/storage-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 79210,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#storage",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-30dd073c-f432-4849-a644-6406e89d6763.png"
+    },
+    {
+      "id": "monitoring",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/monitoring-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 55640,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#monitoring",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-79505853-a834-43fe-9488-b4bf0c1c4330.png"
+    },
+    {
+      "id": "security",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/security-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 58272,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#security",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-f08ce8e8-7302-4eb8-97bb-eef96b7fa10e.png"
+    },
+    {
+      "id": "messaging",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/messaging-pixel-v2.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 59088,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#messaging",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-170659c7-c6a3-4d74-b736-7433f255fd05.png"
+    },
+    {
+      "id": "situation-page",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/situation-page-pixel-v2.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 257234,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#situation-page",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-6850dd27-4321-4a9f-ab98-81618bc4a00c.png"
+    },
+    {
+      "id": "situation-order",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/aws-infrastructure/illustrations/situation-order-pixel-v2.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 249812,
+      "alphaRange": null,
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/pixel-game-illustrations.md#situation-order",
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-604043ec-8b15-4f63-bb87-aa0c9f7270d9.png"
+    }
+  ]
+}

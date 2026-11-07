@@ -1,3 +1,4 @@
+import useWorkspaceMobile from "../../workspace-mobile/useWorkspaceMobile";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarDays, FolderPen, Info, LayoutGrid, Table2 } from "lucide-react";
@@ -27,10 +28,12 @@ const shiftDay = (date, amount) => {
 };
 
 export default function EodView({ dashboard, notify, month, onMonthChange }) {
+  const mobile = useWorkspaceMobile();
   const [params, setParams] = useSearchParams();
   const [groupId, setGroupId] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [viewMode, setViewMode] = useState(() => {
+    if (mobile) return "cards";
     try { return localStorage.getItem("personal-dashboard-eod-view") === "table" ? "table" : "cards"; }
     catch { return "cards"; }
   });
@@ -156,7 +159,7 @@ export default function EodView({ dashboard, notify, month, onMonthChange }) {
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--pd-border)] pb-3">
-      <nav className="flex min-w-0 flex-wrap items-center gap-2" aria-label="EOD groups">
+      <nav className="workspace-module-tabs flex min-w-0 flex-wrap items-center gap-2" aria-label="EOD groups">
         {groups.map((group) => <button key={group.id} type="button" aria-current={groupId === String(group.id) ? "page" : undefined} onClick={() => changeScope(group.id)} className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-blue-600 ${groupId === String(group.id) ? "border-blue-600 text-blue-700" : "border-transparent text-slate-600 hover:border-slate-300 hover:text-slate-950"}`}>{group.name}</button>)}
       </nav>
       <div className="flex flex-wrap items-center gap-2">

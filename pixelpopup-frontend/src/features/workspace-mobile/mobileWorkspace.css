@@ -10,6 +10,8 @@
   }
   .personal-dashboard.workspace-mobile-shell { padding-bottom: calc(var(--workspace-mobile-nav-height) + 1rem); }
   .workspace-mobile-page { display: block; min-width: 0; }
+  .personal-dashboard .workspace-module-tabs { display: flex; width: 100%; max-width: 100%; min-width: 0; height: auto; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; }
+  .personal-dashboard .workspace-module-tabs > :is(button, a) { min-height: 44px; flex-shrink: 0; white-space: nowrap; }
   .personal-dashboard .workspace-summary-tile { position: relative; isolation: isolate; overflow: hidden; transition: background-color 150ms ease-out, border-color 150ms ease-out; }
   .workspace-summary-tile > svg[viewBox="0 0 160 160"] { z-index: -1; }
   @media (hover: hover) {

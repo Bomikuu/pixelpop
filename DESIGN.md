@@ -252,6 +252,37 @@ Cortico retains its original animated metric cards and interactive traffic timel
 
 ### Portfolio Refinement
 
+#### Interactive study workspace
+
+The full-stack AI guide uses a lesson workspace modeled on the supplied course
+reference: grouped curriculum at left, one active lesson in the center, and
+progress, section navigation, takeaways, and notes at right. Keep the existing
+portfolio navigation, Instrument Sans, cobalt actions, semantic theme roles,
+and restrained borders. The learning sequence is Understand, Try it, Real world,
+Check, and Takeaways. Each topic has a clickable mental model and matching
+activity; relevant topics also offer a simulation. Use short recall exercises
+and explicit self-checks without claiming automatic grading of written answers.
+Notes, bookmarks, last lesson, and manual completion stay browser-local.
+Focus mode hides the side rails. Mobile uses accessible drawers for the outline
+and notes, plus a compact Previous / Complete / Next bar with safe-area spacing.
+Motion follows a lesson change or deliberate simulation run; reduced motion
+retains the same information. Other public guides keep their existing shell.
+
+Quiz mode opens with overall progress and radio-card topic selection, including
+a mixed round. Show unique questions practiced, correctness on the latest checked
+attempt, questions to revisit, and existing lesson completion using real browser-local
+records. Selection updates a round preview with its actual topics and an explorable
+question diagram; keep Start round reachable in a compact mobile bottom bar.
+Use a compact header with Back to lessons, optional focus mode and a pausable
+countdown. During a round, keep the question panel beside progress, numbered
+question navigation, hints, and expandable key concepts. Results panels scroll
+normally above answer review. Checked correct answers use semantic green;
+incorrect choices use semantic red with text and icons as well as color.
+Keep responses when moving between questions and count each submission once.
+Results show the score, unanswered questions, category breakdown, answer review,
+and missed-question retry. Animate the result ring and percentage without React
+updates per frame; respect reduced motion and cancel animations on unmount.
+
 Use sentence-case labels without decorative letter spacing. Center the process heading and its description. Process navigation uses compact, content-width pill tabs with Lucide icons, centered beneath the heading without a surrounding rail. The selected pill has a cobalt fill and white text; other pills have white fills, quiet borders, and clear hover and focus states. Let the pills wrap into centered rows on narrow screens rather than stretching them to fill the section. Preserve keyboard navigation. Keep gradients only where needed to maintain hero readability; ordinary sections use flat fields. Omit colored glows, decorative dot grids, and initial-letter author avatars outside the explicitly restored Cortico presentation. Article bylines use the author's actual name. Keep existing routes, section anchors, project screenshots, typography, and contact behavior.
 
 Generated initial HTML includes the homepage's project descriptions and work history, links to published writing, full cached article bodies, and DineEase and PixelCore project details. Derive these from the same records as the React pages and the published API; show the same content to readers and crawlers. Keep an article-body snapshot for API outages during builds.
@@ -312,7 +343,7 @@ tasks and data; Saira Condensed is reserved for the wordmark and Quick actions
 title. The business home summary uses the existing delivery navy with pale blue
 supporting text. Personal Today follows the supplied light balance-card reference,
 using theme-aware surfaces so it also works in dark mode.
-Keep the date controls in a compact trailing row below the masthead with equal
+Keep the date controls in a full-width row below the masthead with equal
 44px control heights. Preserve the nutrition day picker and previous/next controls.
 Keep vertical padding at 8px to limit the sticky header's height.
 Workspace switching belongs in the More drawer through a labeled, two-choice
@@ -393,6 +424,24 @@ retain their placeholder instead of counting from a fabricated zero.
 On phones, shared record forms fill the visual viewport with fixed header/actions and one scrolling field region. Respect keyboard resizing, safe areas, validation focus and discard confirmation. Dashboard Smokey sits above the 80px bottom navigation; while a phone dialog or keyboard owns the screen, defer its bubble without dismissing queued notifications. Existing inline errors remain in the form. Public companion positioning stays unchanged.
 
 The two dashboards share the Mico Workspace PWA identity and existing brand artwork. Installation guidance belongs in More and the expanded desktop sidebar. Preserve public-page metadata when leaving a workspace. The first release caches only a static offline document and app icons: private data, authenticated HTML, API calls, downloads and public portfolio routes stay on the network. Never replay writes or AI requests offline. Service-worker updates wait for workspace windows to close, with a notice to save first and no forced reload.
+
+### Mobile Module Density
+
+Below 1024px, personal record tables use compact records with identity, amount
+and two key metadata fields visible; remaining fields and existing actions live
+under Details & actions. Account and asset cards retain their existing layouts.
+Use the shared MobileDisclosure for filters, secondary totals, charts and business
+supporting sections. It stays expanded on desktop and keeps children mounted so
+disclosure never discards filters or form drafts. Keep primary actions, errors,
+status and risk notices visible. Retain existing confirmation and write guards.
+
+Module navigation uses a single horizontally scrolling strip with 44px touch
+targets instead of wrapping into several rows. Personal EOD starts in card view
+on phones without changing a saved desktop preference; Table remains available.
+Business records keep Details and their main action visible, with additional
+actions grouped below. Applications show concise factual evidence status on
+phones; the detailed comparison remains in the application workspace. Its tabs
+scroll with mobile content instead of covering the shared sticky masthead.
 
 ### Mobile Transactions
 

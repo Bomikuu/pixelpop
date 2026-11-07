@@ -24,6 +24,7 @@ import {
   Info,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import MobileDisclosure from "../../workspace-mobile/MobileDisclosure";
 
 const icons = {
   balance: Wallet,
@@ -209,6 +210,7 @@ export default function SummaryTiles({ items, primaryCount = 4, primaryColumns =
         {items.slice(0, primaryCount).map((item) => <SummaryTile key={item.label} item={item} />)}
       </dl>
       {secondaryCount > 0 && (
+        <MobileDisclosure title="More financial figures" count={secondaryCount}>
         <dl className={"grid grid-cols-2 gap-3 md:grid-cols-3 " + (secondaryCount === 6 ? "xl:grid-cols-6" : "xl:grid-cols-5")}>
           {items.slice(primaryCount).map((item) => (
             <SummaryTile
@@ -219,6 +221,7 @@ export default function SummaryTiles({ items, primaryCount = 4, primaryColumns =
             />
           ))}
         </dl>
+        </MobileDisclosure>
       )}
     </div>
   );

@@ -1,3 +1,5 @@
+import useWorkspaceMobile from "../../workspace-mobile/useWorkspaceMobile";
+import MobileRecordCards from "../components/MobileRecordCards";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -29,6 +31,7 @@ import SharedBillsView from "./SharedBillsView";
 import PeopleActions from "../components/PeopleActions";
 
 export default function PeopleView(props) {
+  const mobile = useWorkspaceMobile();
   const { dashboard, month, openForm } = props;
   const [params, setParams] = useSearchParams();
   const view = ["overview", "giving", "loans", "shared"].includes(
@@ -72,7 +75,7 @@ export default function PeopleView(props) {
       >
         <TabsList
           aria-label="People and money views"
-          className="w-full flex-wrap justify-start gap-1 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:w-fit"
+          className="workspace-module-tabs w-full flex-wrap justify-start gap-1 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:w-fit"
         >
           <TabsTrigger value="overview" className="px-3 py-2">
             <LayoutDashboard />
@@ -115,7 +118,9 @@ export default function PeopleView(props) {
               />
             ) : (
               <>
-                <div className="overflow-x-auto">
+                {mobile ? <MobileRecordCards rows={state.data.results} rowKey="key" resource="loans" fields={["person", "outstanding", "given", "lent", "repaid"]}
+                  renderField={(field, row) => field === "person" ? <RecordIdentity resource="people" row={row} label={row.person} /> : field === "outstanding" ? money(row[field]) : <span>{field === "given" && <span className="block text-[var(--site-secondary)]">{monthLabel(month)}</span>}{field !== "given" && <span className="block text-[var(--site-secondary)]">Lifetime</span>}<MoneyFlowAmount amount={row[field]} direction={field === "repaid" ? "in" : "out"} /></span>}
+                  renderActions={(row) => <Button asChild variant="outline" size="sm"><Link to={`/dashboard/people/${row.key}?month=${month}`}>View history<ChevronRight aria-hidden="true" /></Link></Button>} /> : <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -170,8 +175,8 @@ export default function PeopleView(props) {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-                <div className="mt-4 flex items-center justify-between gap-3 border-t pt-4 text-sm text-slate-600">
+                </div>}
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4 text-sm text-slate-600">
                   <span>
                     {state.data.count} people · Page {page}
                   </span>

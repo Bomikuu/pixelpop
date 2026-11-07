@@ -10,7 +10,7 @@ export default function FundsView(props) {
   );
   return (
     <Tabs defaultValue="benefits" className="gap-5">
-      <TabsList aria-label="Benefits and coverage" className="w-full flex-wrap justify-start gap-1 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:w-fit">
+      <TabsList aria-label="Benefits and coverage" className="workspace-module-tabs w-full flex-wrap justify-start gap-1 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:w-fit">
         <TabsTrigger value="benefits" className="px-3 py-2"><PiggyBank aria-hidden="true" /> Benefits</TabsTrigger>
         <TabsTrigger value="coverage" className="px-3 py-2"><HeartPulse aria-hidden="true" /> Coverage</TabsTrigger>
       </TabsList>

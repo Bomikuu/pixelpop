@@ -1,0 +1,145 @@
+{
+  "createdOn": "2026-11-03",
+  "assets": [
+    {
+      "slug": "claymorphism",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/claymorphism-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 38938,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-0672c99f-5ef8-4d2a-821c-dd7df7062c6a.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "neo-brutalism",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/neo-brutalism-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 49618,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-9f4f54a6-42e7-4926-bef0-8ebc9f613383.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "glassmorphism",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/glassmorphism-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 32178,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-8ef00309-4cbe-468a-b760-d20eddb8f1de.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "neumorphism",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/neumorphism-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 23158,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-28a8e669-530f-4b8f-a785-1744222140ca.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "bento-grid",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/bento-grid-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 36158,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-8be438b8-de2a-4f80-9f9b-d8e3a488a809.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "swiss-design",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/swiss-design-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 26520,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-0a0455c4-c5d7-4250-9209-c07b1c598b92.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "minimalism",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/minimalism-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 19062,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-2622e7ca-4305-4af6-8d90-836d43d337ca.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "y2k",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/y2k-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 73718,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-688cdd8c-f3db-4456-90b2-8801c03612ea.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "synthwave",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/synthwave-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 67154,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-adde367b-572d-40c8-8966-f20b8d6d5ea8.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "pixel-art",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/pixel-art-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 75058,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-f7b82ce8-823f-4c7c-82f8-b46e75fe601c.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "editorial",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/editorial-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 68026,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-0b825baa-e66d-4074-acbd-1ae3de517910.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "luxury-typography",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/luxury-typography-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 31540,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-69801d9f-c0ed-4437-8f37-298b3b52717f.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "scrapbook",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/scrapbook-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 86900,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-71244075-42f5-42a9-acfd-315ebd8af0a9.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    },
+    {
+      "slug": "terminal",
+      "file": "pixelpopup-frontend/public/portfolio/assets/how-tos/design-styles/terminal-v1.webp",
+      "width": 768,
+      "height": 512,
+      "bytes": 27642,
+      "originalPath": "/home/micxsz/.codex/generated_images/01a15f10-c150-7401-acbf-4c498774a94b/exec-00a240b5-51f2-4c5b-aac5-87f63f470888.png",
+      "mode": "built-in Imagegen",
+      "prompt": "docs/image-generation/design-style-examples.md"
+    }
+  ]
+}
