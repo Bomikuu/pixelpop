@@ -1,0 +1,6 @@
+{
+  "dangling_endpoint_edges": 387,
+  "missing_endpoint_edges": 0,
+  "self_loop_edges": 0,
+  "undirected_same_endpoint_collapsed_edges": 30
+}

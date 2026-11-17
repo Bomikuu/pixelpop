@@ -1,0 +1,6 @@
+Tool: built-in imagegen
+Output: pixelpopup-frontend/public/workspace-assets/meal-empty-isometric-v1.webp
+Delivery: alpha-preserving WebP, 320 x 213 pixels, 9,874 bytes.
+
+Final generation prompt:
+Use case: illustration-story. Asset type: small empty-state illustration for a nutrition app meal list. Create an original clean isometric food illustration inspired by the general visual language of friendly geometric vector illustration packs. A simple empty cream ceramic plate on a small pale blue isometric placemat, with a cobalt blue fork and spoon neatly beside it, one small fresh green herb sprig. Crisp restrained dark navy outlines, flat geometric color planes, soft cobalt and ice-blue accents, slight geometric depth. Compact centered composition, fully visible plate and utensils, legible at 144 pixels wide, calm welcoming mood. Genuinely transparent alpha background outside the objects. No characters, no cat, no text, no UI, no letters or numbers, no logo, no watermark, no decorative background blobs, no backdrop rectangle, no photorealism. This is an original food logging placeholder, not a copy of any existing illustration.

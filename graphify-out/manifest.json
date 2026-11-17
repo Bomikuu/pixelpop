@@ -1,0 +1,380 @@
+{
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/AIActivityPanel.jsx": {
+    "mtime": 1791198378.4301007,
+    "seen": 1792683804.7022452,
+    "ast_hash": "677be5955ad828e14ea7a0682cc3f443",
+    "semantic_hash": "677be5955ad828e14ea7a0682cc3f443"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicantProfileForm.jsx": {
+    "mtime": 1791528901.9780853,
+    "seen": 1792683804.7022526,
+    "ast_hash": "a769724bc269ed7d3342722cc72919d8",
+    "semantic_hash": "a769724bc269ed7d3342722cc72919d8"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationAISettings.jsx": {
+    "mtime": 1791528901.9797592,
+    "seen": 1792683804.7022643,
+    "ast_hash": "5c81ba07ada261214c4ce89e7de2d700",
+    "semantic_hash": "5c81ba07ada261214c4ce89e7de2d700"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationActivityForm.jsx": {
+    "mtime": 1791121787.4482698,
+    "seen": 1792683804.702268,
+    "ast_hash": "d72a610584d6376c955c975f4b60e8b6",
+    "semantic_hash": "d72a610584d6376c955c975f4b60e8b6"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationBudget.jsx": {
+    "mtime": 1791144482.6152513,
+    "seen": 1792683804.7022712,
+    "ast_hash": "5c76031d83080e7f4c36253d7afeada6",
+    "semantic_hash": "5c76031d83080e7f4c36253d7afeada6"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationChecklist.jsx": {
+    "mtime": 1791198339.8597674,
+    "seen": 1792683804.7022746,
+    "ast_hash": "39cff8742d86749e6b0f52c027367954",
+    "semantic_hash": "39cff8742d86749e6b0f52c027367954"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationConversionForm.jsx": {
+    "mtime": 1791131247.4599378,
+    "seen": 1792683804.7022781,
+    "ast_hash": "a22a88973f138fde7874c37c6250b380",
+    "semantic_hash": "a22a88973f138fde7874c37c6250b380"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationDetail.jsx": {
+    "mtime": 1792683520.6443398,
+    "seen": 1792683804.7022815,
+    "ast_hash": "c8254f71038686ecf3605cb3d94b867e",
+    "semantic_hash": "c8254f71038686ecf3605cb3d94b867e"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationFollowUps.jsx": {
+    "mtime": 1791143060.593673,
+    "seen": 1792683804.7022977,
+    "ast_hash": "9d2f96f01e72d8371dc2aadaff666438",
+    "semantic_hash": "9d2f96f01e72d8371dc2aadaff666438"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationForm.jsx": {
+    "mtime": 1791140483.7194963,
+    "seen": 1792683804.7023008,
+    "ast_hash": "3e26fd10c76fa9b82690bcac229441a9",
+    "semantic_hash": "3e26fd10c76fa9b82690bcac229441a9"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationHeader.jsx": {
+    "mtime": 1792682500.074851,
+    "seen": 1792683804.702304,
+    "ast_hash": "370c15c7a0d7dd384955d034953d5e24",
+    "semantic_hash": "370c15c7a0d7dd384955d034953d5e24"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationHistory.jsx": {
+    "mtime": 1791126213.7466164,
+    "seen": 1792683804.7023072,
+    "ast_hash": "2101f2c49d0d350a6e910261984d1825",
+    "semantic_hash": "2101f2c49d0d350a6e910261984d1825"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationListItem.jsx": {
+    "mtime": 1791144636.6897173,
+    "seen": 1792683804.7023106,
+    "ast_hash": "a6f9b729d6e0c4fb33d7a8aaf7986d2a",
+    "semantic_hash": "a6f9b729d6e0c4fb33d7a8aaf7986d2a"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationOverview.jsx": {
+    "mtime": 1791365308.5041077,
+    "seen": 1792683804.7023137,
+    "ast_hash": "124eb707b2f0295b8d19e840d081c5a9",
+    "semantic_hash": "124eb707b2f0295b8d19e840d081c5a9"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationTimeline.jsx": {
+    "mtime": 1791129857.1801772,
+    "seen": 1792683804.7023168,
+    "ast_hash": "f1adcdc0f116f3866774ee54873d469d",
+    "semantic_hash": "f1adcdc0f116f3866774ee54873d469d"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ApplicationUsage.jsx": {
+    "mtime": 1791179677.7643776,
+    "seen": 1792683804.7023199,
+    "ast_hash": "ead3a0cd5c71c878a52fd7fe9755aa06",
+    "semantic_hash": "ead3a0cd5c71c878a52fd7fe9755aa06"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ArtifactEditor.jsx": {
+    "mtime": 1792683462.7860286,
+    "seen": 1792683804.7023232,
+    "ast_hash": "715d8580bef5f219875c093cd33b5d4d",
+    "semantic_hash": "715d8580bef5f219875c093cd33b5d4d"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/AssessmentComparison.jsx": {
+    "mtime": 1791143060.592884,
+    "seen": 1792683804.7023263,
+    "ast_hash": "119e3f3398ef6440fc34e9d125dc7756",
+    "semantic_hash": "119e3f3398ef6440fc34e9d125dc7756"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/AssessmentSummary.jsx": {
+    "mtime": 1791198462.1986527,
+    "seen": 1792683804.7023294,
+    "ast_hash": "8c9a2ca04520a95629b0e108794945cc",
+    "semantic_hash": "8c9a2ca04520a95629b0e108794945cc"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ClarificationAutoAnswers.jsx": {
+    "mtime": 1791534066.5041373,
+    "seen": 1792683804.7023325,
+    "ast_hash": "0bae06fa6ceda5902a97f613e4dd81b2",
+    "semantic_hash": "0bae06fa6ceda5902a97f613e4dd81b2"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ClarificationBatchReview.jsx": {
+    "mtime": 1791533994.9741588,
+    "seen": 1792683804.7023356,
+    "ast_hash": "99b9ebeb43e842c2e0e67c1453507559",
+    "semantic_hash": "99b9ebeb43e842c2e0e67c1453507559"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/CostReconciliationForm.jsx": {
+    "mtime": 1791129857.1811771,
+    "seen": 1792683804.7023385,
+    "ast_hash": "4bac97017b5530321e425b3d23a54654",
+    "semantic_hash": "4bac97017b5530321e425b3d23a54654"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ExperienceExampleReview.jsx": {
+    "mtime": 1791530640.1129918,
+    "seen": 1792683804.7023418,
+    "ast_hash": "adb029d28c3183a9a903ef80f1a99c37",
+    "semantic_hash": "adb029d28c3183a9a903ef80f1a99c37"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/FitAssessment.jsx": {
+    "mtime": 1791364686.8258128,
+    "seen": 1792683804.7023451,
+    "ast_hash": "899fdc3cbd49f32d8ac3860669a38c1b",
+    "semantic_hash": "899fdc3cbd49f32d8ac3860669a38c1b"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/FollowUpForm.jsx": {
+    "mtime": 1791143847.936692,
+    "seen": 1792683804.7023482,
+    "ast_hash": "0abd3edad423731393db460c09ec9f9f",
+    "semantic_hash": "0abd3edad423731393db460c09ec9f9f"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/GenerationQuoteDialog.jsx": {
+    "mtime": 1791533893.2486115,
+    "seen": 1792683804.7023513,
+    "ast_hash": "2c8073ecff25131f9c1b3c8c51e28a04",
+    "semantic_hash": "2c8073ecff25131f9c1b3c8c51e28a04"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/GenerationResultBanner.jsx": {
+    "mtime": 1791534066.5061371,
+    "seen": 1792683804.7023547,
+    "ast_hash": "b8228b5a4b2e885fa58fd2d838cbb467",
+    "semantic_hash": "b8228b5a4b2e885fa58fd2d838cbb467"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/InterviewGapPreparation.jsx": {
+    "mtime": 1791530640.1139917,
+    "seen": 1792683804.7023578,
+    "ast_hash": "0c0a480bd3d2072704b85443d198d0aa",
+    "semantic_hash": "0c0a480bd3d2072704b85443d198d0aa"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/JobApplicationsView.jsx": {
+    "mtime": 1792683520.6463397,
+    "seen": 1792683804.7023609,
+    "ast_hash": "98ac156121e80c52df74061a5863e50f",
+    "semantic_hash": "98ac156121e80c52df74061a5863e50f"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/PostingHighlights.jsx": {
+    "mtime": 1791364686.865812,
+    "seen": 1792683804.7023642,
+    "ast_hash": "35d804fb66e0c5f22935c06347aa1db3",
+    "semantic_hash": "35d804fb66e0c5f22935c06347aa1db3"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ProfileSkillSuggestions.jsx": {
+    "mtime": 1791528901.9767594,
+    "seen": 1792683804.7023673,
+    "ast_hash": "e4a297f01beda7b1a0469f1508787419",
+    "semantic_hash": "e4a297f01beda7b1a0469f1508787419"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ProjectExperienceEditor.jsx": {
+    "mtime": 1791530853.9169452,
+    "seen": 1792683804.7023704,
+    "ast_hash": "75a54a04cd0991bba1631c2503816ef2",
+    "semantic_hash": "75a54a04cd0991bba1631c2503816ef2"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ProjectExperienceForm.jsx": {
+    "mtime": 1791530640.1809907,
+    "seen": 1792683804.7023737,
+    "ast_hash": "d687ef6c43f06426f58e6094277461c8",
+    "semantic_hash": "d687ef6c43f06426f58e6094277461c8"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ProposalReview.jsx": {
+    "mtime": 1791529569.0862534,
+    "seen": 1792683804.7023768,
+    "ast_hash": "494fc52f95402647aeb170768f2c3cf8",
+    "semantic_hash": "494fc52f95402647aeb170768f2c3cf8"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ProposalSection.jsx": {
+    "mtime": 1791530131.314242,
+    "seen": 1792683804.70238,
+    "ast_hash": "b4e7dd015953f3e13bed72b76ed799c5",
+    "semantic_hash": "b4e7dd015953f3e13bed72b76ed799c5"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ProviderIcon.jsx": {
+    "mtime": 1791133542.5462725,
+    "seen": 1792683804.702383,
+    "ast_hash": "e776f48c3a0ddd3f7291ea5c2c281e6f",
+    "semantic_hash": "e776f48c3a0ddd3f7291ea5c2c281e6f"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ProviderSetupGuide.jsx": {
+    "mtime": 1791133542.5482724,
+    "seen": 1792683804.7023861,
+    "ast_hash": "96bbcafbaffdff05a58df6104863afbf",
+    "semantic_hash": "96bbcafbaffdff05a58df6104863afbf"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/RequirementDecisionForm.jsx": {
+    "mtime": 1791530233.4367867,
+    "seen": 1792683804.7023892,
+    "ast_hash": "344341267a3443ec472bb95bb495780a",
+    "semantic_hash": "344341267a3443ec472bb95bb495780a"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/RequirementsComparison.jsx": {
+    "mtime": 1791530233.4307868,
+    "seen": 1792683804.7023923,
+    "ast_hash": "a9273a04cb0e3e2914af003b5c2f7065",
+    "semantic_hash": "a9273a04cb0e3e2914af003b5c2f7065"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeBuilder.jsx": {
+    "mtime": 1791183735.1326766,
+    "seen": 1792683804.7023954,
+    "ast_hash": "4a3b798342659c7d6a2d188c07e633e6",
+    "semantic_hash": "4a3b798342659c7d6a2d188c07e633e6"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeClarificationForm.jsx": {
+    "mtime": 1791534128.5652509,
+    "seen": 1792683804.7023985,
+    "ast_hash": "ec51ec27397a620f495adb0c7a4350be",
+    "semantic_hash": "ec51ec27397a620f495adb0c7a4350be"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeDocument.jsx": {
+    "mtime": 1791147701.7141705,
+    "seen": 1792683804.7024016,
+    "ast_hash": "ac0b6c079a9e700a51801ae47b5f2658",
+    "semantic_hash": "ac0b6c079a9e700a51801ae47b5f2658"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeEditorWorkspace.jsx": {
+    "mtime": 1792683829.0339983,
+    "seen": 1792683830.871721,
+    "ast_hash": "4afc6b214772dab4b7455e0047c5c17c",
+    "semantic_hash": "4afc6b214772dab4b7455e0047c5c17c"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeJSONDialog.jsx": {
+    "mtime": 1792683707.354344,
+    "seen": 1792683804.7024086,
+    "ast_hash": "a8f8068a6787b5db95661e8892666382",
+    "semantic_hash": "a8f8068a6787b5db95661e8892666382"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeOptimization.jsx": {
+    "mtime": 1792683752.1535847,
+    "seen": 1792683804.7024114,
+    "ast_hash": "505b230d25d28395cb820cd94c8a156e",
+    "semantic_hash": "505b230d25d28395cb820cd94c8a156e"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeSectionCard.jsx": {
+    "mtime": 1791183735.1336765,
+    "seen": 1792683804.7024145,
+    "ast_hash": "2ede436575954591e0e50e64dca3953c",
+    "semantic_hash": "2ede436575954591e0e50e64dca3953c"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ResumeSectionForm.jsx": {
+    "mtime": 1791183735.1336765,
+    "seen": 1792683804.7024176,
+    "ast_hash": "3534c6c8dc506660622de177042b2fb0",
+    "semantic_hash": "3534c6c8dc506660622de177042b2fb0"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ReusableAnswerForm.jsx": {
+    "mtime": 1791130482.560824,
+    "seen": 1792683804.702421,
+    "ast_hash": "5b451802438f97683c34044103bc2809",
+    "semantic_hash": "5b451802438f97683c34044103bc2809"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ReusableAnswerPicker.jsx": {
+    "mtime": 1791130190.2000434,
+    "seen": 1792683804.702424,
+    "ast_hash": "652b5a47680e8a63d7758e83acc839fe",
+    "semantic_hash": "652b5a47680e8a63d7758e83acc839fe"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/ReusableAnswersView.jsx": {
+    "mtime": 1791131226.4283197,
+    "seen": 1792683804.7024276,
+    "ast_hash": "a2ce58bf631cb861d0af92a8a123e5b6",
+    "semantic_hash": "a2ce58bf631cb861d0af92a8a123e5b6"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/SkillGapActions.jsx": {
+    "mtime": 1791530233.4307868,
+    "seen": 1792683804.7024307,
+    "ast_hash": "ab8e4a43d2f3c5f7f8876af4da89af69",
+    "semantic_hash": "ab8e4a43d2f3c5f7f8876af4da89af69"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/SkillGapPreparationForm.jsx": {
+    "mtime": 1791530131.3252418,
+    "seen": 1792683804.702434,
+    "ast_hash": "e57b63e846cebd564b413849f9738b72",
+    "semantic_hash": "e57b63e846cebd564b413849f9738b72"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/SkillTagPicker.jsx": {
+    "mtime": 1791528901.9780853,
+    "seen": 1792683804.7024372,
+    "ast_hash": "619b0d080bc42c13e67ac661eb227ad2",
+    "semantic_hash": "619b0d080bc42c13e67ac661eb227ad2"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/SubmissionReviewForm.jsx": {
+    "mtime": 1791144348.5914557,
+    "seen": 1792683804.7024403,
+    "ast_hash": "8fe9fd28f19b26172889ca5ad67d0b8e",
+    "semantic_hash": "8fe9fd28f19b26172889ca5ad67d0b8e"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/TailoringClarificationForm.jsx": {
+    "mtime": 1791529277.9416661,
+    "seen": 1792683804.7024436,
+    "ast_hash": "c4c094e6d5915700a456c68e25f77ab1",
+    "semantic_hash": "c4c094e6d5915700a456c68e25f77ab1"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/TailoringPreferences.jsx": {
+    "mtime": 1791528901.9797592,
+    "seen": 1792683804.7024467,
+    "ast_hash": "5f5967c5f50989d8beb415cb90a3befb",
+    "semantic_hash": "5f5967c5f50989d8beb415cb90a3befb"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/WorkflowPages.jsx": {
+    "mtime": 1791129857.1801772,
+    "seen": 1792683804.7024496,
+    "ast_hash": "0771628c36343b86f3d7bbf4368a6d5b",
+    "semantic_hash": "0771628c36343b86f3d7bbf4368a6d5b"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/api.js": {
+    "mtime": 1791533786.7981317,
+    "seen": 1792683804.702453,
+    "ast_hash": "7914b3fb89e0a659d3d67f6b16b89f81",
+    "semantic_hash": "7914b3fb89e0a659d3d67f6b16b89f81"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/documentSections.js": {
+    "mtime": 1791179444.9154122,
+    "seen": 1792683804.702456,
+    "ast_hash": "31378196e79666f3ad0f55e793b95db4",
+    "semantic_hash": "31378196e79666f3ad0f55e793b95db4"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/resumeJSON.js": {
+    "mtime": 1792683327.2422996,
+    "seen": 1792683804.7024593,
+    "ast_hash": "df39a6b3931d48c585228ea61fa4fbac",
+    "semantic_hash": "df39a6b3931d48c585228ea61fa4fbac"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/resumePrint.js": {
+    "mtime": 1791145709.7160037,
+    "seen": 1792683804.7024624,
+    "ast_hash": "a1596ac8a07ebaed38830595f98f4358",
+    "semantic_hash": "a1596ac8a07ebaed38830595f98f4358"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/resumeSectionTemplates.js": {
+    "mtime": 1791183439.0127606,
+    "seen": 1792683804.7024655,
+    "ast_hash": "360f27ebade44000e5b929e30aba77b2",
+    "semantic_hash": "360f27ebade44000e5b929e30aba77b2"
+  },
+  "pixelpopup-frontend/src/features/business-dashboard/job-applications/skillCatalog.js": {
+    "mtime": 1791528901.9767594,
+    "seen": 1792683804.7024689,
+    "ast_hash": "b1ebfff34f5c5822a0c6dab5ec8e6794",
+    "semantic_hash": "b1ebfff34f5c5822a0c6dab5ec8e6794"
+  }
+}

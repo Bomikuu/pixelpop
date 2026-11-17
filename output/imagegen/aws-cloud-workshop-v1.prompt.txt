@@ -1,0 +1,8 @@
+Use case: illustration-story
+Asset type: transparent educational illustration for an AWS infrastructure beginner guide in the Mico Ang portfolio.
+Primary request: Explain the idea that an online shop uses several small cloud services with different jobs, through an approachable isometric miniature workshop. Show a small storefront entrance connected visually to a central workbench where a worker assembles an order; nearby are an organized records cabinet, a separate shelf holding photo/file cards, a dispatch desk with two trays of job tickets, a small monitoring screen, and a locked key cabinet. These represent web access, compute, databases, object storage, queued background work, monitoring and permissions.
+Style/medium: polished editorial isometric illustration, precise soft forms and thin navy outlines, approachable and legible when small, with quiet paper-like texture.
+Composition/framing: wide landscape, compact cohesive workshop seen in three-quarter isometric view, generous transparent space around the silhouette. Keep the functional areas distinct without turning them into floating UI cards.
+Color palette: off-white, cool light gray, navy details, restrained cobalt blue highlights, natural neutral skin tones.
+Text: none. No letters or numbers.
+Constraints: genuinely transparent background; no words, brand names, AWS logos, service icon imitations, watermarks, decorative clouds, glows, gradients, or arrows. This is a learning metaphor rather than a literal network architecture diagram. All caption labels and actual service connections will be HTML outside the image.
